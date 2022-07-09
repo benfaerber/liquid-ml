@@ -1,29 +1,15 @@
 open Base
 open Tools
-
-type blockToken =
-  | StatementStart
-  | StatementEnd
-  | ExpressionStart
-  | ExpressionEnd
-  | LiquidStart
-  | Other of string
-
-type block =
-  | Text of string
-  | Statement of string
-  | Expression of string
-  | Liquid of string
-
+open Keyword
 
 let lex_bool text =
   let literal_true = "true" in
   let literal_false = "false" in
 
   if starts_with text literal_true then
-    Some(Keyword.Bool(true)), remove_prefix text literal_true
+    Some(Bool(true)), remove_prefix text literal_true
   else if starts_with text literal_false then
-    Some(Keyword.Bool(false)), remove_prefix text literal_false
+    Some(Bool(false)), remove_prefix text literal_false
   else
     None, text
 
@@ -39,7 +25,7 @@ let lex_number text =
 
   let lex_digit_group t = lex_digit_group_aux t [] |> String.concat ~sep:"" in
 
-  let to_num v = Some (Keyword.Number(v |> Float.of_string)) in
+  let to_num v = Some (Number(v |> Float.of_string)) in
 
   let (neg_literal, t_text) =
     if starts_with text "-" then
@@ -76,16 +62,43 @@ let lex_string text =
     let string_literal = unfold "" 0 folder in
     let complete_literal = "\"" ^ string_literal ^ "\"" in
 
-    Stdio.printf "(%s) \n" complete_literal;
-    Some (Keyword.String(string_literal)), remove_prefix text complete_literal
+    Some (String(string_literal)), remove_prefix text complete_literal
   else
     None, text
 
 
-let lex_id _ = None, ""
+let lex_id text =
+  let alpha = "abcdefghijklmnopqrstuvwxyz" in
+  let alpha_upper = alpha |> String.uppercase in
+  let digits = "0123456679" in
+  let valid_first_letters = alpha ^ alpha_upper ^ "_" |> String.to_list  in
+  let valid_letters = valid_first_letters @ (digits |> String.to_list) in
+
+  let contains lst item =
+    List.mem lst item ~equal:(Caml.(=))
+  in
+
+  let to_char x = x.[0] in
+
+  if contains valid_first_letters (first_letter text |> to_char) then (
+    let folder acc index =
+      let letter = String.sub text ~pos:(index) ~len:1 in
+      if contains valid_letters (letter |> to_char) then (
+        Next ((acc ^ letter, index + 1))
+      ) else (
+        Stop (acc)
+      )
+    in
+
+    let id_literal = first_letter text ^ (unfold "" 1 folder) in
+    (Some (Id(id_literal)), remove_prefix text id_literal)
+  ) else (
+    (None, text)
+  )
+
 
 let lex_token text =
-  let lexers = [Keyword.lex_keyword; lex_bool; lex_string; lex_number; lex_id] in
+  let lexers = [lex_keyword; lex_bool; lex_string; lex_number; lex_id] in
   let found_lexer =
     List.find lexers ~f:(
       fun lexer -> match lexer text with Some(_), _ -> true | None, _ -> false
@@ -121,18 +134,34 @@ let lex_block_tokens text =
   unfold [] 0 folder
 
 let lex_tokens text =
+  let t_text = text ^ " " in
   let folder acc index =
-    let chunk = String.sub text ~pos:index ~len:(String.length text - index) in
-
-    if starts_with chunk "assign" then
-      Next (acc @ [Keyword.Assign], index+7)
-    else
-      Stop (acc)
+    let chunk = String.sub t_text ~pos:index ~len:(String.length t_text - index) in
+    match lex_token chunk with
+    | Some(t), rest -> Next (acc @ [t], String.length t_text - String.length rest)
+    | None, _ -> Stop (acc)
   in
 
-  unfold [] 0 folder
+  let raw_list = unfold [] 0 folder in
+  let wo_spaces = List.filter raw_list ~f:(fun token ->
+    match token with
+    | Space -> false
+    | _ -> true
+  ) in
+
+  wo_spaces
 
 let test () =
+  let block_tokens =
+    "liquid/block_test.liquid"
+    |> File.read
+    |> lex_block_tokens in
+
+  Stdio.print_endline "Block Tokens: ";
+  block_tokens |> block_tokens_as_string |> Stdio.print_endline;
+  (* let closing = Ast.build_tree block_tokens in *)
+  (* closing |> Batteries.dump |> Stdio.print_endline; *)
+
   (* "liquid/block_test.liquid"
   |> File.read
   |> lex_block_tokens
@@ -140,6 +169,6 @@ let test () =
   |> Stdio.printf "%s"; *)
 
   (* (String.sub "just a test" ~pos:4 ~len: 5) |> Stdio.print_endline;; *)
-  "assign animal = \"sheep\"" |> lex_token |> Batteries.dump |> Stdio.printf "%s";;
+  (* "_da_apple -12.12 \"aniaml\" = \"sheep\"" |> lex_tokens |> Batteries.dump |> Stdio.printf "%s";; *)
 
   Stdio.print_string "\n"
