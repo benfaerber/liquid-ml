@@ -1,0 +1,28 @@
+{% assign time = 1 %}
+{% assign time = time | plus: 6 %}
+{% if time == 16 %}
+It is {{ time }}!
+{% endif %}
+
+{% capture apple %}
+vic roy
+{% endcapture %}
+
+{{ apple }}
+
+{% assign person = "Sally Reginold" %}
+
+{% if person contains "Smith" %}
+You have a common last name!
+{% endif %}
+
+{% unless time == 6 %}
+Time is not 6!
+{% endunless %}
+
+{% assign doubledigit = 12 %}
+{% if doubledigit < 20 %}
+    {% if doubledigit > 10 %}
+        This is less than 20 and greater than 10: {{ doubledigit }}
+    {% endif %}
+{% endif %}

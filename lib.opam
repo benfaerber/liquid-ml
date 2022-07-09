@@ -1,0 +1,11 @@
+opam-version: "2.0"
+version: "1.0"
+maintainer: "example@email.com"
+authors: ["John Doe"]
+homepage: "https://github.com/example/example"
+bug-reports: "hthttps://github.com/example/example/issues"
+dev-repo: "git+https://github.com/example/example.git"
+license: "Apache-2.0"
+build: [
+    ["dune" "build" "-p" name "-j" jobs]
+]

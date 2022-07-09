@@ -1,0 +1,9 @@
+{% for i in (0..10) %}
+    {{ i }}
+{% endfor %}
+
+
+{% assign fruits = "apple, pear, banana, peach" | split: ", " %}
+{% for fruit in fruits %}
+    I like {{ fruit }}s!!!
+{% endfor %}

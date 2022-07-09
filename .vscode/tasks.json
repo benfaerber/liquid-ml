@@ -1,0 +1,25 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-ocaml-project",
+      "type": "shell",
+      "command": "dune build",
+      "args": []
+    },
+    {
+      "label": "format-ocaml-project",
+      "type": "shell",
+      "command": "dune build @fmt",
+      "args": []
+    },
+    {
+      "label": "run-ocaml-project",
+      "type": "shell",
+      "command": "dune build && dune exec ./bin/main.exe",
+      "args": []
+    }
+  ]
+}
