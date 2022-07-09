@@ -1,4 +1,5 @@
 open Base
+open Tools
 
 type blockToken =
   | StatementStart
@@ -15,114 +16,14 @@ type block =
   | Liquid of string
 
 
-let range x =
-  Batteries.(--) 0 x |> Batteries.List.of_enum
-
-let sub_prefix text x = String.sub text ~pos:0 ~len:x
-let sub_suffix text x = String.sub text ~pos:x ~len:(String.length text)
-let first_letter text = sub_prefix text 1
-
-let remove_prefix text prefix = String.sub text ~pos:(String.length prefix) ~len:(String.length text - String.length prefix)
-
-let starts_with text prefix =
-  if String.length text > String.length prefix then (
-    let rprefix = sub_prefix text (String.length prefix) in
-    (Caml.(=)) rprefix prefix
-  ) else false
-
-type ('acc, 'curr) loop =
-  | Next of ('acc * 'curr)
-  | Stop of 'acc
-
-let rec unfold acc curr func =
-  match func acc curr with
-  | Next((nacc, ncurr)) -> unfold nacc ncurr func
-  | Stop(acc) -> acc
-
-
-type token =
-  | If | Else | EndIf
-  | Unless | EndUnless
-  | Case | EndCase | When
-  | For | EndFor
-  | Capture | EndCapture
-  | Break | Continue
-  | Cycle | TableRow | EndTableRow
-  | Paginate | EndPaginate
-  | In | Contains | By
-  | Assign | Increment | Decrement
-  | Eq | Gte | Gt | Lte | Lt | Ne
-  | Pipe | Colon | Assignment | Comma
-  | Space | Newline
-  | Bool of bool
-  | String of string
-  | Number of float
-  | Id of string
-
-
-let lex_keyword text =
-  let keywords =
-    [ ("if", If)
-    ; ("else", Else)
-    ; ("endif", EndIf)
-    ; ("unless", Unless)
-    ; ("endunless", EndUnless)
-    ; ("case", Case)
-    ; ("endcase", EndCase)
-    ; ("when", When)
-
-    ; ("for", For)
-    ; ("endfor", EndFor)
-    ; ("capture", Capture)
-    ; ("endcapture", EndCapture)
-
-    ; ("break", Break)
-    ; ("continue", Continue)
-    ; ("cycle", Cycle)
-    ; ("tablerow", TableRow)
-    ; ("endtablerow", EndTableRow)
-
-    ; ("in", In)
-    ; ("contains", Contains)
-    ; ("by", By)
-
-    ; ("assign", Assign)
-    ; ("increment", Increment)
-    ; ("decrement", Decrement)
-
-    ; ("==", Eq)
-    ; (">=", Gte)
-    ; (">", Gt)
-    ; ("<=", Lte)
-    ; ("<", Lt)
-    ; ("!=", Ne)
-
-    ; (":", Colon)
-    ; ("|", Pipe)
-    ; ("=", Assignment)
-    ; (",", Comma)
-    ; (" ", Space)
-    ; ("\n", Newline)
-  ] in
-
-  let found_keyword =
-    List.find keywords ~f:(fun (check_literal, _) -> starts_with text check_literal) in
-
-  match found_keyword with
-  | Some (literal, token) -> (
-    let trimmed = String.sub text ~pos:(String.length literal) ~len:(String.length text - String.length literal) in
-    (Some (token), trimmed))
-  | None -> (None, text)
-
-
 let lex_bool text =
   let literal_true = "true" in
   let literal_false = "false" in
 
   if starts_with text literal_true then
-    Some(Bool(true)), remove_prefix text literal_true
+    Some(Keyword.Bool(true)), remove_prefix text literal_true
   else if starts_with text literal_false then
-    Some(Bool(false)), remove_prefix text literal_false
+    Some(Keyword.Bool(false)), remove_prefix text literal_false
   else
     None, text
 
@@ -138,7 +39,7 @@ let lex_number text =
 
   let lex_digit_group t = lex_digit_group_aux t [] |> String.concat ~sep:"" in
 
-  let to_num v = Some (Number(v |> Float.of_string)) in
+  let to_num v = Some (Keyword.Number(v |> Float.of_string)) in
 
   let (neg_literal, t_text) =
     if starts_with text "-" then
@@ -176,7 +77,7 @@ let lex_string text =
     let complete_literal = "\"" ^ string_literal ^ "\"" in
 
     Stdio.printf "(%s) \n" complete_literal;
-    Some (String(string_literal)), remove_prefix text complete_literal
+    Some (Keyword.String(string_literal)), remove_prefix text complete_literal
   else
     None, text
 
@@ -184,7 +85,7 @@ let lex_string text =
 let lex_id _ = None, ""
 
 let lex_token text =
-  let lexers = [lex_keyword; lex_bool; lex_string; lex_number; lex_id] in
+  let lexers = [Keyword.lex_keyword; lex_bool; lex_string; lex_number; lex_id] in
   let found_lexer =
     List.find lexers ~f:(
       fun lexer -> match lexer text with Some(_), _ -> true | None, _ -> false
@@ -224,7 +125,7 @@ let lex_tokens text =
     let chunk = String.sub text ~pos:index ~len:(String.length text - index) in
 
     if starts_with chunk "assign" then
-      Next (acc @ [Assign], index+7)
+      Next (acc @ [Keyword.Assign], index+7)
     else
       Stop (acc)
   in
