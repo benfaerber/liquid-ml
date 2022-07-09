@@ -1,5 +1,5 @@
 open Base
-open Tools
+(* open Tools *)
 open Keyword
 
 
@@ -25,13 +25,13 @@ let nth lst index =
 
 let to_binary c = if c then 1 else 0
 
-(* let open_to_close =
+let open_to_close =
   function
-  | Open = If -> x Close
-  | _ -> raise (Failure "Bye") *)
+  | Open p -> Close p
+  | _ -> raise (Failure "Bye")
 
 let find_closing (lst: block list) open_index =
-  let open_tag = nth lst open_index in
+  (* let open_tag = nth lst open_index in
   let close_tag = open_to_close open_tag in
 
   let folder (a_open, a_close, _) index =
@@ -48,4 +48,5 @@ let find_closing (lst: block list) open_index =
   in
 
   let (_, _, close_index) = unfold (1, 0, 0) (open_index+1) folder in
-  close_index
+  close_index *)
+  Stdio.print_endline ((lst, open_index) |> Batteries.dump)

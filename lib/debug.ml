@@ -16,16 +16,24 @@ let operator_as_string = function
   | Lte -> "Lte" | Lt -> "Lt" | Ne -> "Ne"
   | Contains -> "Contains"
 
-let pair p op cl = match p with Open -> op | Close -> cl
+let pair p op cl =
+  match p with
+  | Open _ -> op
+  | Close _ -> cl
+  | _ -> raise(Failure "Invalid pair")
+
+let pair_tag_as_string p = function
+  | If -> pair p "If" "EndIf"
+  | Unless -> pair p "Unless" "EndUnless"
+  | For -> pair p "For" "EndFor"
+  | Case -> pair p "Case" "EndCase"
+  | Capture -> pair p "Capture" "EndCapture"
+  | Paginate -> pair p "Paginate" "EndPaginate"
+  | TableRow -> pair p "TableRow" "EndTableRow"
 
 let token_as_string = function
-| If p -> pair p "If" "EndIf"
-| Unless p -> pair p "Unless" "EndUnless"
-| For p -> pair p "For" "EndFor"
-| Case p -> pair p "Case" "EndCase"
-| Capture p -> pair p "Capture" "EndCapture"
-| Paginate p -> pair p "Paginate" "EndPaginate"
-| TableRow p -> pair p "TableRow" "EndTableRow"
+| Open pt -> pair_tag_as_string (Open pt) pt
+| Close pt -> pair_tag_as_string (Close pt) pt
 | Else -> "Else"
 | When -> "When"
 | Break -> "Break" | Continue -> "Continue"

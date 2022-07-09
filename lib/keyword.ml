@@ -14,16 +14,20 @@ type operator =
 
 type tag_position = Open | Close
 
+type pair_tag =
+  | If
+  | Unless
+  | Case
+  | For
+  | Capture
+  | Paginate
+  | TableRow
+
 type token =
-  | If of tag_position
+  | Open of pair_tag
+  | Close of pair_tag
   | Else
-  | Unless of tag_position
-  | Case of tag_position
   | When
-  | For of tag_position
-  | Capture of tag_position
-  | Paginate of tag_position
-  | TableRow of tag_position
   | Break | Continue
   | Cycle
   | In | By
@@ -45,25 +49,25 @@ type block =
 
 let lex_keyword text =
   let keywords =
-    [ ("if", If Open)
+    [ ("if", Open If)
     ; ("else", Else)
-    ; ("endif", If Close)
-    ; ("unless", Unless Open)
-    ; ("endunless", Unless Close)
-    ; ("case", Case Open)
-    ; ("endcase", Case Close)
+    ; ("endif", Close If)
+    ; ("unless", Open Unless)
+    ; ("endunless", Close Unless)
+    ; ("case", Open Case)
+    ; ("endcase", Close Case)
     ; ("when", When)
 
-    ; ("for", For Open)
-    ; ("endfor", For Close)
-    ; ("capture", Capture Open)
-    ; ("endcapture", Capture Close)
+    ; ("for", Open For)
+    ; ("endfor", Close For)
+    ; ("capture", Open Capture)
+    ; ("endcapture", Close Capture)
 
     ; ("break", Break)
     ; ("continue", Continue)
     ; ("cycle", Cycle)
-    ; ("tablerow", TableRow Open)
-    ; ("endtablerow", TableRow Close)
+    ; ("tablerow", Open TableRow)
+    ; ("endtablerow", Close TableRow)
 
     ; ("in", In)
     ; ("by", By)
