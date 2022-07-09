@@ -3,5 +3,10 @@
 {% assign animal = "sheep" %}
 {% assign time = 10 %}
 {% assign screaming = "i like dogs" | upcase %}
+{%liquid
+if time == 10
+    echo "Time is 10!!!"
+endif
+%}
 My Blog Post
 {{ "Lorem ipsum dolor, sit amet consectetur adipisicing elit." |    truncate: 15 }} asdf
