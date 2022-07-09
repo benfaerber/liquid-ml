@@ -12,18 +12,24 @@ let block_token_as_string = function
 
 
 let operator_as_string = function
-| Eq -> "Eq" | Gte -> "Gte" | Gt -> "Gt" | Lte -> "Lte" | Lt -> "Lt" | Ne -> "Ne" | Contains -> "Contains"
+  | Eq -> "Eq" | Gte -> "Gte" | Gt -> "Gt"
+  | Lte -> "Lte" | Lt -> "Lt" | Ne -> "Ne"
+  | Contains -> "Contains"
+
+let pair p op cl = match p with Open -> op | Close -> cl
 
 let token_as_string = function
-| If p -> (match p with Open -> "If" | Close -> "EndIf")
+| If p -> pair p "If" "EndIf"
+| Unless p -> pair p "Unless" "EndUnless"
+| For p -> pair p "For" "EndFor"
+| Case p -> pair p "Case" "EndCase"
+| Capture p -> pair p "Capture" "EndCapture"
+| Paginate p -> pair p "Paginate" "EndPaginate"
+| TableRow p -> pair p "TableRow" "EndTableRow"
 | Else -> "Else"
-| Unless -> "Unless" | EndUnless -> "EndUnless"
-| Case -> "Case" | EndCase -> "EndCase" | When -> "When"
-| For -> "For" | EndFor -> "EndFor"
-| Capture -> "Capture" | EndCapture -> "EndCapture"
+| When -> "When"
 | Break -> "Break" | Continue -> "Continue"
-| Cycle -> "Cycle" | TableRow -> "TableRow" | EndTableRow -> "EndTableRow"
-| Paginate -> "Paginate" | EndPaginate -> "EndPaginate"
+| Cycle -> "Cycle"
 | In -> "In"
 | Assign -> "Assign" | Increment -> "Increment" | Decrement -> "Decrement"
 | Pipe -> "Pipe" | Colon -> "Colon" | Equals -> "Equals" | Comma -> "Comma"

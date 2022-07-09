@@ -15,14 +15,17 @@ type operator =
 type tag_position = Open | Close
 
 type token =
-  | If of tag_position | Else
-  | Unless | EndUnless
-  | Case | EndCase | When
-  | For | EndFor
-  | Capture | EndCapture
+  | If of tag_position
+  | Else
+  | Unless of tag_position
+  | Case of tag_position
+  | When
+  | For of tag_position
+  | Capture of tag_position
+  | Paginate of tag_position
+  | TableRow of tag_position
   | Break | Continue
-  | Cycle | TableRow | EndTableRow
-  | Paginate | EndPaginate
+  | Cycle
   | In | By
   | Assign | Increment | Decrement
   | Pipe | Colon | Equals | Comma
@@ -39,46 +42,28 @@ type block =
   | Expression of token list
   | Liquid of token list
 
-(* let tag_pairs =
-  [ (If, EndIf)
-  ; (Unless, EndUnless)
-  ; (For, EndFor)
-  ; (Case, EndCase)
-  ; (Capture, EndCapture)
-  ; (Paginate, EndPaginate)
-  ]
-
-let get_open close_tag =
-  match List.find tag_pairs ~f:(fun (_, cl) -> eq cl close_tag) with
-  | Some (x) -> x
-  | _ -> raise (Failure "This has no opening tag")
-
-let get_close open_tag =
-  match List.find tag_pairs ~f:(fun (op, _) -> eq op open_tag) with
-  | Some (x) -> x
-  | _ -> raise (Failure "This has no closing tag") *)
 
 let lex_keyword text =
   let keywords =
     [ ("if", If Open)
     ; ("else", Else)
     ; ("endif", If Close)
-    ; ("unless", Unless)
-    ; ("endunless", EndUnless)
-    ; ("case", Case)
-    ; ("endcase", EndCase)
+    ; ("unless", Unless Open)
+    ; ("endunless", Unless Close)
+    ; ("case", Case Open)
+    ; ("endcase", Case Close)
     ; ("when", When)
 
-    ; ("for", For)
-    ; ("endfor", EndFor)
-    ; ("capture", Capture)
-    ; ("endcapture", EndCapture)
+    ; ("for", For Open)
+    ; ("endfor", For Close)
+    ; ("capture", Capture Open)
+    ; ("endcapture", Capture Close)
 
     ; ("break", Break)
     ; ("continue", Continue)
     ; ("cycle", Cycle)
-    ; ("tablerow", TableRow)
-    ; ("endtablerow", EndTableRow)
+    ; ("tablerow", TableRow Open)
+    ; ("endtablerow", TableRow Close)
 
     ; ("in", In)
     ; ("by", By)

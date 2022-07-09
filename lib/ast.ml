@@ -25,9 +25,14 @@ let nth lst index =
 
 let to_binary c = if c then 1 else 0
 
-let find_closing (lst: block_token list) open_index =
+(* let open_to_close =
+  function
+  | Open = If -> x Close
+  | _ -> raise (Failure "Bye") *)
+
+let find_closing (lst: block list) open_index =
   let open_tag = nth lst open_index in
-  let close_tag = get_close open_tag in
+  let close_tag = open_to_close open_tag in
 
   let folder (a_open, a_close, _) index =
     let tag = nth lst index in
