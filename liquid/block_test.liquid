@@ -1,15 +1,13 @@
-{%
-    {{ {% dog %} }}
-%}
-
 {{ "horse" | capitalize }}
 {{ "a, b, c, d" | split: ", " }}
 {% assign animal = "sheep" %}
 {% assign time = 10 %}
-{% assign screaming = "i like dogs" | upcase %}
+{% assign screaming = 'i like dogs' | upcase %}
 {%liquid
 if time == 10
     echo "Time is 10!!!"
+else
+    echo "Time wishes it was 10"
 endif
 %}
 My Blog Post

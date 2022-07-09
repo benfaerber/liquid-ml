@@ -1,5 +1,7 @@
 open Base
 
+let eq = Caml.(=)
+
 let range x =
   Batteries.(--) 0 x |> Batteries.List.of_enum
 

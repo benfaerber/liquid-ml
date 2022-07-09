@@ -1,6 +1,8 @@
 open Base
 open Tools
 open Keyword
+open Debug
+
 
 let lex_bool text =
   let literal_true = "true" in
@@ -48,14 +50,15 @@ let lex_number text =
   )
 
 
-let lex_string text =
-  if starts_with text "\"" then
+let lex_delimited_string text delim escaped_delim =
+  if starts_with text delim then
+    let d_len = String.length escaped_delim in
     let folder acc index =
-      match String.sub text ~pos:(index+1) ~len:2 with
-      | "\\\"" -> Next (acc ^ "\\\"", index + 2)
+      match String.sub text ~pos:(index+1) ~len:d_len with
+      | e when eq e escaped_delim -> Next (acc ^ escaped_delim, index + d_len)
       | other -> (
         match first_letter other with
-        | "\"" -> Stop (acc)
+        | e when eq e delim -> Stop (acc)
         | other_letter -> Next (acc ^ other_letter, index + 1))
     in
 
@@ -66,6 +69,14 @@ let lex_string text =
   else
     None, text
 
+let lex_string text =
+  let double_quote = lex_delimited_string text "\"" "\\\"" in
+  let single_quote = lex_delimited_string text "\'" "\\\'" in
+
+  match (double_quote, single_quote) with
+  | ((Some r, rest), _) -> (Some r, rest)
+  | (_, (Some r, rest))  -> (Some r, rest)
+  | _ -> (None, text)
 
 let lex_id text =
   let alpha = "abcdefghijklmnopqrstuvwxyz" in
@@ -108,24 +119,22 @@ let lex_token text =
   | Some(lexer) -> lexer text
   | None -> (None, text)
 
-let block_token_of_string = function
-  | "{%" -> StatementStart
-  | "%}" -> StatementEnd
-  | "{{" -> ExpressionStart
-  | "}}" -> ExpressionEnd
-  | other -> Other(other)
 
 let lex_block_tokens text =
   let folder acc index =
     if index + 2 < (String.length text) then
       let chunk = String.sub text ~pos:index ~len:2 in
       match chunk with
-      | "{%" | "%}" | "{{" | "}}" -> Next (acc @ [block_token_of_string chunk], index+2)
+      | c when is_block_token_string c ->
+        Next (acc @ [block_token_of_string chunk], index+(String.length c))
       | other -> (
         match acc |> List.rev with
-        | Other("liquid") :: StatementStart :: hds -> Next ((List.rev hds) @ [LiquidStart], index+6)
-        | Other(tl) :: hds -> Next (List.rev hds @ [Other(tl ^ first_letter other)], index+1)
-        | _ -> Next (acc @ [Other(first_letter other)], index+1)
+        | RawText("liquid") :: StatementStart :: hds ->
+          Next ((List.rev hds) @ [LiquidStart], index+1)
+        | RawText(tl) :: hds ->
+          Next (List.rev hds @ [RawText(tl ^ first_letter other)], index+1)
+        | _ ->
+          Next (acc @ [RawText(first_letter other)], index+1)
       )
     else
       Stop(acc)
@@ -151,16 +160,41 @@ let lex_tokens text =
 
   wo_spaces
 
+let lex_blocks (block_tokens: block_token list) =
+  let folder acc index =
+    let max = List.length block_tokens in
+    if index > max then
+      Stop (acc)
+    else begin
+      let sub = List.sub block_tokens ~pos:index ~len:(max - index) in
+      match sub with
+      | StatementStart :: RawText(body) :: StatementEnd :: _ ->
+        Next (acc @ [Statement (lex_tokens body)], index+3)
+      | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
+        Next (acc @ [Expression (lex_tokens body)], index+3)
+      | LiquidStart :: RawText(body) :: StatementEnd :: _ ->
+        Next (acc @ [Liquid (lex_tokens body)], index+3)
+      | RawText (other) :: _ -> Next (acc @ [Text (other)], index + 1)
+      | _ -> Stop (acc)
+    end
+  in
+
+  unfold [] 0 folder
+
+
 let test () =
   let block_tokens =
     "liquid/block_test.liquid"
     |> File.read
     |> lex_block_tokens in
 
-  Stdio.print_endline "Block Tokens: ";
-  block_tokens |> block_tokens_as_string |> Stdio.print_endline;
-  (* let closing = Ast.build_tree block_tokens in *)
-  (* closing |> Batteries.dump |> Stdio.print_endline; *)
+  let blocks =
+    block_tokens
+    |> lex_blocks
+    |> blocks_as_string in
+
+  Stdio.print_endline "Blocks:";
+  Stdio.print_endline blocks;
 
   (* "liquid/block_test.liquid"
   |> File.read

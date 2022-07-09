@@ -1,24 +1,21 @@
 open Base
 open Tools
 
-type blockToken =
+type block_token =
   | StatementStart
   | StatementEnd
   | ExpressionStart
   | ExpressionEnd
   | LiquidStart
-  | Other of string
+  | RawText of string
 
+type operator =
+  Eq | Gte | Gt | Lte | Lt | Ne | Contains
 
-type block =
-  | Text of string
-  | Statement of string
-  | Expression of string
-  | Liquid of string
-
+type tag_position = Open | Close
 
 type token =
-  | If | Else | EndIf
+  | If of tag_position | Else
   | Unless | EndUnless
   | Case | EndCase | When
   | For | EndFor
@@ -26,22 +23,46 @@ type token =
   | Break | Continue
   | Cycle | TableRow | EndTableRow
   | Paginate | EndPaginate
-  | In | Contains | By
+  | In | By
   | Assign | Increment | Decrement
-  | Eq | Gte | Gt | Lte | Lt | Ne
-  | Pipe | Colon | Assignment | Comma
+  | Pipe | Colon | Equals | Comma
   | Space | Newline
+  | Operator of operator
   | Bool of bool
   | String of string
   | Number of float
   | Id of string
 
+type block =
+  | Text of string
+  | Statement of token list
+  | Expression of token list
+  | Liquid of token list
+
+(* let tag_pairs =
+  [ (If, EndIf)
+  ; (Unless, EndUnless)
+  ; (For, EndFor)
+  ; (Case, EndCase)
+  ; (Capture, EndCapture)
+  ; (Paginate, EndPaginate)
+  ]
+
+let get_open close_tag =
+  match List.find tag_pairs ~f:(fun (_, cl) -> eq cl close_tag) with
+  | Some (x) -> x
+  | _ -> raise (Failure "This has no opening tag")
+
+let get_close open_tag =
+  match List.find tag_pairs ~f:(fun (op, _) -> eq op open_tag) with
+  | Some (x) -> x
+  | _ -> raise (Failure "This has no closing tag") *)
 
 let lex_keyword text =
   let keywords =
-    [ ("if", If)
+    [ ("if", If Open)
     ; ("else", Else)
-    ; ("endif", EndIf)
+    ; ("endif", If Close)
     ; ("unless", Unless)
     ; ("endunless", EndUnless)
     ; ("case", Case)
@@ -60,23 +81,24 @@ let lex_keyword text =
     ; ("endtablerow", EndTableRow)
 
     ; ("in", In)
-    ; ("contains", Contains)
     ; ("by", By)
 
     ; ("assign", Assign)
     ; ("increment", Increment)
     ; ("decrement", Decrement)
 
-    ; ("==", Eq)
-    ; (">=", Gte)
-    ; (">", Gt)
-    ; ("<=", Lte)
-    ; ("<", Lt)
-    ; ("!=", Ne)
+    ; ("==", Operator Eq)
+    ; (">=", Operator Gte)
+    ; (">", Operator Gt)
+    ; ("<=", Operator Lte)
+    ; ("<", Operator Lt)
+    ; ("!=", Operator Ne)
+    ; ("<>", Operator Ne)
+    ; ("contains", Operator Contains)
 
     ; (":", Colon)
     ; ("|", Pipe)
-    ; ("=", Assignment)
+    ; ("=", Equals)
     ; (",", Comma)
     ; (" ", Space)
     ; ("\n", Newline)
@@ -92,40 +114,14 @@ let lex_keyword text =
   | None -> (None, text)
 
 
-let block_token_as_string = function
-  | StatementStart -> "StatementStart"
-  | StatementEnd -> "StatementEnd"
-  | ExpressionStart -> "ExpressionStart"
-  | ExpressionEnd -> "ExpressionEnd"
-  | LiquidStart -> "LiquidStart"
-  | Other(oth) -> oth
+let block_token_of_string = function
+  | "{%" -> StatementStart
+  | "%}" -> StatementEnd
+  | "{{" -> ExpressionStart
+  | "}}" -> ExpressionEnd
+  | other -> RawText(other)
 
-
-let block_as_string = function
-  | Text(t) -> Core.sprintf "(( %s ))" t
-  | Statement(t) -> Core.sprintf "{0 %s 0}" t
-  | Expression(t) -> Core.sprintf "{{ %s }}" t
-  | Liquid(t) -> Core.sprintf "{0liq %s 0}" t
-
-let token_as_string = function
-  | If -> "If" | Else -> "Else" | EndIf -> "Endif"
-  | Unless -> "Unless" | EndUnless -> "EndUnless"
-  | Case -> "Case" | EndCase -> "EndCase" | When -> "When"
-  | For -> "For" | EndFor -> "EndFor"
-  | Capture -> "Capture" | EndCapture -> "EndCapture"
-  | Break -> "Break" | Continue -> "Continue"
-  | Cycle -> "Cycle" | TableRow -> "TableRow" | EndTableRow -> "EndTableRow"
-  | Paginate -> "Paginate" | EndPaginate -> "EndPaginate"
-  | In -> "In" | Contains -> "Contains"
-  | Assign -> "Assign" | Increment -> "Increment" | Decrement -> "Decrement"
-  | Eq -> "Eq" | Gte -> "Gte" | Gt -> "Gt" | Lte -> "Lte" | Lt -> "Lt" | Ne -> "Ne"
-  | Pipe -> "Pipe" | Colon -> "Colon" | Assignment -> "Assignment" | Comma -> "Comma"
-  | Space -> "Space" | Newline -> "NewLine"
-  | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
-  | String(s) -> "String(" ^ s ^ ")"
-  | Number(f) -> Core.sprintf "Num(%f)" f
-  | Id(id) -> "Id(" ^ id ^ ")"
-  | _ -> "Unknown"
-
-let block_tokens_as_string bts = String.concat ~sep:"; " (List.map bts ~f:block_token_as_string)
-let tokens_as_string ts = String.concat ~sep:"; " (List.map ts ~f:token_as_string)
+let is_block_token_string = fun x ->
+  match block_token_of_string x with
+  | StatementStart | StatementEnd | ExpressionStart | ExpressionEnd -> true
+  | _ -> false
