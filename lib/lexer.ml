@@ -24,7 +24,7 @@ let lex_digit_group text =
     | _ -> acc
   in
 
-  lex_digit_group_aux text [] |> String.concat ~sep:""
+  lex_digit_group_aux text [] |> join
 
 let lex_number text =
   let to_num v = Some (Number(v |> Float.of_string)) in
@@ -57,29 +57,22 @@ let has_prefix_or text prefix func =
 let lex_range text =
   let (popen, pclose) = "(", ")" in
   let dotdot = ".." in
-  if starts_with text popen then
-    let wo_paren = remove_prefix text popen in
+  has_prefix_or text popen (fun wo_paren ->
     match lex_digit_group wo_paren with
     | "" -> None, text
-    | first_number -> (
+    | first_number ->
       let after_first = remove_prefix wo_paren first_number in
-      if starts_with after_first dotdot then
-        let wo_dot = remove_prefix after_first dotdot in
+      has_prefix_or after_first dotdot (fun wo_dot ->
         match lex_digit_group wo_dot with
         | "" -> None, text
-        | second_number -> (
+        | second_number ->
           let after_second = remove_prefix wo_dot second_number in
           if starts_with after_second pclose then
             let range = Range (Int.of_string first_number, Int.of_string second_number) in
             Some range, remove_prefix after_second pclose
           else
             None, text
-        )
-      else
-        None, text
-    )
-  else
-    None, text
+  ))
 
 
 let lex_delimited_string delim escaped_delim text =

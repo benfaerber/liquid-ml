@@ -34,3 +34,4 @@ let nth lst index =
 let first lst = nth lst 0
 
 let join_by_space lst = String.concat ~sep:" " lst
+let join lst = String.concat ~sep:"" lst

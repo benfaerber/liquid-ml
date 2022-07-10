@@ -1,11 +1,12 @@
 type operator =
-  Eq | Gte | Gt | Lte | Lt | Ne | Contains
+  | Eq | Gte | Gt | Lte | Lt | Ne | Contains
 
 type value =
   | Bool of bool
   | String of string
   | Number of float
   | Var of string
+  | List of value list
   | Nil
 
 type syntax_token =
@@ -25,30 +26,3 @@ type ast =
   | For of loop
   | Expression of expression
   | Assignment of string * expression
-
-(*
-{{ animal | capitalize | remove : "h" | slice: 0, 2 }}
-
-The first param is the thing the filter is applied to
-A filter has a name and a list of params
-Operators are converted to function
-
-Func (slice) (
-  Func (remove) (
-    Func (capitilize) (
-      Value ( Var ("animal") )
-    )
-    Value ( String ("h") )
-  )
-  Value ( Number (0) )
-  Value ( Number (2) )
-)
-
-if x == 1
-
-Func (eq) (
-  Value ( Var ("x") )
-  Value ( Number (1))
-)
-
-*)
