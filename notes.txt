@@ -128,3 +128,7 @@ length 100
 100 - 57 = 43
 
 22 + x
+
+a == 1 and b > 2 or c <= 2 and d != 2
+
+And (Or (And (a == 2, b > 2), c <= 2) d != 2)
