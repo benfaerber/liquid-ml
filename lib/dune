@@ -1,3 +1,3 @@
 (library
  (public_name lib)
- (libraries base core stdio batteries))
+ (libraries base core stdio batteries re2))

@@ -17,14 +17,14 @@ let starts_with text prefix =
     (Caml.(=)) rprefix prefix
   ) else false
 
-type ('acc, 'curr) loop =
-  | Next of ('acc * 'curr)
+type ('acc, 'curr) unfold_notifier =
+  | Next of 'acc * 'curr
   | Stop of 'acc
 
 let rec unfold acc curr func =
   match func acc curr with
-  | Next((nacc, ncurr)) -> unfold nacc ncurr func
-  | Stop(acc) -> acc
+  | Next (nacc, ncurr) -> unfold nacc ncurr func
+  | Stop acc -> acc
 
 let nth lst index =
   match List.nth lst index with

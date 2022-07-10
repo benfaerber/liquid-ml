@@ -32,18 +32,14 @@ type lex_token =
   | Assign | Increment | Decrement
   | Pipe | Colon | Equals | Comma
   | Space | Newline
+  | Nil | Blank
   | Operator of operator
   | Bool of bool
   | String of string
   | Number of float
-  | Id of string
-  | Nil | Blank
-
-type block =
   | Text of string
-  | Statement of lex_token list
+  | Id of string
   | Expression of lex_token list
-  | Liquid of lex_token list
 
 let lex_keyword text =
   let keywords =

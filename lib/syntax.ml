@@ -17,13 +17,12 @@ type expression =
   | Func of string * expression list
 
 type condition = value * operator * value
-type for_loop = string * value list
+type loop = string * value list
 
 type ast =
   | Capture of string * ast
   | Test of condition * ast * (ast option)
-  | For of bool * ast
-  | Comment of string
+  | For of loop
   | Expression of expression
   | Assignment of string * expression
 

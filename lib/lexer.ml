@@ -3,7 +3,6 @@ open Tools
 open Keyword
 open Debug
 
-
 let lex_bool text =
   let literal_true = "true" in
   let literal_false = "false" in
@@ -140,7 +139,7 @@ let lex_block_tokens text =
 
   unfold [] 0 folder
 
-let lex_tokens text =
+let lex_line_tokens text =
   let t_text = text ^ " " in
   let folder acc index =
     let chunk = String.sub t_text ~pos:index ~len:(String.length t_text - index) in
@@ -154,7 +153,7 @@ let lex_tokens text =
 
   wo_spaces
 
-let lex_blocks (block_tokens: block_token list) =
+let lex_all_tokens (block_tokens: block_token list) =
   let folder acc index =
     let max = List.length block_tokens in
     if index > max then
@@ -163,33 +162,45 @@ let lex_blocks (block_tokens: block_token list) =
       let sub = List.sub block_tokens ~pos:index ~len:(max - index) in
       match sub with
       | StatementStart :: RawText(body) :: StatementEnd :: _ ->
-        Next (acc @ [Statement (lex_tokens body)], index+3)
+        Next (acc @ lex_line_tokens body, index+3)
       | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
-        Next (acc @ [Expression (lex_tokens body)], index+3)
+        Next (acc @ [Expression (lex_line_tokens body)], index+3)
       | LiquidStart :: RawText(body) :: StatementEnd :: _ ->
-        Next (acc @ [Expression (lex_tokens body)], index+3)
-      | RawText (other) :: _ -> Next (acc @ [Text (other)], index + 1)
+        Next (
+          acc @ (body |> Preprocessor.remove_liquid_comments |> lex_line_tokens),
+          index+3
+        )
+      | RawText (other) :: _ ->
+        Next (acc @ [Newline; Text (other)], index + 1)
       | _ -> Stop (acc)
     end
   in
 
   unfold [] 0 folder
 
-
 let test () =
+  let _ =
+    "liquid/comment_test.liquid"
+    |> File.read
+    |> Preprocessor.remove_comments in
+
+  (* Stdio.print_endline comment_test; *)
+
   let block_tokens =
     "liquid/block_test.liquid"
     |> File.read
+    |> Preprocessor.preprocess
     |> lex_block_tokens in
 
-  let blocks =
+  let tokens =
     block_tokens
-    |> lex_blocks in
+    |> lex_all_tokens in
 
-  Stdio.print_endline "Blocks:";
+  Stdio.print_endline (tokens |> lex_tokens_as_string);
+  (* Stdio.print_endline "Blocks:";
   Stdio.print_endline (blocks |> blocks_as_string_with_index);
 
-  Stdio.printf "%s" (Ast.find_closing blocks (10, 0) |> Batteries.dump);
+  Stdio.printf "%s" (Ast.find_closing blocks (10, 0) |> Batteries.dump); *)
   (* "liquid/block_test.liquid"
   |> File.read
   |> lex_block_tokens
