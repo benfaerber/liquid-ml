@@ -7,6 +7,7 @@ let range x =
 
 let sub_prefix text x = String.sub text ~pos:0 ~len:x
 let sub_suffix text x = String.sub text ~pos:x ~len:(String.length text)
+let sub_list lst start_i end_i = List.sub lst ~pos:start_i ~len:(end_i - start_i)
 let first_letter text = sub_prefix text 1
 
 let remove_prefix text prefix = String.sub text ~pos:(String.length prefix) ~len:(String.length text - String.length prefix)
@@ -38,3 +39,5 @@ let join lst = String.concat ~sep:"" lst
 
 let contains lst item =
   List.mem lst item ~equal:(Caml.(=))
+
+let unwrap_or value fallback = match value with Some v -> v | None -> fallback

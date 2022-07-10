@@ -1,5 +1,6 @@
 open Base
 open Keyword
+open Syntax
 open Tools
 
 let block_token_as_string = function
@@ -26,7 +27,7 @@ let rec lex_token_as_string = function
   | Paginate -> "Paginate" | EndPaginate -> "EndPaginate"
   | TableRow -> "TableRow" | EndTableRow -> "EndTableRow"
   | Else -> "Else"
-  | ElseIf -> "Else If"
+  | ElseIf -> "ElseIf"
   | When -> "When"
   | Break -> "Break" | Continue -> "Continue"
   | Cycle -> "Cycle"
@@ -52,3 +53,14 @@ let lex_tokens_as_string_with_index ts =
   join_by_space (List.mapi ts ~f:(
     fun i t -> (i |> Int.to_string) ^ ": " ^ lex_token_as_string t
   ))
+
+let rec ast_as_string = function
+  | Test (_, child, next_child_opt) -> (
+    match next_child_opt with
+    | Some next_child -> Core.sprintf "\n\nTest\n\n  %s\nNext     %s" (ast_as_string child) (ast_as_string next_child)
+    | None -> Core.sprintf "\n\nFinalTest\n\n  %s\n" (ast_as_string child)
+  )
+  | InProgress tokens -> lex_tokens_as_string tokens
+  | _ -> "Other"
+
+let print_line () = Stdio.print_endline "----------------------------------------------------------";
