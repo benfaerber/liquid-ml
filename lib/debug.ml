@@ -66,14 +66,44 @@ let lex_tokens_as_string_with_index ts =
   ))
 let print_lex_tokens_with_index ts = ts |> lex_tokens_as_string_with_index |> Stdio.print_endline
 
+let combiner_as_string = function
+  | And -> "And"
+  | Or -> "Or"
+
+
+let value_as_string = function
+  | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
+  | String(s) -> "String(" ^ s ^ ")"
+  | Number(f) -> Core.sprintf "Num(%f)" f
+  | Var(v) -> "Var(" ^ v ^ ")"
+  | Nil -> "Nil"
+  | _ -> "Unknown"
+
+
+let rec condition_as_string =
+  let rec aux = function
+  | Equation (a, op, b) -> (value_as_string a) ^ " " ^ (operator_as_string op) ^ " " ^ (value_as_string b)
+  | AlwaysTrue -> "Always True"
+  | Not x -> "Not(\n" ^ (condition_as_string x) ^ "\n)"
+  | Combine (combiner, conditions) ->
+    (combiner_as_string combiner) ^ "(\n  " ^ (join_by_comma (List.map conditions ~f:aux)) ^ "\n)"
+  in aux
+
+let print_condition c = c |> condition_as_string |> Stdio.print_endline
+
 let ast_as_string =
   let rec aux depth = function
-  | Test (_, child, next_child_opt) -> (
-    match next_child_opt with
-    | Some next_child ->
-      Core.sprintf "\n\n%d: Test\n\n  %s\n%d: Next     %s" depth (aux (depth+1) child) depth (aux (depth+1) next_child)
-    | None ->
-      Core.sprintf "\n\n%d: FinalTest\n\n  %s\n" depth (aux (depth+1) child)
+  | Test (condition, child, next_child_opt) -> (
+    let child_text =
+      Core.sprintf "\n%d: Condition( %s )\n  { %s }\n" depth (condition |> condition_as_string) (aux (depth+1) child) in
+
+    let next_child_text =
+      match next_child_opt with
+      | Some next_child ->
+        Core.sprintf "{ %s }\n" (aux (depth+1) next_child)
+      | None -> "" in
+
+    child_text ^ next_child_text
   )
   | InProgress tokens -> lex_tokens_as_string tokens
   | _ -> "Other"
@@ -85,25 +115,3 @@ let print_line () = Stdio.print_endline "---------------------------------------
 
 let dump x =
   x |> Batteries.dump |> Stdio.print_endline
-
-let value_as_string = function
-  | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
-  | String(s) -> "String(" ^ s ^ ")"
-  | Number(f) -> Core.sprintf "Num(%f)" f
-  | Var(v) -> "Var(" ^ v ^ ")"
-  | Nil -> "Nil"
-  | _ -> "Unknown"
-
-let combiner_as_string = function
-  | And -> "And"
-  | Or -> "Or"
-
-let condition_as_string =
-  let rec aux = function
-  | Equation (a, op, b) -> (value_as_string a) ^ " " ^ (operator_as_string op) ^ " " ^ (value_as_string b)
-  | AlwaysTrue -> "Always True"
-  | Combine (combiner, conditions) ->
-    (combiner_as_string combiner) ^ "(\n  " ^ (join_by_comma (List.map conditions ~f:aux)) ^ "\n)"
-  in aux
-
-let print_condition c = c |> condition_as_string |> Stdio.print_endline;

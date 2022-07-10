@@ -6,7 +6,7 @@ This is to test if else
     {% elsif g == 4%}
         G is 4
     {% endif %}
-{% elsif a == 99 and b > 3 and c == 1 and d > 1 %}
+{% elsif a == 99 and b > 3 %}
     X is 99
 {% else %}
     X is not 12
@@ -14,3 +14,9 @@ This is to test if else
         Y is 14
     {% endif %}
 {% endif %}
+
+{% unless dog == 1 %}
+    Test
+{% endunless %}
+
+{% capture my_var %}dog cat horse{% endcapture %}

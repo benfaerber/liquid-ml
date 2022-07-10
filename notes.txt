@@ -131,4 +131,27 @@ length 100
 
 a == 1 and b > 2 or c <= 2 and d != 2
 
+Parse:
+Got: And (a == 2, b > 2)
+Left: or c <= 2 and d != 2
+
+Got: Or (C <= 2)
+Left: and d != 2
+
+Merge Or (
+  And (a == 2, b > 2),
+  C <= 2
+)
+
+Got: And d != 2
+Left: Nothing
+
+Merge And (
+  Or (
+    And (a == 2, b > 2),
+    C <= 2
+  )
+  d != 2
+)
+
 And (Or (And (a == 2, b > 2), c <= 2) d != 2)

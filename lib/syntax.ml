@@ -20,6 +20,7 @@ type combiner = And | Or
 type condition =
   | Combine of combiner * condition list
   | Equation of operator_equation
+  | Not of condition
   | AlwaysTrue
 
 type loop = string * value list
