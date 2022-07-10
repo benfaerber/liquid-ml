@@ -21,7 +21,7 @@ type pair_tag =
   | Paginate
   | TableRow
 
-type token =
+type lex_token =
   | Open of pair_tag
   | Close of pair_tag
   | Else
@@ -37,13 +37,13 @@ type token =
   | String of string
   | Number of float
   | Id of string
+  | Nil | Blank
 
 type block =
   | Text of string
-  | Statement of token list
-  | Expression of token list
-  | Liquid of token list
-
+  | Statement of lex_token list
+  | Expression of lex_token list
+  | Liquid of lex_token list
 
 let lex_keyword text =
   let keywords =
@@ -89,6 +89,9 @@ let lex_keyword text =
     ; (",", Comma)
     ; (" ", Space)
     ; ("\n", Newline)
+
+    ; ("nil", Nil)
+    ; ("blank", Blank)
   ] in
 
   let found_keyword =

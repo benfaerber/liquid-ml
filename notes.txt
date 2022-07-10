@@ -37,6 +37,12 @@ if x == y
 endif
 %}
 
-Expression(
-  If ID(X) Eq ID(Y) Text(Hi There) Endif
+{{ horse }}
+
+Global (
+  If ID(X) Eq ID(Y) Expression( Text(Hi There) ) Endif
+
+  Expression(
+    ID(horse)
+  )
 )
