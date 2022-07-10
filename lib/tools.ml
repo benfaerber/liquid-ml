@@ -25,3 +25,10 @@ let rec unfold acc curr func =
   match func acc curr with
   | Next((nacc, ncurr)) -> unfold nacc ncurr func
   | Stop(acc) -> acc
+
+let nth lst index =
+  match List.nth lst index with
+  | Some(x) -> x
+  | None -> raise(Failure ("Failed to get item at index"))
+
+let first lst = nth lst 0

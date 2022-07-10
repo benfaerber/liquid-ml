@@ -50,7 +50,7 @@ let lex_number text =
   )
 
 
-let lex_delimited_string text delim escaped_delim =
+let lex_delimited_string delim escaped_delim text =
   if starts_with text delim then
     let d_len = String.length escaped_delim in
     let folder acc index =
@@ -70,12 +70,12 @@ let lex_delimited_string text delim escaped_delim =
     None, text
 
 let lex_string text =
-  let double_quote = lex_delimited_string text "\"" "\\\"" in
-  let single_quote = lex_delimited_string text "\'" "\\\'" in
+  let double_quote = lex_delimited_string "\"" "\\\"" in
+  let single_quote = lex_delimited_string "\'" "\\\'" in
 
-  match (double_quote, single_quote) with
-  | ((Some r, rest), _) -> (Some r, rest)
-  | (_, (Some r, rest))  -> (Some r, rest)
+  match (double_quote text, single_quote text) with
+  | ((Some r, rest), _)
+  | (_, (Some r, rest)) -> (Some r, rest)
   | _ -> (None, text)
 
 let lex_id text =
@@ -91,21 +91,19 @@ let lex_id text =
 
   let to_char x = x.[0] in
 
-  if contains valid_first_letters (first_letter text |> to_char) then (
+  if contains valid_first_letters (first_letter text |> to_char) then
     let folder acc index =
       let letter = String.sub text ~pos:(index) ~len:1 in
-      if contains valid_letters (letter |> to_char) then (
+      if contains valid_letters (letter |> to_char) then
         Next ((acc ^ letter, index + 1))
-      ) else (
+      else
         Stop (acc)
-      )
     in
 
     let id_literal = first_letter text ^ (unfold "" 1 folder) in
-    (Some (Id(id_literal)), remove_prefix text id_literal)
-  ) else (
+    (Some (Id id_literal), remove_prefix text id_literal)
+  else
     (None, text)
-  )
 
 
 let lex_token text =
@@ -152,11 +150,7 @@ let lex_tokens text =
   in
 
   let raw_list = unfold [] 0 folder in
-  let wo_spaces = List.filter raw_list ~f:(fun token ->
-    match token with
-    | Space -> false
-    | _ -> true
-  ) in
+  let wo_spaces = List.filter raw_list ~f:(fun token -> Caml.(!=) Space token) in
 
   wo_spaces
 
@@ -173,7 +167,7 @@ let lex_blocks (block_tokens: block_token list) =
       | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
         Next (acc @ [Expression (lex_tokens body)], index+3)
       | LiquidStart :: RawText(body) :: StatementEnd :: _ ->
-        Next (acc @ [Liquid (lex_tokens body)], index+3)
+        Next (acc @ [Expression (lex_tokens body)], index+3)
       | RawText (other) :: _ -> Next (acc @ [Text (other)], index + 1)
       | _ -> Stop (acc)
     end
@@ -190,12 +184,12 @@ let test () =
 
   let blocks =
     block_tokens
-    |> lex_blocks
-    |> blocks_as_string in
+    |> lex_blocks in
 
   Stdio.print_endline "Blocks:";
-  Stdio.print_endline blocks;
+  Stdio.print_endline (blocks |> blocks_as_string_with_index);
 
+  Stdio.printf "%s" (Ast.find_closing blocks (10, 0) |> Batteries.dump);
   (* "liquid/block_test.liquid"
   |> File.read
   |> lex_block_tokens

@@ -8,3 +8,35 @@ Liquid
 {% liquid
 
 %}
+
+Block List is a token grid
+-----------------------------
+Block Token Token Token Token
+Block Token Token Token Token
+Block Token Token Token Token
+Block Token Token Token Token
+
+
+What is a syntax tree?
+Basic tree structure of nodes and leaves
+
+type 'a tree =
+| Leaf ()
+| Node of 'a * 'a tree * 'a tree
+
+
+Liquid block must compile the same as normal block
+
+{% if x == y %}
+  Hi there
+{% endif %}
+
+{%liquid
+if x == y
+  echo "Hi There"
+endif
+%}
+
+Expression(
+  If ID(X) Eq ID(Y) Text(Hi There) Endif
+)

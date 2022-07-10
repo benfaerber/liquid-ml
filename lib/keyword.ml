@@ -12,8 +12,6 @@ type block_token =
 type operator =
   Eq | Gte | Gt | Lte | Lt | Ne | Contains
 
-type tag_position = Open | Close
-
 type pair_tag =
   | If
   | Unless
@@ -98,8 +96,8 @@ let lex_keyword text =
 
   match found_keyword with
   | Some (literal, token) -> (
-    let trimmed = String.sub text ~pos:(String.length literal) ~len:(String.length text - String.length literal) in
-    (Some (token), trimmed))
+    let trimmed = remove_prefix text literal in
+    (Some token, trimmed))
   | None -> (None, text)
 
 

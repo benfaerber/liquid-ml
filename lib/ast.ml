@@ -1,7 +1,8 @@
 open Base
-(* open Tools *)
+open Tools
 open Keyword
 
+type grid_pointer = int * int
 
 let pairs = [
   (StatementStart, StatementEnd);
@@ -18,35 +19,37 @@ let get_close open_tag =
   | Some (_, cl) -> cl
   | None -> StatementEnd
 
-let nth lst index =
-  match List.nth lst index with
-  | Some(x) -> x
-  | None -> raise(Failure ("Failed to get item at index"))
 
 let to_binary c = if c then 1 else 0
 
 let open_to_close =
   function
   | Open p -> Close p
-  | _ -> raise (Failure "Bye")
+  | _ -> raise (Failure "This isn't an open tag")
 
-let find_closing (lst: block list) open_index =
-  (* let open_tag = nth lst open_index in
+let close_to_open =
+  function
+  | Close p -> Open p
+  | _ -> raise (Failure "This isn't a close tag")
+
+let find_closing (lst: block list) (pointer: grid_pointer) =
+  let (open_index, open_subindex) = pointer in
+  let open_tag =
+    match nth lst open_index with
+    | Statement(tokens) | Expression(tokens) | Liquid(tokens) -> nth tokens open_subindex
+    | _ -> raise (Failure "No open tag located here") in
+
   let close_tag = open_to_close open_tag in
 
-  let folder (a_open, a_close, _) index =
-    let tag = nth lst index in
-
-    let d_open = a_open + to_binary (eq open_tag tag) in
-    let d_close = a_close + to_binary (eq close_tag tag) in
-
-    let acc = (d_open, d_close, index) in
-    if eq d_open d_close then
-      Stop (acc)
-    else
-      Next (acc, index+1)
+  let folder acc index =
+    Stdio.printf "i - %d\n" index;
+    match nth lst index with
+    | Statement (tokens) | Expression (tokens) | Liquid (tokens) -> (
+      match List.findi tokens ~f:(fun _ t -> eq close_tag t) with
+      | Some (subindex, _) -> Stop (index, subindex)
+      | _ -> Next (acc, index+1)
+    )
+    | _ -> Next (acc, index+1)
   in
 
-  let (_, _, close_index) = unfold (1, 0, 0) (open_index+1) folder in
-  close_index *)
-  Stdio.print_endline ((lst, open_index) |> Batteries.dump)
+  unfold (0, 0) open_index folder
