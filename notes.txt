@@ -120,3 +120,11 @@ For this to work I need to know scope
 7: end - [] - Tally is empty, exit
 8: echo "horseradish"
 9: assign t = 1
+
+
+length 100
+22-57
+
+100 - 57 = 43
+
+22 + x

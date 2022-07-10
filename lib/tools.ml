@@ -24,6 +24,8 @@ let remove_prefix text prefix =
   else
     text
 
+let remove_list_prefix lst prefix =
+  List.sub lst ~pos:(List.length prefix) ~len:(List.length lst - List.length prefix)
 
 type ('acc, 'curr) unfold_notifier =
   | Next of 'acc * 'curr
@@ -42,6 +44,7 @@ let nth lst index =
 let first lst = nth lst 0
 
 let join_by_space lst = String.concat ~sep:" " lst
+let join_by_comma lst = String.concat ~sep:", " lst
 let join lst = String.concat ~sep:"" lst
 
 let contains lst item =

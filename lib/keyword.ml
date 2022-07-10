@@ -21,6 +21,8 @@ type lex_value =
   | LexNil
   | LexBlank
 
+type lex_combiner = LexAnd | LexOr
+
 type lex_token =
   | If | EndIf
   | Unless | EndUnless
@@ -40,9 +42,9 @@ type lex_token =
   | DotDot
   | Space | Newline
   | Operator of operator
-  | And | Or
   | Text of string
-  | Value of lex_value
+  | LexCombiner of lex_combiner
+  | LexValue of lex_value
   | Expression of lex_token list
 
 let lex_keyword text =
@@ -83,8 +85,8 @@ let lex_keyword text =
     ; ("!=", Operator Ne)
     ; ("<>", Operator Ne)
     ; ("contains", Operator Contains)
-    ; ("and", And)
-    ; ("or", Or)
+    ; ("and", LexCombiner LexAnd)
+    ; ("or", LexCombiner LexOr)
 
     ; (":", Colon)
     ; ("|", Pipe)
@@ -94,8 +96,8 @@ let lex_keyword text =
     ; ("..", DotDot)
     ; ("\n", Newline)
 
-    ; ("nil", Value LexNil)
-    ; ("blank", Value LexBlank)
+    ; ("nil", LexValue LexNil)
+    ; ("blank", LexValue LexBlank)
   ] in
 
   let found_keyword =

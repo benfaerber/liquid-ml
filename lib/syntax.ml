@@ -16,9 +16,9 @@ type expression =
 
 type operator_equation = value * Keyword.operator * value
 
+type combiner = And | Or
 type condition =
-  | And of condition * condition
-  | Or of condition * condition
+  | Combine of combiner * condition list
   | Equation of operator_equation
   | AlwaysTrue
 
@@ -40,7 +40,7 @@ let liq_list_of_range r = List (
   List.map (fun n -> Number (Int.to_float n)) (list_of_range r)
 )
 
-let lex_token_to_value = function
+let lex_value_to_value = function
   | Keyword.LexId (id) -> Var (id)
   | LexBool (b) -> Bool (b)
   | LexString (s) -> String (s)

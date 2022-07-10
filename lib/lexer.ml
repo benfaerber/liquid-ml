@@ -8,9 +8,9 @@ let lex_bool text =
   let literal_false = "false" in
 
   if starts_with text literal_true then
-    Some(Value (LexBool(true))), remove_prefix text literal_true
+    Some(LexValue (LexBool(true))), remove_prefix text literal_true
   else if starts_with text literal_false then
-    Some(Value (LexBool(false))), remove_prefix text literal_false
+    Some(LexValue (LexBool(false))), remove_prefix text literal_false
   else
     None, text
 
@@ -27,7 +27,7 @@ let lex_digit_group text =
   lex_digit_group_aux text [] |> join
 
 let lex_number text =
-  let to_num v = Some (Value (LexNumber(v |> Float.of_string))) in
+  let to_num v = Some (LexValue (LexNumber(v |> Float.of_string))) in
 
   let (neg_literal, t_text) =
     if starts_with text "-" then
@@ -68,7 +68,7 @@ let lex_range text =
         | second_number ->
           let after_second = remove_prefix wo_dot second_number in
           if starts_with after_second pclose then
-            let range = Value (LexRange (Int.of_string first_number, Int.of_string second_number)) in
+            let range = LexValue (LexRange (Int.of_string first_number, Int.of_string second_number)) in
             Some range, remove_prefix after_second pclose
           else
             None, text
@@ -91,7 +91,7 @@ let lex_delimited_string delim escaped_delim text =
     let string_literal = unfold "" 0 folder in
     let complete_literal = "\"" ^ string_literal ^ "\"" in
 
-    Some (Value (LexString(string_literal))), remove_prefix text complete_literal
+    Some (LexValue (LexString string_literal)), remove_prefix text complete_literal
   else
     None, text
 
@@ -123,7 +123,7 @@ let lex_id text =
     in
 
     let id_literal = first_letter text ^ (unfold "" 1 folder) in
-    (Some (Value (LexId id_literal)), remove_prefix text id_literal)
+    (Some (LexValue (LexId id_literal)), remove_prefix text id_literal)
   else
     (None, text)
 
@@ -179,8 +179,8 @@ let lex_line_tokens text =
 let echo_to_expression tokens =
   let rec aux acc pool =
     match pool with
-    | Value (LexId "echo") :: Value (LexString t) :: tl -> aux (acc @ [Text t]) tl
-    | Value (LexId "echo") :: Value (LexId id) :: tl -> aux (acc @ [Expression [Value (LexId id)]]) tl
+    | LexValue (LexId "echo") :: LexValue (LexString t) :: tl -> aux (acc @ [Text t]) tl
+    | LexValue (LexId "echo") :: LexValue (LexId id) :: tl -> aux (acc @ [Expression [LexValue (LexId id)]]) tl
     | hd :: tl -> aux (acc @ [hd]) tl
     | [] -> acc
   in aux [] tokens

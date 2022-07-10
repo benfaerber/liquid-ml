@@ -4,12 +4,12 @@ open Syntax
 open Tools
 
 let block_token_as_string = function
-| StatementStart -> "StatementStart"
-| StatementEnd -> "StatementEnd"
-| ExpressionStart -> "ExpressionStart"
-| ExpressionEnd -> "ExpressionEnd"
-| LiquidStart -> "LiquidStart"
-| RawText(oth) -> oth
+  | StatementStart -> "StatementStart"
+  | StatementEnd -> "StatementEnd"
+  | ExpressionStart -> "ExpressionStart"
+  | ExpressionEnd -> "ExpressionEnd"
+  | LiquidStart -> "LiquidStart"
+  | RawText(oth) -> oth
 
 
 let operator_as_string = function
@@ -25,6 +25,7 @@ let lex_value_as_string = function
   | LexRange(s, e) -> "Range(" ^ (Int.to_string s) ^ ", " ^ (Int.to_string e) ^ ")"
   | LexNil | LexBlank -> "Nil"
 
+let lex_combiner_as_string = function LexAnd -> "And" | LexOr -> "Or"
 
 let newline_as_token = false
 let rec lex_token_as_string = function
@@ -43,11 +44,11 @@ let rec lex_token_as_string = function
   | In -> "In"
   | Assign -> "Assign" | Increment -> "Increment" | Decrement -> "Decrement"
   | Pipe -> "Pipe" | Colon -> "Colon" | Equals -> "Equals" | Comma -> "Comma"
-  | And -> "And" | Or -> "Or"
+  | LexCombiner c -> lex_combiner_as_string c
   | Space -> "Space"
   | Newline -> if newline_as_token then "\n\\n" else "\n"
   | Operator op -> operator_as_string op
-  | Value v -> lex_value_as_string v
+  | LexValue v -> lex_value_as_string v
   | Text(t) -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
   | Expression(e) ->
     "Expression<\n  " ^ join_by_space (List.map e ~f:lex_token_as_string) ^ "\n>"
@@ -84,3 +85,25 @@ let print_line () = Stdio.print_endline "---------------------------------------
 
 let dump x =
   x |> Batteries.dump |> Stdio.print_endline
+
+let value_as_string = function
+  | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
+  | String(s) -> "String(" ^ s ^ ")"
+  | Number(f) -> Core.sprintf "Num(%f)" f
+  | Var(v) -> "Var(" ^ v ^ ")"
+  | Nil -> "Nil"
+  | _ -> "Unknown"
+
+let combiner_as_string = function
+  | And -> "And"
+  | Or -> "Or"
+
+let condition_as_string =
+  let rec aux = function
+  | Equation (a, op, b) -> (value_as_string a) ^ " " ^ (operator_as_string op) ^ " " ^ (value_as_string b)
+  | AlwaysTrue -> "Always True"
+  | Combine (combiner, conditions) ->
+    (combiner_as_string combiner) ^ "(\n  " ^ (join_by_comma (List.map conditions ~f:aux)) ^ "\n)"
+  in aux
+
+let print_condition c = c |> condition_as_string |> Stdio.print_endline;
