@@ -15,7 +15,7 @@ let lex_bool text =
     None, text
 
 
-let lex_number text =
+let lex_digit_group text =
   let rec lex_digit_group_aux t acc =
     let chunk = String.sub t ~pos:(List.length acc) ~len:1 in
     match chunk with
@@ -24,8 +24,9 @@ let lex_number text =
     | _ -> acc
   in
 
-  let lex_digit_group t = lex_digit_group_aux t [] |> String.concat ~sep:"" in
+  lex_digit_group_aux text [] |> String.concat ~sep:""
 
+let lex_number text =
   let to_num v = Some (Number(v |> Float.of_string)) in
 
   let (neg_literal, t_text) =
@@ -38,15 +39,47 @@ let lex_number text =
   | first_group -> (
     let t_first_group = neg_literal ^ first_group in
     let decimal_part = remove_prefix t_text first_group in
-    if starts_with decimal_part "." then (
+    if starts_with decimal_part "." then
       let second_group_part = remove_prefix decimal_part "." in
       match lex_digit_group second_group_part with
       | "" -> to_num(t_first_group), second_group_part
       | second_group -> to_num(t_first_group ^ "." ^ second_group), remove_prefix second_group_part second_group
-    ) else (
+    else
       to_num(t_first_group), decimal_part
-    )
   )
+
+let has_prefix_or text prefix func =
+  if starts_with text prefix then
+    func (remove_prefix text prefix)
+  else
+    None, text
+
+let lex_range text =
+  let (popen, pclose) = "(", ")" in
+  let dotdot = ".." in
+  if starts_with text popen then
+    let wo_paren = remove_prefix text popen in
+    match lex_digit_group wo_paren with
+    | "" -> None, text
+    | first_number -> (
+      let after_first = remove_prefix wo_paren first_number in
+      if starts_with after_first dotdot then
+        let wo_dot = remove_prefix after_first dotdot in
+        match lex_digit_group wo_dot with
+        | "" -> None, text
+        | second_number -> (
+          let after_second = remove_prefix wo_dot second_number in
+          if starts_with after_second pclose then
+            let range = Range (Int.of_string first_number, Int.of_string second_number) in
+            Some range, remove_prefix after_second pclose
+          else
+            None, text
+        )
+      else
+        None, text
+    )
+  else
+    None, text
 
 
 let lex_delimited_string delim escaped_delim text =
@@ -106,7 +139,7 @@ let lex_id text =
 
 
 let lex_token text =
-  let lexers = [lex_keyword; lex_bool; lex_string; lex_number; lex_id] in
+  let lexers = [lex_keyword; lex_range; lex_bool; lex_string; lex_number; lex_id] in
   let found_lexer =
     List.find lexers ~f:(
       fun lexer -> match lexer text with Some(_), _ -> true | None, _ -> false
@@ -197,6 +230,7 @@ let test () =
     |> lex_all_tokens in
 
   Stdio.print_endline (tokens |> lex_tokens_as_string);
+
   (* Stdio.print_endline "Blocks:";
   Stdio.print_endline (blocks |> blocks_as_string_with_index);
 

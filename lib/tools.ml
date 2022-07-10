@@ -32,3 +32,5 @@ let nth lst index =
   | None -> raise(Failure ("Failed to get item at index"))
 
 let first lst = nth lst 0
+
+let join_by_space lst = String.concat ~sep:" " lst

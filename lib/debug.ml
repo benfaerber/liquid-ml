@@ -51,13 +51,14 @@ let rec lex_token_as_string = function
   | Number(f) -> Core.sprintf "Num(%f)" f
   | Id(id) -> "Id(" ^ id ^ ")"
   | Text(t) -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
+  | Range(s, e) -> "Range(" ^ (Int.to_string s) ^ ", " ^ (Int.to_string e) ^ ")"
   | Expression(e) ->
-    "Expression<\n  " ^ String.concat ~sep:" " (List.map e ~f:lex_token_as_string) ^ "\n>"
+    "Expression<\n  " ^ join_by_space (List.map e ~f:lex_token_as_string) ^ "\n>"
   | _ -> "Unknown"
 
-let block_tokens_as_string bts = String.concat ~sep:" " (List.map bts ~f:block_token_as_string)
-let lex_tokens_as_string ts = String.concat ~sep:" " (List.map ts ~f:lex_token_as_string)
+let block_tokens_as_string bts = join_by_space (List.map bts ~f:block_token_as_string)
+let lex_tokens_as_string ts = join_by_space (List.map ts ~f:lex_token_as_string)
 let lex_tokens_as_string_with_index ts =
-  String.concat ~sep:" " (List.mapi ts ~f:(
+  join_by_space (List.mapi ts ~f:(
     fun i t -> "T" ^ (i |> Int.to_string) ^ ": " ^ lex_token_as_string t
   ))

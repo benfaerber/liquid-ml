@@ -31,6 +31,7 @@ type lex_token =
   | In | By
   | Assign | Increment | Decrement
   | Pipe | Colon | Equals | Comma
+  | DotDot
   | Space | Newline
   | Nil | Blank
   | Operator of operator
@@ -39,6 +40,7 @@ type lex_token =
   | Number of float
   | Text of string
   | Id of string
+  | Range of int * int
   | Expression of lex_token list
 
 let lex_keyword text =
@@ -84,6 +86,7 @@ let lex_keyword text =
     ; ("=", Equals)
     ; (",", Comma)
     ; (" ", Space)
+    ; ("..", DotDot)
     ; ("\n", Newline)
 
     ; ("nil", Nil)
