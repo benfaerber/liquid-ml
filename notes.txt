@@ -117,4 +117,6 @@ For this to work I need to know scope
 4:   if - [0 4]
 5:   else - most recent if is 4, this belongs to that
 6:   end - [0]
-7: end - [0]
+7: end - [] - Tally is empty, exit
+8: echo "horseradish"
+9: assign t = 1

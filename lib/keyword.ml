@@ -12,18 +12,14 @@ type block_token =
 type operator =
   Eq | Gte | Gt | Lte | Lt | Ne | Contains
 
-type pair_tag =
-  | If
-  | Unless
-  | Case
-  | For
-  | Capture
-  | Paginate
-  | TableRow
-
 type lex_token =
-  | Open of pair_tag
-  | Close of pair_tag
+  | If | EndIf
+  | Unless | EndUnless
+  | Case | EndCase
+  | For | EndFor
+  | Capture | EndCapture
+  | Paginate | EndPaginate
+  | TableRow | EndTableRow
   | ElseIf
   | Else
   | When
@@ -47,26 +43,26 @@ type lex_token =
 
 let lex_keyword text =
   let keywords =
-    [ ("if", Open If)
+    [ ("if", If)
     ; ("else", Else)
     ; ("elsif", ElseIf)
-    ; ("endif", Close If)
-    ; ("unless", Open Unless)
-    ; ("endunless", Close Unless)
-    ; ("case", Open Case)
-    ; ("endcase", Close Case)
+    ; ("endif", EndIf)
+    ; ("unless", Unless)
+    ; ("endunless", EndUnless)
+    ; ("case", Case)
+    ; ("endcase", EndCase)
     ; ("when", When)
 
-    ; ("for", Open For)
-    ; ("endfor", Close For)
-    ; ("capture", Open Capture)
-    ; ("endcapture", Close Capture)
+    ; ("for", For)
+    ; ("endfor", EndFor)
+    ; ("capture", Capture)
+    ; ("endcapture", EndCapture)
 
     ; ("break", Break)
     ; ("continue", Continue)
     ; ("cycle", Cycle)
-    ; ("tablerow", Open TableRow)
-    ; ("endtablerow", Close TableRow)
+    ; ("tablerow", TableRow)
+    ; ("endtablerow", EndTableRow)
 
     ; ("in", In)
     ; ("by", By)

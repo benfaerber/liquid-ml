@@ -1,0 +1,23 @@
+0: If 1: Id(x) 2: Eq 3: Num(12.000000) 4:
+ 5: Text(
+    X is 12
+    ) 6: If 7: Id(g) 8: Eq 9: Num(3.000000) 10:
+ 11: Text(
+        G is 3
+    ) 12: Unknown 13: Id(g) 14: Eq 15: Num(4.000000) 16:
+ 17: Text(
+        G is 4
+    ) 18: EndIf 19:
+ 20:
+ 21: ElseIf 22: Id(x) 23: Eq 24: Num(99.000000) 25:
+ 26: Text(
+    X is 99
+) 27: Else 28:
+ 29: Text(
+    X is not 12
+    ) 30: If 31: Id(y) 32: Eq 33: Num(14.000000) 34:
+ 35: Text(
+        Y is 14
+    ) 36: EndIf 37:
+ 38:
+ 39: EndIf

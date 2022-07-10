@@ -16,27 +16,17 @@ let operator_as_string = function
   | Lte -> "Lte" | Lt -> "Lt" | Ne -> "Ne"
   | Contains -> "Contains"
 
-let pair p op cl =
-  match p with
-  | Open _ -> op
-  | Close _ -> cl
-  | _ -> raise(Failure "Invalid pair")
-
-let pair_tag_as_string p = function
-  | If -> pair p "If" "EndIf"
-  | Unless -> pair p "Unless" "EndUnless"
-  | For -> pair p "For" "EndFor"
-  | Case -> pair p "Case" "EndCase"
-  | Capture -> pair p "Capture" "EndCapture"
-  | Paginate -> pair p "Paginate" "EndPaginate"
-  | TableRow -> pair p "TableRow" "EndTableRow"
-
-
 let newline_as_token = false
 let rec lex_token_as_string = function
-  | Open pt -> pair_tag_as_string (Open pt) pt
-  | Close pt -> pair_tag_as_string (Close pt) pt
+  | If -> "If" | EndIf -> "EndIf"
+  | Unless -> "Unless" | EndUnless -> "EndUnless"
+  | For -> "For" | EndFor -> "EndFor"
+  | Case -> "Case" | EndCase -> "EndCase"
+  | Capture -> "Capture" | EndCapture -> "EndCapture"
+  | Paginate -> "Paginate" | EndPaginate -> "EndPaginate"
+  | TableRow -> "TableRow" | EndTableRow -> "EndTableRow"
   | Else -> "Else"
+  | ElseIf -> "Else If"
   | When -> "When"
   | Break -> "Break" | Continue -> "Continue"
   | Cycle -> "Cycle"
@@ -60,5 +50,5 @@ let block_tokens_as_string bts = join_by_space (List.map bts ~f:block_token_as_s
 let lex_tokens_as_string ts = join_by_space (List.map ts ~f:lex_token_as_string)
 let lex_tokens_as_string_with_index ts =
   join_by_space (List.mapi ts ~f:(
-    fun i t -> "T" ^ (i |> Int.to_string) ^ ": " ^ lex_token_as_string t
+    fun i t -> (i |> Int.to_string) ^ ": " ^ lex_token_as_string t
   ))

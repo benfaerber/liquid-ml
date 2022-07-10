@@ -35,3 +35,6 @@ let first lst = nth lst 0
 
 let join_by_space lst = String.concat ~sep:" " lst
 let join lst = String.concat ~sep:"" lst
+
+let contains lst item =
+  List.mem lst item ~equal:(Caml.(=))

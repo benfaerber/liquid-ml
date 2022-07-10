@@ -1,3 +1,3 @@
 let test () =
-  Lexer.test();
+  Ast.test();
   Stdio.print_endline "";

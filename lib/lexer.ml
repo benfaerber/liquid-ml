@@ -111,10 +111,6 @@ let lex_id text =
   let valid_first_letters = alpha ^ alpha_upper ^ "_" |> String.to_list  in
   let valid_letters = valid_first_letters @ (digits |> String.to_list) in
 
-  let contains lst item =
-    List.mem lst item ~equal:(Caml.(=))
-  in
-
   let to_char x = x.[0] in
 
   if contains valid_first_letters (first_letter text |> to_char) then
@@ -213,6 +209,11 @@ let lex_all_tokens (block_tokens: block_token list) =
   let base_lex = unfold [] 0 folder in
   base_lex |> echo_to_expression
 
+
+let lex_text text =
+  text
+  |> lex_block_tokens
+  |> lex_all_tokens
 
 let test () =
   let _ =
