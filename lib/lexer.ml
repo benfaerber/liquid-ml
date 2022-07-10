@@ -48,21 +48,21 @@ let lex_number text =
       to_num(t_first_group), decimal_part
   )
 
-let has_prefix_or text prefix func =
+let has_prefix_or_fail text prefix func =
   if starts_with text prefix then
-    func (remove_prefix text prefix)
+    remove_prefix text prefix |> func
   else
     None, text
 
 let lex_range text =
   let (popen, pclose) = "(", ")" in
   let dotdot = ".." in
-  has_prefix_or text popen (fun wo_paren ->
+  has_prefix_or_fail text popen (fun wo_paren ->
     match lex_digit_group wo_paren with
     | "" -> None, text
     | first_number ->
       let after_first = remove_prefix wo_paren first_number in
-      has_prefix_or after_first dotdot (fun wo_dot ->
+      has_prefix_or_fail after_first dotdot (fun wo_dot ->
         match lex_digit_group wo_dot with
         | "" -> None, text
         | second_number ->
@@ -72,7 +72,8 @@ let lex_range text =
             Some range, remove_prefix after_second pclose
           else
             None, text
-  ))
+      )
+  )
 
 
 let lex_delimited_string delim escaped_delim text =
@@ -179,6 +180,15 @@ let lex_line_tokens text =
 
   wo_spaces
 
+let echo_to_expression tokens =
+  let rec aux acc pool =
+    match pool with
+    | Id "echo" :: String t :: tl -> aux (acc @ [Text t]) tl
+    | Id "echo" :: Id id :: tl -> aux (acc @ [Expression [Id id]]) tl
+    | hd :: tl -> aux (acc @ [hd]) tl
+    | [] -> acc
+  in aux [] tokens
+
 let lex_all_tokens (block_tokens: block_token list) =
   let folder acc index =
     let max = List.length block_tokens in
@@ -192,17 +202,17 @@ let lex_all_tokens (block_tokens: block_token list) =
       | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
         Next (acc @ [Expression (lex_line_tokens body)], index+3)
       | LiquidStart :: RawText(body) :: StatementEnd :: _ ->
-        Next (
-          acc @ (body |> Preprocessor.remove_liquid_comments |> lex_line_tokens),
-          index+3
-        )
+        let liq = body |> Preprocessor.remove_liquid_comments |> lex_line_tokens in
+        Next (acc @ liq, index+3)
       | RawText (other) :: _ ->
         Next (acc @ [Newline; Text (other)], index + 1)
       | _ -> Stop (acc)
     end
   in
 
-  unfold [] 0 folder
+  let base_lex = unfold [] 0 folder in
+  base_lex |> echo_to_expression
+
 
 let test () =
   let _ =
@@ -223,18 +233,3 @@ let test () =
     |> lex_all_tokens in
 
   Stdio.print_endline (tokens |> lex_tokens_as_string);
-
-  (* Stdio.print_endline "Blocks:";
-  Stdio.print_endline (blocks |> blocks_as_string_with_index);
-
-  Stdio.printf "%s" (Ast.find_closing blocks (10, 0) |> Batteries.dump); *)
-  (* "liquid/block_test.liquid"
-  |> File.read
-  |> lex_block_tokens
-  |> Batteries.dump
-  |> Stdio.printf "%s"; *)
-
-  (* (String.sub "just a test" ~pos:4 ~len: 5) |> Stdio.print_endline;; *)
-  (* "_da_apple -12.12 \"aniaml\" = \"sheep\"" |> lex_tokens |> Batteries.dump |> Stdio.printf "%s";; *)
-
-  Stdio.print_string "\n"

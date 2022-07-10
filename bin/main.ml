@@ -1,3 +1,3 @@
 open Lib
 
-let () = Lexer.test()
+let () = Test.test()
