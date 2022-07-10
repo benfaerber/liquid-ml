@@ -101,22 +101,43 @@ let find_bounds tokens start_point =
 let bounds_to_chunks tokens =
   List.map (fun (start_i, end_i) -> sub_list tokens start_i end_i)
 
-let pack_if chunks =
-  let test_cond = Some (Var "x", Eq, Number 4.) in
+let scan_until_newline tokens =
+  let rec aux acc = function
+    | hd :: _ when hd = Newline -> acc
+    | hd :: tl -> aux (acc @ [hd]) tl
+    | [] -> acc
+  in aux [] tokens
+
+let build_if_statement chunk =
+  let statement = scan_until_newline chunk in
+  statement |> Debug.print_lex_tokens;
+  (AlwaysTrue, InProgress [])
+
+
+let build_if_chain chunks =
+
   let rec aux pool =
     match pool with
-    | fs :: tl -> Some (Test (None, InProgress fs, aux tl))
-    | [] -> None in
+    | fs :: tl ->
+      let (condition, body) = build_if_statement fs in
+      Some (Test (condition, body, aux tl))
+    | [] -> None
+  in
 
-  match chunks with
-  | fs :: tl -> (
-    Test (test_cond, InProgress fs, aux tl)
-  )
-  | _ -> raise (Failure "No chunks")
+  let chain = aux chunks in
+  match chain with
+  | Some c -> c
+  | None -> raise (Failure "Failed to build if chain")
+
+
+(* let build_condition_tree tokens =
+  let folder acc pool =
+    match pool with
+    |  *)
 
 
 let test () =
-  let tokens =
+  (* let tokens =
     "liquid/if_else_test.liquid"
     |> File.read
     |> Preprocessor.preprocess
@@ -126,13 +147,14 @@ let test () =
   Debug.print_line ();
 
   let bounds = find_bounds tokens 2 in
-  bounds |> Batteries.dump |> Stdio.print_endline;
 
   bounds
   |> bounds_to_chunks tokens
   |> List.map (fun t -> Debug.lex_tokens_as_string t)
   |> List.iter (Stdio.printf "ENTRY:\n%s------------------------\n\n");
   Debug.print_line ();
-  (* bounds |> bounds_to_chunks tokens |> pack_if |> Debug.ast_as_string |> Stdio.print_endline; *)
+  bounds |> bounds_to_chunks tokens |> build_if_chain |> Debug.print_ast; *)
+
+  "x == 99 and t > 3 or pet == \"dot\"" |> Lexer.lex_line_tokens |> Debug.print_lex_tokens;
 
   Stdio.print_endline "";

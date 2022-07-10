@@ -1,6 +1,7 @@
 open Base
 
 let eq = Caml.(=)
+let (=) = Caml.(=)
 
 let range x =
   Batteries.(--) 0 x |> Batteries.List.of_enum
@@ -10,13 +11,19 @@ let sub_suffix text x = String.sub text ~pos:x ~len:(String.length text)
 let sub_list lst start_i end_i = List.sub lst ~pos:start_i ~len:(end_i - start_i)
 let first_letter text = sub_prefix text 1
 
-let remove_prefix text prefix = String.sub text ~pos:(String.length prefix) ~len:(String.length text - String.length prefix)
 
 let starts_with text prefix =
   if String.length text > String.length prefix then (
     let rprefix = sub_prefix text (String.length prefix) in
     (Caml.(=)) rprefix prefix
   ) else false
+
+let remove_prefix text prefix =
+  if starts_with text prefix then
+    String.sub text ~pos:(String.length prefix) ~len:(String.length text - String.length prefix)
+  else
+    text
+
 
 type ('acc, 'curr) unfold_notifier =
   | Next of 'acc * 'curr

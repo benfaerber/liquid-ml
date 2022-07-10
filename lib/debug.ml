@@ -17,6 +17,15 @@ let operator_as_string = function
   | Lte -> "Lte" | Lt -> "Lt" | Ne -> "Ne"
   | Contains -> "Contains"
 
+let lex_value_as_string = function
+  | LexBool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
+  | LexString(s) -> "String(" ^ s ^ ")"
+  | LexNumber(f) -> Core.sprintf "Num(%f)" f
+  | LexId(id) -> "Id(" ^ id ^ ")"
+  | LexRange(s, e) -> "Range(" ^ (Int.to_string s) ^ ", " ^ (Int.to_string e) ^ ")"
+  | LexNil | LexBlank -> "Nil"
+
+
 let newline_as_token = false
 let rec lex_token_as_string = function
   | If -> "If" | EndIf -> "EndIf"
@@ -34,33 +43,44 @@ let rec lex_token_as_string = function
   | In -> "In"
   | Assign -> "Assign" | Increment -> "Increment" | Decrement -> "Decrement"
   | Pipe -> "Pipe" | Colon -> "Colon" | Equals -> "Equals" | Comma -> "Comma"
+  | And -> "And" | Or -> "Or"
   | Space -> "Space"
   | Newline -> if newline_as_token then "\n\\n" else "\n"
   | Operator op -> operator_as_string op
-  | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
-  | String(s) -> "String(" ^ s ^ ")"
-  | Number(f) -> Core.sprintf "Num(%f)" f
-  | Id(id) -> "Id(" ^ id ^ ")"
+  | Value v -> lex_value_as_string v
   | Text(t) -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
-  | Range(s, e) -> "Range(" ^ (Int.to_string s) ^ ", " ^ (Int.to_string e) ^ ")"
   | Expression(e) ->
     "Expression<\n  " ^ join_by_space (List.map e ~f:lex_token_as_string) ^ "\n>"
   | _ -> "Unknown"
 
 let block_tokens_as_string bts = join_by_space (List.map bts ~f:block_token_as_string)
+let print_block_tokens bts = bts |> block_tokens_as_string |> Stdio.print_endline
+
 let lex_tokens_as_string ts = join_by_space (List.map ts ~f:lex_token_as_string)
+let print_lex_tokens ts = ts |> lex_tokens_as_string |> Stdio.print_endline
+
 let lex_tokens_as_string_with_index ts =
   join_by_space (List.mapi ts ~f:(
     fun i t -> (i |> Int.to_string) ^ ": " ^ lex_token_as_string t
   ))
+let print_lex_tokens_with_index ts = ts |> lex_tokens_as_string_with_index |> Stdio.print_endline
 
-let rec ast_as_string = function
+let ast_as_string =
+  let rec aux depth = function
   | Test (_, child, next_child_opt) -> (
     match next_child_opt with
-    | Some next_child -> Core.sprintf "\n\nTest\n\n  %s\nNext     %s" (ast_as_string child) (ast_as_string next_child)
-    | None -> Core.sprintf "\n\nFinalTest\n\n  %s\n" (ast_as_string child)
+    | Some next_child ->
+      Core.sprintf "\n\n%d: Test\n\n  %s\n%d: Next     %s" depth (aux (depth+1) child) depth (aux (depth+1) next_child)
+    | None ->
+      Core.sprintf "\n\n%d: FinalTest\n\n  %s\n" depth (aux (depth+1) child)
   )
   | InProgress tokens -> lex_tokens_as_string tokens
   | _ -> "Other"
+  in aux 0
 
-let print_line () = Stdio.print_endline "----------------------------------------------------------";
+let print_ast ast = ast |> ast_as_string |> Stdio.print_endline
+
+let print_line () = Stdio.print_endline "----------------------------------------------------------"
+
+let dump x =
+  x |> Batteries.dump |> Stdio.print_endline

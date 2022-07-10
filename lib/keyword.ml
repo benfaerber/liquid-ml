@@ -12,6 +12,15 @@ type block_token =
 type operator =
   Eq | Gte | Gt | Lte | Lt | Ne | Contains
 
+type lex_value =
+  | LexBool of bool
+  | LexString of string
+  | LexNumber of float
+  | LexId of string
+  | LexRange of int * int
+  | LexNil
+  | LexBlank
+
 type lex_token =
   | If | EndIf
   | Unless | EndUnless
@@ -30,15 +39,10 @@ type lex_token =
   | Pipe | Colon | Equals | Comma
   | DotDot
   | Space | Newline
-  | Nil | Blank
   | Operator of operator
   | And | Or
-  | Bool of bool
-  | String of string
-  | Number of float
   | Text of string
-  | Id of string
-  | Range of int * int
+  | Value of lex_value
   | Expression of lex_token list
 
 let lex_keyword text =
@@ -90,8 +94,8 @@ let lex_keyword text =
     ; ("..", DotDot)
     ; ("\n", Newline)
 
-    ; ("nil", Nil)
-    ; ("blank", Blank)
+    ; ("nil", Value LexNil)
+    ; ("blank", Value LexBlank)
   ] in
 
   let found_keyword =

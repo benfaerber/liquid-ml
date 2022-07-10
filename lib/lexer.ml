@@ -8,9 +8,9 @@ let lex_bool text =
   let literal_false = "false" in
 
   if starts_with text literal_true then
-    Some(Bool(true)), remove_prefix text literal_true
+    Some(Value (LexBool(true))), remove_prefix text literal_true
   else if starts_with text literal_false then
-    Some(Bool(false)), remove_prefix text literal_false
+    Some(Value (LexBool(false))), remove_prefix text literal_false
   else
     None, text
 
@@ -27,7 +27,7 @@ let lex_digit_group text =
   lex_digit_group_aux text [] |> join
 
 let lex_number text =
-  let to_num v = Some (Number(v |> Float.of_string)) in
+  let to_num v = Some (Value (LexNumber(v |> Float.of_string))) in
 
   let (neg_literal, t_text) =
     if starts_with text "-" then
@@ -68,7 +68,7 @@ let lex_range text =
         | second_number ->
           let after_second = remove_prefix wo_dot second_number in
           if starts_with after_second pclose then
-            let range = Range (Int.of_string first_number, Int.of_string second_number) in
+            let range = Value (LexRange (Int.of_string first_number, Int.of_string second_number)) in
             Some range, remove_prefix after_second pclose
           else
             None, text
@@ -81,17 +81,17 @@ let lex_delimited_string delim escaped_delim text =
     let d_len = String.length escaped_delim in
     let folder acc index =
       match String.sub text ~pos:(index+1) ~len:d_len with
-      | e when eq e escaped_delim -> Next (acc ^ escaped_delim, index + d_len)
+      | e when e = escaped_delim -> Next (acc ^ escaped_delim, index + d_len)
       | other -> (
         match first_letter other with
-        | e when eq e delim -> Stop (acc)
+        | e when e = delim -> Stop (acc)
         | other_letter -> Next (acc ^ other_letter, index + 1))
     in
 
     let string_literal = unfold "" 0 folder in
     let complete_literal = "\"" ^ string_literal ^ "\"" in
 
-    Some (String(string_literal)), remove_prefix text complete_literal
+    Some (Value (LexString(string_literal))), remove_prefix text complete_literal
   else
     None, text
 
@@ -123,7 +123,7 @@ let lex_id text =
     in
 
     let id_literal = first_letter text ^ (unfold "" 1 folder) in
-    (Some (Id id_literal), remove_prefix text id_literal)
+    (Some (Value (LexId id_literal)), remove_prefix text id_literal)
   else
     (None, text)
 
@@ -179,8 +179,8 @@ let lex_line_tokens text =
 let echo_to_expression tokens =
   let rec aux acc pool =
     match pool with
-    | Id "echo" :: String t :: tl -> aux (acc @ [Text t]) tl
-    | Id "echo" :: Id id :: tl -> aux (acc @ [Expression [Id id]]) tl
+    | Value (LexId "echo") :: Value (LexString t) :: tl -> aux (acc @ [Text t]) tl
+    | Value (LexId "echo") :: Value (LexId id) :: tl -> aux (acc @ [Expression [Value (LexId id)]]) tl
     | hd :: tl -> aux (acc @ [hd]) tl
     | [] -> acc
   in aux [] tokens
