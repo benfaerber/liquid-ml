@@ -24,6 +24,7 @@ type pair_tag =
 type lex_token =
   | Open of pair_tag
   | Close of pair_tag
+  | ElseIf
   | Else
   | When
   | Break | Continue
@@ -35,6 +36,7 @@ type lex_token =
   | Space | Newline
   | Nil | Blank
   | Operator of operator
+  | And | Or
   | Bool of bool
   | String of string
   | Number of float
@@ -47,6 +49,7 @@ let lex_keyword text =
   let keywords =
     [ ("if", Open If)
     ; ("else", Else)
+    ; ("elsif", ElseIf)
     ; ("endif", Close If)
     ; ("unless", Open Unless)
     ; ("endunless", Close Unless)
@@ -80,6 +83,8 @@ let lex_keyword text =
     ; ("!=", Operator Ne)
     ; ("<>", Operator Ne)
     ; ("contains", Operator Contains)
+    ; ("and", And)
+    ; ("or", Or)
 
     ; (":", Colon)
     ; ("|", Pipe)

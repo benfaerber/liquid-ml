@@ -72,3 +72,49 @@ Func (eq) (
   Value ( Var ("x") )
   Value ( Number (1))
 )
+
+How to build an Ast:
+Just from token to token
+If it is opener:
+scan down while counting openers and closers
+Once closer is found
+
+Get open index and close index
+Stuff that into algebreic dt
+Run build rec.
+
+Test condition:(x = 1) (build_ast tokens[open_index..close_index])
+
+How to count else
+
+if
+  if
+  end
+else
+  if
+  else
+  end
+end
+
+(if_count, end_count)
+if = (1, 0)
+  if = (2, 0)
+    if = (3, 0)
+    end = (3, 1)
+  end = (3, 2)
+else = If[1] is still open, this else belongs to that
+  if = (2, 1)
+  else = If[2]
+  end = (2, 2)
+end
+
+For this to work I need to know scope
+
+0: if - [0] open if on line 0
+1:   if - [0 1] open if on line 1
+2:   end - [0] most recent if was closed
+3: else - [0] zero is the most recent open if, this else must belong to that
+4:   if - [0 4]
+5:   else - most recent if is 4, this belongs to that
+6:   end - [0]
+7: end - [0]

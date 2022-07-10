@@ -12,3 +12,6 @@ let close_to_open =
   function
   | Close p -> Open p
   | _ -> raise (Failure "This isn't a close tag")
+
+
+(* let find_closing *)
