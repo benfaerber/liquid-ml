@@ -4,6 +4,7 @@ type value =
   | Number of float
   | Var of string
   | List of value list
+  | Previous
   | Nil
 
 type syntax_token =

@@ -78,6 +78,7 @@ let value_as_string = function
   | Number(f) -> Core.sprintf "Num(%f)" f
   | Var(v) -> "Var(" ^ v ^ ")"
   | Nil -> "Nil"
+  | Previous -> "Previous"
   | _ -> "Unknown"
 
 
@@ -91,6 +92,12 @@ let rec condition_as_string =
   in aux
 
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
+
+let rec expression_as_string = function
+  | Value v -> value_as_string v
+  | Func (n, e) -> "f:" ^ n ^ "(" ^ (join_by_comma (List.map e ~f:expression_as_string)) ^ ")"
+
+let print_expression e = e |> expression_as_string |> Stdio.print_endline
 
 let ast_as_string =
   let rec aux depth = function
@@ -107,6 +114,7 @@ let ast_as_string =
     child_text ^ next_child_text
   )
   | InProgress tokens -> lex_tokens_as_string tokens
+  | Expression exp -> expression_as_string exp
   | _ -> "Other"
   in aux 0
 

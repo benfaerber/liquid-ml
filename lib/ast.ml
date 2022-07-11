@@ -12,7 +12,6 @@ let combine_condition p1 p2 = function
 
 let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
-  Debug.print_lex_tokens tokens;
   match tokens with
   | Else :: _ -> AlwaysTrue
   | If :: statement
@@ -48,8 +47,35 @@ let scan_until_eos tokens =
   let res = aux [] tokens in
   (res, remove_list_prefix tokens res)
 
-let parse_expression tokens =
-  tokens
+let to_exp_value v = Value (lex_value_to_value v)
+let to_exp_values lst = List.map lst ~f:to_exp_value
+
+let prev = Value Previous
+let parse_expression full_tokens =
+  let rec aux tokens =
+    let (prefix, tail) =
+      match tokens with
+      | LexValue v :: tl -> (to_exp_value v), tl
+      | _ -> prev, tokens in
+
+    let make_func id params tl =
+      [Func (id, [prefix] @ to_exp_values params)] @ aux tl in
+
+    match tail with
+    | [Keyword.Expression ex] -> aux ex
+    | [LexValue v] ->
+      [Value (lex_value_to_value v)]
+    | Pipe :: LexValue (LexId id) :: Colon :: LexValue p1 :: Comma :: LexValue p2 :: Comma :: LexValue p3 :: tl ->
+      make_func id [p1; p2; p3] tl
+    | Pipe :: LexValue (LexId id) :: Colon :: LexValue p1 :: Comma :: LexValue p2 :: tl ->
+      make_func id [p1; p2] tl
+    | Pipe :: LexValue (LexId id) :: Colon :: LexValue p1 :: tl ->
+      make_func id [p1] tl
+    | Pipe :: LexValue (LexId id) :: tl ->
+      make_func id [] tl
+    | _ -> []
+    in aux full_tokens
+
 
 let parse_test_statement chunk =
   let (cond_tokens, body_tokens) = chunk |> scan_until_eos in
@@ -107,7 +133,21 @@ let test_assign () =
   Stdio.print_endline "---";
   if log_tokens then
     tokens |> Debug.lex_tokens_as_string_with_index |> Stdio.print_endline;
-  Stdio.print_endline "HI"
+
+  let test_expressions = [
+    "\"horse\"";
+    "\"horse\" | capitalize";
+    "\"a, b, c, d\" | split: \", \" ";
+    "var | slice: 1, 2 | upcase | join: \"---\"";
+    "beatles | upcase"
+  ] in
+
+  let exps = List.map test_expressions ~f:(fun e -> e, (e |> Lexer.lex_line_tokens |> parse_expression)) in
+  List.iter exps ~f:(fun (exp, tks) ->
+    Stdio.print_endline exp;
+    List.iter tks ~f:Debug.print_expression;
+    Stdio.print_endline "";
+  );
 ;;
 
 let test_conditions () =
