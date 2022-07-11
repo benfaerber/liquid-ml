@@ -15,7 +15,9 @@ let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
   match tokens with
   | Else :: _ -> AlwaysTrue
-  | _ :: statement -> (
+  | If :: statement
+  | ElseIf :: statement
+  | Unless :: statement -> (
     let rec aux acc pool =
       match pool with
       | [LexValue a1; Operator op1; LexValue b1] ->
@@ -36,6 +38,7 @@ let build_condition tokens =
   )
   | _ -> raise (Failure "Invalid token list")
 
+let build_case_condition () = AlwaysTrue
 
 let scan_until_newline tokens =
   let rec aux acc = function
@@ -51,12 +54,37 @@ let build_test_statement chunk =
   let condition = build_condition cond_tokens in
   (condition, InProgress body_tokens)
 
+let build_when_statement case_id chunk =
+  match chunk with
+  | When :: LexValue value :: tl ->
+    let condition = Equation (Var case_id, Eq, lex_value_to_value value) in
+    (condition, InProgress tl)
+  | Else :: tl ->
+    (AlwaysTrue, InProgress tl)
+  | _ -> Debug.print_lex_tokens chunk; raise (Failure "This is not a when statement")
+
+let unfold_when_statments =
+  let rec aux pool =
+    match pool with
+    | (cond, body) :: tl -> Some (Test (cond, body, aux tl))
+    | [] -> None
+  in aux
+
 let build_test_chain chunks =
   let rec aux pool =
     match pool with
-    | fs :: tl ->
-      let (condition, body) = build_test_statement fs in
-      Some (Test (condition, body, aux tl))
+    | fs :: tl -> (
+      match fs with
+      | Case :: LexValue LexId(case_id) :: Newline :: _ -> (
+        let when_statements = List.map tl ~f:(build_when_statement case_id) in
+        unfold_when_statments when_statements
+      )
+      | _ -> (
+        let (condition, body) = build_test_statement fs in
+        Some (Test (condition, body, aux tl))
+      )
+    )
+
     | [] -> None
   in
 
@@ -71,16 +99,18 @@ let lex_file fname =
   |> Preprocessor.preprocess
   |> Lexer.lex_text
 
-let log_tokens = true
+let log_tokens = false
+
 
 let test () =
+  (* test_assign (); *)
   let tokens = lex_file "liquid/if_else_test.liquid" in
 
   if log_tokens then
     tokens |> Debug.lex_tokens_as_string_with_index |> Stdio.print_endline;
   Debug.print_line ();
 
-  let bounds = Bounds.find_bounds tokens 2 in
+  let bounds = Bounds.find_bounds tokens 64 in
 
   (* bounds
   |> bounds_to_chunks tokens
@@ -97,4 +127,4 @@ let test () =
   |> build_condition
   |> ignore; *)
 
-  Stdio.print_endline "";
+  Stdio.print_endline "" |> ignore

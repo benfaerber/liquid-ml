@@ -20,3 +20,12 @@ This is to test if else
 {% endunless %}
 
 {% capture my_var %}dog cat horse{% endcapture %}
+
+{% case animal %}
+    {% when "dog" %}
+        Woof
+    {% when "cat" %}
+        Meow
+    {% else %}
+        No animal
+{% endcase %}

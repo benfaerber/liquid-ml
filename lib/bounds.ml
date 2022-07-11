@@ -10,6 +10,7 @@ type bound_finders =
 
 let pair_to_bounds start stop = Some { start = start; stop = stop; other = None }
 
+(* TODO: Else Keyword used as base case could break nested if else chain *)
 let bounds_from_opener = function
   | If -> Some
     { start = If

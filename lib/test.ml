@@ -1,3 +1,3 @@
 let test () =
-  Ast.test();
+  Ast.test ();
   Stdio.print_endline "";
