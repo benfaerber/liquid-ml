@@ -46,6 +46,7 @@ type lex_token =
   | LexCombiner of lex_combiner
   | LexValue of lex_value
   | Expression of lex_token list
+  | EOS
 
 let lex_keyword text =
   let keywords =

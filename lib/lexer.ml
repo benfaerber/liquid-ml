@@ -194,7 +194,7 @@ let lex_all_tokens (block_tokens: block_token list) =
       let sub = List.sub block_tokens ~pos:index ~len:(max - index) in
       match sub with
       | StatementStart :: RawText(body) :: StatementEnd :: _ ->
-        Next (acc @ lex_line_tokens body, index+3)
+        Next (acc @ lex_line_tokens body @ [EOS], index+3)
       | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
         Next (acc @ [Expression (lex_line_tokens body)], index+3)
       | LiquidStart :: RawText(body) :: StatementEnd :: _ ->

@@ -50,6 +50,7 @@ let rec lex_token_as_string = function
   | Operator op -> operator_as_string op
   | LexValue v -> lex_value_as_string v
   | Text(t) -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
+  | EOS -> "EOS"
   | Expression(e) ->
     "Expression<\n  " ^ join_by_space (List.map e ~f:lex_token_as_string) ^ "\n>"
   | _ -> "Unknown"

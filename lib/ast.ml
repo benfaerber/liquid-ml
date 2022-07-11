@@ -13,6 +13,7 @@ let combine_condition p1 p2 = function
 
 let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
+  Debug.print_lex_tokens tokens;
   match tokens with
   | Else :: _ -> AlwaysTrue
   | If :: statement
@@ -40,9 +41,9 @@ let build_condition tokens =
 
 let build_case_condition () = AlwaysTrue
 
-let scan_until_newline tokens =
+let scan_until_eos tokens =
   let rec aux acc = function
-    | hd :: _ when hd = Newline -> acc
+    | hd :: _ when hd = EOS -> acc
     | hd :: tl -> aux (acc @ [hd]) tl
     | [] -> acc
   in
@@ -50,18 +51,27 @@ let scan_until_newline tokens =
   (res, remove_list_prefix tokens res)
 
 let build_test_statement chunk =
-  let (cond_tokens, body_tokens) = chunk |> scan_until_newline in
+  let (cond_tokens, body_tokens) = chunk |> scan_until_eos in
   let condition = build_condition cond_tokens in
   (condition, InProgress body_tokens)
 
-let build_when_statement case_id chunk =
-  match chunk with
+let build_when_statement case_id =
+  function
   | When :: LexValue value :: tl ->
     let condition = Equation (Var case_id, Eq, lex_value_to_value value) in
     (condition, InProgress tl)
   | Else :: tl ->
     (AlwaysTrue, InProgress tl)
-  | _ -> Debug.print_lex_tokens chunk; raise (Failure "This is not a when statement")
+  | _ -> raise (Failure "This is not a when statement")
+
+let build_when_statements case_id chunks =
+  let when_statements = List.map chunks ~f:(build_when_statement case_id) in
+  let rec unfold_into_test = function
+    | (cond, body) :: tl -> Some (Test (cond, body, unfold_into_test tl))
+    | [] -> None
+  in
+
+  unfold_into_test when_statements
 
 let unfold_when_statments =
   let rec aux pool =
@@ -75,16 +85,12 @@ let build_test_chain chunks =
     match pool with
     | fs :: tl -> (
       match fs with
-      | Case :: LexValue LexId(case_id) :: Newline :: _ -> (
-        let when_statements = List.map tl ~f:(build_when_statement case_id) in
-        unfold_when_statments when_statements
-      )
-      | _ -> (
+      | Case :: LexValue LexId(case_id) :: EOS :: _ ->
+        build_when_statements case_id tl
+      | _ ->
         let (condition, body) = build_test_statement fs in
         Some (Test (condition, body, aux tl))
-      )
     )
-
     | [] -> None
   in
 
@@ -99,7 +105,7 @@ let lex_file fname =
   |> Preprocessor.preprocess
   |> Lexer.lex_text
 
-let log_tokens = false
+let log_tokens = true
 
 
 let test () =
@@ -110,7 +116,7 @@ let test () =
     tokens |> Debug.lex_tokens_as_string_with_index |> Stdio.print_endline;
   Debug.print_line ();
 
-  let bounds = Bounds.find_bounds tokens 64 in
+  let bounds = Bounds.find_bounds tokens 77 in
 
   (* bounds
   |> bounds_to_chunks tokens
