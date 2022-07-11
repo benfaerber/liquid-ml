@@ -8,9 +8,9 @@ let lex_bool text =
   let literal_false = "false" in
 
   if starts_with text literal_true then
-    Some(LexValue (LexBool(true))), remove_prefix text literal_true
+    Some(LexValue (LexBool true)), remove_prefix text literal_true
   else if starts_with text literal_false then
-    Some(LexValue (LexBool(false))), remove_prefix text literal_false
+    Some(LexValue (LexBool false)), remove_prefix text literal_false
   else
     None, text
 
@@ -89,7 +89,7 @@ let lex_delimited_string delim escaped_delim text =
     in
 
     let string_literal = unfold "" 0 folder in
-    let complete_literal = "\"" ^ string_literal ^ "\"" in
+    let complete_literal = delim ^ string_literal ^ delim in
 
     Some (LexValue (LexString string_literal)), remove_prefix text complete_literal
   else
@@ -100,7 +100,7 @@ let lex_string text =
   let single_quote = lex_delimited_string "\'" "\\\'" in
 
   match (double_quote text, single_quote text) with
-  | ((Some r, rest), _)
+  | ((Some r, rest), _) -> (Some r, rest)
   | (_, (Some r, rest)) -> (Some r, rest)
   | _ -> (None, text)
 

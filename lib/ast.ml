@@ -10,7 +10,6 @@ let combine_condition p1 p2 = function
   | LexAnd -> Combine (And, [p1; p2])
   | LexOr -> Combine (Or, [p1; p2])
 
-
 let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
   Debug.print_lex_tokens tokens;
@@ -32,14 +31,13 @@ let build_condition tokens =
         let part_1 = lex_to_equation a1 op1 b1 in
         let compound = combine_condition acc part_1 c in
         aux compound tl
-      | _ -> acc
+      | [] -> acc
+      | _ -> raise (Failure ("Invalid condition"))
     in
     let res = aux AlwaysTrue statement in
     if is_unless then Not res else res
   )
   | _ -> raise (Failure "Invalid token list")
-
-let build_case_condition () = AlwaysTrue
 
 let scan_until_eos tokens =
   let rec aux acc = function
@@ -50,12 +48,15 @@ let scan_until_eos tokens =
   let res = aux [] tokens in
   (res, remove_list_prefix tokens res)
 
-let build_test_statement chunk =
+let parse_expression tokens =
+  tokens
+
+let parse_test_statement chunk =
   let (cond_tokens, body_tokens) = chunk |> scan_until_eos in
   let condition = build_condition cond_tokens in
   (condition, InProgress body_tokens)
 
-let build_when_statement case_id =
+let parse_when_statement case_id =
   function
   | When :: LexValue value :: tl ->
     let condition = Equation (Var case_id, Eq, lex_value_to_value value) in
@@ -64,8 +65,8 @@ let build_when_statement case_id =
     (AlwaysTrue, InProgress tl)
   | _ -> raise (Failure "This is not a when statement")
 
-let build_when_statements case_id chunks =
-  let when_statements = List.map chunks ~f:(build_when_statement case_id) in
+let parse_when_statements case_id chunks =
+  let when_statements = List.map chunks ~f:(parse_when_statement case_id) in
   let rec unfold_into_test = function
     | (cond, body) :: tl -> Some (Test (cond, body, unfold_into_test tl))
     | [] -> None
@@ -73,22 +74,15 @@ let build_when_statements case_id chunks =
 
   unfold_into_test when_statements
 
-let unfold_when_statments =
-  let rec aux pool =
-    match pool with
-    | (cond, body) :: tl -> Some (Test (cond, body, aux tl))
-    | [] -> None
-  in aux
-
 let build_test_chain chunks =
   let rec aux pool =
     match pool with
     | fs :: tl -> (
       match fs with
       | Case :: LexValue LexId(case_id) :: EOS :: _ ->
-        build_when_statements case_id tl
+        parse_when_statements case_id tl
       | _ ->
-        let (condition, body) = build_test_statement fs in
+        let (condition, body) = parse_test_statement fs in
         Some (Test (condition, body, aux tl))
     )
     | [] -> None
@@ -107,16 +101,23 @@ let lex_file fname =
 
 let log_tokens = true
 
+let test_assign () =
+  Stdio.print_endline "Attempting to parse block_test:";
+  let tokens = lex_file "liquid/block_test.liquid" in
+  Stdio.print_endline "---";
+  if log_tokens then
+    tokens |> Debug.lex_tokens_as_string_with_index |> Stdio.print_endline;
+  Stdio.print_endline "HI"
+;;
 
-let test () =
-  (* test_assign (); *)
+let test_conditions () =
   let tokens = lex_file "liquid/if_else_test.liquid" in
 
   if log_tokens then
     tokens |> Debug.lex_tokens_as_string_with_index |> Stdio.print_endline;
   Debug.print_line ();
 
-  let bounds = Bounds.find_bounds tokens 77 in
+  let bounds = Bounds.find_bounds tokens 2 in
 
   (* bounds
   |> bounds_to_chunks tokens
@@ -132,5 +133,14 @@ let test () =
   |> Lexer.lex_line_tokens
   |> build_condition
   |> ignore; *)
+;;
+
+type test_options = TestAssign | TestConditions
+let to_test = TestAssign
+let test () =
+  match to_test with
+  | TestAssign -> test_assign ()
+  | TestConditions -> test_conditions ()
+  ;
 
   Stdio.print_endline "" |> ignore
