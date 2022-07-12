@@ -2,21 +2,15 @@ open Base
 open Keyword
 open Tools
 open Syntax
+open Parser_tools
 
 type parse_result = (ast * lex_token list) option
 
-let scan_until_eos tokens =
-  let rec aux acc = function
-    | hd :: tl when hd = EOS -> acc, tl
-    | hd :: tl -> aux (acc @ [hd]) tl
-    | [] -> acc, []
-  in aux [] tokens
-
-let parse_expression = function
+let parse_expression _ = function
   | LexExpression exp :: tl -> Some (Expression (Parser_expression.parse_expression exp), tl)
   | _ -> None
 
-let parse_assignment tokens =
+let parse_assignment _ tokens =
   let add_exp id modifier =
     Func (modifier, [Value (Var id); Value (Number 1.)])
   in
@@ -38,53 +32,36 @@ let is_parsable_test =
   | _ -> false
 
 
-let parse_test = function
+let parse_test block_parser = function
   | tokens when is_parsable_test tokens ->
     let bounds = Bounds.find_bounds tokens 0 in
     let chunks = bounds |> Bounds.bounds_to_chunks tokens in
     let stop_point = Bounds.stop_point_from_bounds bounds in
     let rest = sub_list_suffix tokens stop_point in
-    Some (Parser_test.parse_test_chain chunks, rest)
+    Some (Parser_test.parse_test_chain block_parser chunks, rest)
   | _ -> None
 
-let parse_capture = function
-    | Keyword.Capture :: LexValue (LexId id) :: tl ->
-      let tokens = [Keyword.Capture] @ tl in
-      let bounds = Bounds.find_bounds tokens 0 in
-      let stop_point = Bounds.stop_point_from_bounds bounds in
-      let body = List.sub tokens ~pos:0 ~len:(stop_point) in
-      let rest = sub_list_suffix tokens stop_point in
+let parse_capture block_parser = function
+  | Keyword.Capture :: LexValue (LexId id) :: EOS :: tl ->
+    let tokens = [Keyword.Capture] @ tl in
+    let bounds = Bounds.find_bounds tokens 0 in
+    let stop_point = Bounds.stop_point_from_bounds bounds in
+    let body = List.sub tl ~pos:0 ~len:(stop_point) in
+    let rest = sub_list_suffix tokens stop_point in
 
-      let capture = Capture (id, InProgress body) in
-      Some (capture, rest)
-    | _ -> None
+    let capture = Capture (id, block_parser body) in
+    Some (capture, rest)
+  | _ -> None
 
-let parse_other  = function
-    | LexText t :: tl -> Some (Text t, tl)
-    | Newline :: tl -> Some (Text "\n", tl)
-    | EOS :: tl -> Some (Nothing, tl)
-    | _ -> None
+let parse_other _ = function
+  | LexText t :: tl -> Some (Text t, tl)
+  | Newline :: tl -> Some (Text "\n", tl)
+  | EOS :: tl -> Some (Nothing, tl)
+  | _ -> None
 
-let parse_one tokens =
-  let parsers = [parse_assignment; parse_expression; parse_test; parse_capture; parse_other] in
-  let found_parser =
-    List.find parsers ~f:(
-      fun parser -> match parser tokens with Some(_) -> true | None -> false
-    ) in
-
-  match found_parser with
-  | Some(parser) -> (
-    match parser tokens with
-    | Some (got, rest) -> Some (got, rest)
-    | None -> None
-  )
-  | None -> None
-
-let parse_block init_tokens =
+let parse_block_with_parser parser init_tokens =
   let folder block tokens =
-    Debug.dump (tokens);
-    Debug.print_line ();
-    match parse_one tokens with
+    match parser tokens with
     | Some (got, rest) ->
       Next (block @ (if got != Nothing then [got] else []), rest)
     | None ->
@@ -93,6 +70,23 @@ let parse_block init_tokens =
 
   Block (unfold [] init_tokens folder)
 
+let rec parse_one tokens =
+  let block_parser = parse_block_with_parser parse_one in
+  let parsers = [parse_assignment; parse_expression; parse_test; parse_capture; parse_other] in
+  let found_parser =
+    List.find parsers ~f:(
+      fun parser -> match parser block_parser tokens with Some(_) -> true | None -> false
+    ) in
+
+  match found_parser with
+  | Some(parser) -> (
+      match parser block_parser tokens with
+      | Some (got, rest) -> Some (got, rest)
+      | None -> None
+    )
+  | None -> None
+
+let parse_block tokens = parse_block_with_parser parse_one tokens
 
 let log_tokens = true
 
@@ -102,7 +96,7 @@ let test_liquid_block liq =
   Debug.print_line ();
   let tokens = liq |> Preprocessor.preprocess |> Lexer.lex_text in
   (* Stdio.print_endline "Tokens:";
-  Debug.print_lex_tokens_with_index tokens; *)
+     Debug.print_lex_tokens_with_index tokens; *)
   Debug.print_line ();
   let res = parse_block tokens in
   Stdio.print_endline "Parse Result:";

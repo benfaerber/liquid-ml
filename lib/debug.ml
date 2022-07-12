@@ -122,7 +122,7 @@ let ast_as_string =
     | Expression exp -> expression_as_string exp
     | Assignment (name, exp) -> Core.sprintf "Assign(%s: %s)" name (expression_as_string exp)
     | Text t -> Core.sprintf "Text(%s)" t
-    | Capture (id, body) -> Core.sprintf "Capture(%s:\n%s)" id (aux (depth+1) body)
+    | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
     | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_comma) ^ ")"
     | _ -> "Other" in
     "\n" ^ tab depth ^ result
