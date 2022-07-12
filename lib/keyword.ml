@@ -42,17 +42,17 @@ type lex_token =
   | DotDot
   | Space | Newline
   | Operator of operator
-  | Text of string
+  | LexText of string
   | LexCombiner of lex_combiner
   | LexValue of lex_value
-  | Expression of lex_token list
+  | LexExpression of lex_token list
   | EOS
 
 let lex_keyword text =
   let keywords =
-    [ ("if", If)
+    [ ("elsif", ElseIf)
     ; ("else", Else)
-    ; ("elsif", ElseIf)
+    ; ("if", If)
     ; ("endif", EndIf)
     ; ("unless", Unless)
     ; ("endunless", EndUnless)
@@ -71,12 +71,12 @@ let lex_keyword text =
     ; ("tablerow", TableRow)
     ; ("endtablerow", EndTableRow)
 
-    ; ("in", In)
-    ; ("by", By)
-
     ; ("assign", Assign)
     ; ("increment", Increment)
     ; ("decrement", Decrement)
+
+    ; ("in", In)
+    ; ("by", By)
 
     ; ("==", Operator Eq)
     ; (">=", Operator Gte)

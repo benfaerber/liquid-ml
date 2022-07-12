@@ -27,7 +27,7 @@ let lex_value_as_string = function
 
 let lex_combiner_as_string = function LexAnd -> "And" | LexOr -> "Or"
 
-let newline_as_token = false
+let newline_as_token = true
 let rec lex_token_as_string = function
   | If -> "If" | EndIf -> "EndIf"
   | Unless -> "Unless" | EndUnless -> "EndUnless"
@@ -46,12 +46,12 @@ let rec lex_token_as_string = function
   | Pipe -> "Pipe" | Colon -> "Colon" | Equals -> "Equals" | Comma -> "Comma"
   | LexCombiner c -> lex_combiner_as_string c
   | Space -> "Space"
-  | Newline -> if newline_as_token then "\n\\n" else "\n"
+  | Newline -> if newline_as_token then "\\n\n" else "\n"
   | Operator op -> operator_as_string op
   | LexValue v -> lex_value_as_string v
-  | Text(t) -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
+  | LexText t -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
   | EOS -> "EOS"
-  | Expression(e) ->
+  | LexExpression(e) ->
     "Expression<\n  " ^ join_by_space (List.map e ~f:lex_token_as_string) ^ "\n>"
   | _ -> "Unknown"
 
@@ -78,7 +78,7 @@ let value_as_string = function
   | Number(f) -> Core.sprintf "Num(%f)" f
   | Var(v) -> "Var(" ^ v ^ ")"
   | Nil -> "Nil"
-  | Previous -> "Previous"
+  | Skip -> "Skip"
   | _ -> "Unknown"
 
 
@@ -95,28 +95,38 @@ let print_condition c = c |> condition_as_string |> Stdio.print_endline
 
 let rec expression_as_string = function
   | Value v -> value_as_string v
-  | Func (n, e) -> "f:" ^ n ^ "(" ^ (join_by_comma (List.map e ~f:expression_as_string)) ^ ")"
+  | Func (n, e) -> "f:" ^ n ^ "(\n  " ^ (join_by_comma (List.map e ~f:expression_as_string)) ^ "\n)"
 
 let print_expression e = e |> expression_as_string |> Stdio.print_endline
 
+let tab l =
+  List.map (range l) ~f:(fun _ -> "  ") |> join
+
+let show_in_progress = false
 let ast_as_string =
-  let rec aux depth = function
-  | Test (condition, child, next_child_opt) -> (
-    let child_text =
-      Core.sprintf "\n%d: Condition( %s )\n  { %s }\n" depth (condition |> condition_as_string) (aux (depth+1) child) in
+  let rec aux depth a =
+    let result = match a with
+    | Test (condition, child, next_child_opt) -> (
+      let child_text =
+        Core.sprintf "\nCondition( %s )\n{  %s\n}\n" (condition |> condition_as_string) (aux (depth+1) child) in
 
-    let next_child_text =
-      match next_child_opt with
-      | Some next_child ->
-        Core.sprintf "{ %s }\n" (aux (depth+1) next_child)
-      | None -> "" in
+      let next_child_text =
+        match next_child_opt with
+        | Some next_child ->
+          Core.sprintf "{ %s }\n" (aux (depth+1) next_child)
+        | None -> "" in
 
-    child_text ^ next_child_text
-  )
-  | InProgress tokens -> lex_tokens_as_string tokens
-  | Expression exp -> expression_as_string exp
-  | _ -> "Other"
-  in aux 0
+      child_text ^ next_child_text
+    )
+    | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
+    | Expression exp -> expression_as_string exp
+    | Assignment (name, exp) -> Core.sprintf "Assign(%s: %s)" name (expression_as_string exp)
+    | Text t -> Core.sprintf "Text(%s)" t
+    | Capture (id, body) -> Core.sprintf "Capture(%s:\n%s)" id (aux (depth+1) body)
+    | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_comma) ^ ")"
+    | _ -> "Other" in
+    "\n" ^ tab depth ^ result
+    in aux 0
 
 let print_ast ast = ast |> ast_as_string |> Stdio.print_endline
 
@@ -124,3 +134,14 @@ let print_line () = Stdio.print_endline "---------------------------------------
 
 let dump x =
   x |> Batteries.dump |> Stdio.print_endline
+
+let parse_result_as_string = function
+  | Some (ast, _) -> Core.sprintf "Ast:\n%s" (ast_as_string ast)
+  | None -> Core.sprintf "Parse Result None"
+
+let parse_result_with_rest_as_string = function
+  | Some (ast, tokens) -> Core.sprintf "Ast:\n%s\nRest:\n%s" (ast_as_string ast) (lex_tokens_as_string tokens)
+  | None -> Core.sprintf "Parse Result None"
+
+let print_parse_result pr = pr |> parse_result_as_string |> Stdio.print_endline
+let print_parse_result_with_rest pr = pr |> parse_result_with_rest_as_string |> Stdio.print_endline

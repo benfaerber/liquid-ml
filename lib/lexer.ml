@@ -179,8 +179,8 @@ let lex_line_tokens text =
 let echo_to_expression tokens =
   let rec aux acc pool =
     match pool with
-    | LexValue (LexId "echo") :: LexValue (LexString t) :: tl -> aux (acc @ [Text t]) tl
-    | LexValue (LexId "echo") :: LexValue (LexId id) :: tl -> aux (acc @ [Expression [LexValue (LexId id)]]) tl
+    | LexValue (LexId "echo") :: LexValue (LexString t) :: tl -> aux (acc @ [LexText t]) tl
+    | LexValue (LexId "echo") :: LexValue (LexId id) :: tl -> aux (acc @ [LexExpression [LexValue (LexId id)]]) tl
     | hd :: tl -> aux (acc @ [hd]) tl
     | [] -> acc
   in aux [] tokens
@@ -196,12 +196,12 @@ let lex_all_tokens (block_tokens: block_token list) =
       | StatementStart :: RawText(body) :: StatementEnd :: _ ->
         Next (acc @ lex_line_tokens body @ [EOS], index+3)
       | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
-        Next (acc @ [Expression (lex_line_tokens body)], index+3)
+        Next (acc @ [LexExpression (lex_line_tokens body)], index+3)
       | LiquidStart :: RawText(body) :: StatementEnd :: _ ->
         let liq = body |> Preprocessor.remove_liquid_comments |> lex_line_tokens in
         Next (acc @ liq, index+3)
       | RawText (other) :: _ ->
-        Next (acc @ [Newline; Text (other)], index + 1)
+        Next (acc @ [Newline; LexText (other)], index + 1)
       | _ -> Stop (acc)
     end
   in
@@ -214,6 +214,13 @@ let lex_text text =
   text
   |> lex_block_tokens
   |> lex_all_tokens
+
+let lex_file fname =
+  fname
+  |> File.read
+  |> Preprocessor.preprocess
+  |> lex_text
+
 
 let test () =
   let _ =

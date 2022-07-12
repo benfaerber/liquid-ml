@@ -85,3 +85,7 @@ let find_bounds tokens start_point =
 
 let bounds_to_chunks tokens bounds =
   List.map bounds ~f:(fun (start_i, end_i) -> sub_list tokens start_i end_i)
+
+let stop_point_from_bounds bounds =
+  let (_, sp) = List.last_exn bounds in
+  sp+1

@@ -1,3 +1,3 @@
 let test () =
-  Ast.test ();
+  Parser.test ();
   Stdio.print_endline "";

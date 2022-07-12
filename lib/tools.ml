@@ -2,13 +2,15 @@ open Base
 
 let eq = Caml.(=)
 let (=) = Caml.(=)
+let (!=) = Caml.(!=)
 
 let range x =
   Batteries.(--) 0 x |> Batteries.List.of_enum
 
 let sub_prefix text x = String.sub text ~pos:0 ~len:x
-let sub_suffix text x = String.sub text ~pos:x ~len:(String.length text)
+let sub_suffix text x = String.sub text ~pos:x ~len:(String.length text - x)
 let sub_list lst start_i end_i = List.sub lst ~pos:start_i ~len:(end_i - start_i)
+let sub_list_suffix lst x = List.sub lst ~pos:x ~len:(List.length lst - x)
 let first_letter text = sub_prefix text 1
 
 

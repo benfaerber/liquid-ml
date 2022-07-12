@@ -4,8 +4,8 @@ type value =
   | Number of float
   | Var of string
   | List of value list
-  | Previous
   | Nil
+  | Skip
 
 type syntax_token =
   | Operator of Keyword.operator
@@ -24,15 +24,16 @@ type condition =
   | Not of condition
   | AlwaysTrue
 
-type loop = string * value list
-
 type ast =
   | Capture of string * ast
+  | Block of ast list
   | Test of condition * ast * (ast option)
-  | For of loop
+  | For of string * value list * ast
   | Expression of expression
   | Assignment of string * expression
+  | Text of string
   | InProgress of Keyword.lex_token list
+  | Nothing
 
 let list_of_range = function
   | Keyword.LexRange (start, stop) -> Batteries.(--) start stop |> Batteries.List.of_enum
