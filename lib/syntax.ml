@@ -28,7 +28,7 @@ type ast =
   | Capture of string * ast
   | Block of ast list
   | Test of condition * ast * (ast option)
-  | For of string * value list * ast
+  | For of string * value * ast
   | Expression of expression
   | Assignment of string * expression
   | Text of string

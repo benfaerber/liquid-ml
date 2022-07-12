@@ -53,6 +53,13 @@ let parse_capture block_parser = function
     Some (capture, rest)
   | _ -> None
 
+let parse_for block_parser = function
+  | Keyword.For :: LexValue (LexId id) :: In :: LexValue lex_val :: EOS :: tl ->
+    let value = lex_value_to_value lex_val in
+    let for_loop = For (id, value, block_parser tl) in
+    Some (for_loop, tl)
+  | _ -> None
+
 let parse_other _ = function
   | LexText t :: tl -> Some (Text t, tl)
   | Newline :: tl -> Some (Text "\n", tl)
@@ -70,21 +77,26 @@ let parse_block_with_parser parser init_tokens =
 
   Block (unfold [] init_tokens folder)
 
+let rec first_successful block_parser tokens =
+  function
+  | parser :: other_parsers -> (
+    match parser block_parser tokens with
+    | Some (got, rest) -> Some (got, rest)
+    | None -> first_successful block_parser tokens other_parsers
+  )
+  | _ -> None
+
 let rec parse_one tokens =
   let block_parser = parse_block_with_parser parse_one in
-  let parsers = [parse_assignment; parse_expression; parse_test; parse_capture; parse_other] in
-  let found_parser =
-    List.find parsers ~f:(
-      fun parser -> match parser block_parser tokens with Some(_) -> true | None -> false
-    ) in
+  let parsers =
+    [ parse_assignment
+    ; parse_expression
+    ; parse_test
+    ; parse_capture
+    ; parse_for
+    ; parse_other ] in
 
-  match found_parser with
-  | Some(parser) -> (
-      match parser block_parser tokens with
-      | Some (got, rest) -> Some (got, rest)
-      | None -> None
-    )
-  | None -> None
+  first_successful block_parser tokens parsers
 
 let parse_block tokens = parse_block_with_parser parse_one tokens
 
