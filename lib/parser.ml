@@ -46,18 +46,24 @@ let parse_capture block_parser = function
     let tokens = [Keyword.Capture] @ tl in
     let bounds = Bounds.find_bounds tokens 0 in
     let stop_point = Bounds.stop_point_from_bounds bounds in
-    let body = List.sub tl ~pos:0 ~len:(stop_point) in
+    let body = List.sub tl ~pos:0 ~len:stop_point in
     let rest = sub_list_suffix tokens stop_point in
 
     let capture = Capture (id, block_parser body) in
     Some (capture, rest)
   | _ -> None
 
-let parse_for block_parser = function
+let parse_for block_parser tokens =
+  match tokens with
   | Keyword.For :: LexValue (LexId id) :: In :: LexValue lex_val :: EOS :: tl ->
     let value = lex_value_to_value lex_val in
+
+    let bounds = Bounds.find_bounds tokens 0 in
+    let stop_point = Bounds.stop_point_from_bounds bounds in
+    let rest = sub_list_suffix tokens stop_point in
+
     let for_loop = For (id, value, block_parser tl) in
-    Some (for_loop, tl)
+    Some (for_loop, rest)
   | _ -> None
 
 let parse_other _ = function
@@ -65,17 +71,6 @@ let parse_other _ = function
   | Newline :: tl -> Some (Text "\n", tl)
   | EOS :: tl -> Some (Nothing, tl)
   | _ -> None
-
-let parse_block_with_parser parser init_tokens =
-  let folder block tokens =
-    match parser tokens with
-    | Some (got, rest) ->
-      Next (block @ (if got != Nothing then [got] else []), rest)
-    | None ->
-      Stop (block)
-  in
-
-  Block (unfold [] init_tokens folder)
 
 let rec first_successful block_parser tokens =
   function
@@ -86,8 +81,17 @@ let rec first_successful block_parser tokens =
   )
   | _ -> None
 
-let rec parse_one tokens =
-  let block_parser = parse_block_with_parser parse_one in
+let rec parse_block init_tokens =
+  let folder block tokens =
+    match parse_one tokens with
+    | Some (got, rest) ->
+      Next (block @ (if got != Nothing then [got] else []), rest)
+    | None ->
+      Stop (block)
+  in
+
+  Block (unfold [] init_tokens folder)
+and parse_one tokens =
   let parsers =
     [ parse_assignment
     ; parse_expression
@@ -96,29 +100,30 @@ let rec parse_one tokens =
     ; parse_for
     ; parse_other ] in
 
-  first_successful block_parser tokens parsers
+  first_successful parse_block tokens parsers
 
-let parse_block tokens = parse_block_with_parser parse_one tokens
 
 let log_tokens = true
+let should_log = true
+let log r = if should_log then Stdio.print_endline r else ()
 
 let test_liquid_block liq =
   Debug.print_line ();
-  Stdio.print_endline liq;
+  log (liq |> Preprocessor.preprocess);
   Debug.print_line ();
   let tokens = liq |> Preprocessor.preprocess |> Lexer.lex_text in
-  (* Stdio.print_endline "Tokens:";
-     Debug.print_lex_tokens_with_index tokens; *)
-  Debug.print_line ();
+  if should_log then Stdio.print_endline "Tokens:";
+  if should_log then Debug.print_lex_tokens_with_index tokens;
+  if should_log then Debug.print_line ();
   let res = parse_block tokens in
-  Stdio.print_endline "Parse Result:";
-  Debug.print_ast res;
+  log "Parse Result:";
+  if should_log then  Debug.print_ast res;
 ;;
 
 let test_liquid_file filename =
   filename |> File.read |> test_liquid_block
 
 let test () =
-  test_liquid_block "{% assign animal = \"horse\" | capitilize %}";
-  test_liquid_block "hello there";
+  (* test_liquid_block "{% assign animal = \"horse\" | capitilize %}";
+  test_liquid_block "hello there"; *)
   test_liquid_file "liquid/if_else_test.liquid";

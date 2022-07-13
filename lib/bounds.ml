@@ -23,6 +23,8 @@ let bounds_from_opener = function
     ; other = Some [When; Else]
     }
   | Unless -> pair_to_bounds Unless EndUnless
+  | For -> pair_to_bounds For EndFor
+  | Raw -> pair_to_bounds Raw EndRaw
   | Capture -> pair_to_bounds Capture EndCapture
   | Paginate -> pair_to_bounds Paginate EndPaginate
   | TableRow -> pair_to_bounds TableRow EndTableRow

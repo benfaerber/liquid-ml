@@ -36,6 +36,7 @@ let rec lex_token_as_string = function
   | Capture -> "Capture" | EndCapture -> "EndCapture"
   | Paginate -> "Paginate" | EndPaginate -> "EndPaginate"
   | TableRow -> "TableRow" | EndTableRow -> "EndTableRow"
+  | Raw -> "Raw" | EndRaw -> "EndRaw"
   | Else -> "Else"
   | ElseIf -> "ElseIf"
   | When -> "When"
@@ -88,14 +89,14 @@ let rec condition_as_string =
   | AlwaysTrue -> "Always True"
   | Not x -> "Not(\n" ^ (condition_as_string x) ^ "\n)"
   | Combine (combiner, conditions) ->
-    (combiner_as_string combiner) ^ "(\n  " ^ (join_by_comma (List.map conditions ~f:aux)) ^ "\n)"
+    (combiner_as_string combiner) ^ "(\n  " ^ (join (List.map conditions ~f:aux)) ^ "\n)"
   in aux
 
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
 
 let rec expression_as_string = function
   | Value v -> value_as_string v
-  | Func (n, e) -> "f:" ^ n ^ "(\n  " ^ (join_by_comma (List.map e ~f:expression_as_string)) ^ "\n)"
+  | Func (n, e) -> "f:" ^ n ^ "(\n  " ^ (join (List.map e ~f:expression_as_string)) ^ "\n)"
 
 let print_expression e = e |> expression_as_string |> Stdio.print_endline
 
@@ -118,13 +119,17 @@ let ast_as_string =
 
       child_text ^ next_child_text
     )
+    | For (name, value, body) ->
+      Core.sprintf "For(%s in %s)\n{  %s\n}\n" name (value_as_string value) (aux (depth+1) body)
     | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
     | Expression exp -> expression_as_string exp
     | Assignment (name, exp) -> Core.sprintf "Assign(%s: %s)" name (expression_as_string exp)
-    | Text t -> Core.sprintf "Text(%s)" t
+    | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t
     | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
-    | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_comma) ^ ")"
+    | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join) ^ ")"
     | _ -> "Other" in
+
+    if String.strip result = "" then "" else
     "\n" ^ tab depth ^ result
     in aux 0
 

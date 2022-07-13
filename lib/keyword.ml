@@ -31,6 +31,7 @@ type lex_token =
   | Capture | EndCapture
   | Paginate | EndPaginate
   | TableRow | EndTableRow
+  | Raw | EndRaw
   | ElseIf
   | Else
   | When
@@ -58,6 +59,8 @@ let lex_keyword text =
     ; ("endunless", EndUnless)
     ; ("case", Case)
     ; ("endcase", EndCase)
+    ; ("raw", Raw)
+    ; ("endraw", EndRaw)
     ; ("when", When)
 
     ; ("for", For)
@@ -111,7 +114,8 @@ let lex_keyword text =
   | None -> (None, text)
 
 
-let block_token_of_string = function
+let block_token_of_string =
+  function
   | "{%" -> StatementStart
   | "%}" -> StatementEnd
   | "{{" -> ExpressionStart

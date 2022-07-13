@@ -1,7 +1,6 @@
 open Base
 open Tools
 open Keyword
-open Debug
 
 let lex_bool text =
   let literal_true = "true" in
@@ -142,22 +141,28 @@ let lex_token text =
 
 let lex_block_tokens text =
   let folder acc index =
-    if index + 2 < (String.length text) then
-      let chunk = String.sub text ~pos:index ~len:2 in
-      match chunk with
-      | c when is_block_token_string c ->
-        Next (acc @ [block_token_of_string chunk], index+(String.length c))
-      | other -> (
-        match acc |> List.rev with
-        | RawText("liquid") :: StatementStart :: hds ->
-          Next ((List.rev hds) @ [LiquidStart], index+1)
-        | RawText(tl) :: hds ->
-          Next (List.rev hds @ [RawText(tl ^ first_letter other)], index+1)
-        | _ ->
-          Next (acc @ [RawText(first_letter other)], index+1)
-      )
+    let curr = String.sub text ~pos:index ~len:(String.length text - index) in
+    if Preprocessor.is_raw curr then
+      let raw_text = Preprocessor.until_end_raw curr in
+      let raw_body = Preprocessor.trim_raw_tags raw_text in
+      Next (acc @ [RawText raw_body], index+(String.length raw_text))
     else
-      Stop(acc)
+      if index + 2 < (String.length text) then
+        let chunk = String.sub text ~pos:index ~len:2 in
+        match chunk with
+        | c when is_block_token_string c ->
+          Next (acc @ [block_token_of_string chunk], index+(String.length c))
+        | other -> (
+          match acc |> List.rev with
+          | RawText("liquid") :: StatementStart :: hds ->
+            Next ((List.rev hds) @ [LiquidStart], index+1)
+          | RawText(tl) :: hds ->
+            Next (List.rev hds @ [RawText(tl ^ first_letter other)], index+1)
+          | _ ->
+            Next (acc @ [RawText(first_letter other)], index+1)
+        )
+      else
+        Stop(acc)
   in
 
   unfold [] 0 folder
@@ -167,6 +172,7 @@ let lex_line_tokens text =
   let folder acc index =
     let chunk = String.sub t_text ~pos:index ~len:(String.length t_text - index) in
     match lex_token chunk with
+    | Some(Newline), rest -> Next (acc @ [EOS; Newline], String.length t_text - String.length rest)
     | Some(t), rest -> Next (acc @ [t], String.length t_text - String.length rest)
     | None, _ -> Stop (acc)
   in
@@ -185,8 +191,10 @@ let echo_to_expression tokens =
     | [] -> acc
   in aux [] tokens
 
+
 let lex_all_tokens (block_tokens: block_token list) =
   let folder acc index =
+
     let max = List.length block_tokens in
     if index > max then
       Stop (acc)
@@ -220,24 +228,3 @@ let lex_file fname =
   |> File.read
   |> Preprocessor.preprocess
   |> lex_text
-
-
-let test () =
-  let _ =
-    "liquid/comment_test.liquid"
-    |> File.read
-    |> Preprocessor.remove_comments in
-
-  (* Stdio.print_endline comment_test; *)
-
-  let block_tokens =
-    "liquid/block_test.liquid"
-    |> File.read
-    |> Preprocessor.preprocess
-    |> lex_block_tokens in
-
-  let tokens =
-    block_tokens
-    |> lex_all_tokens in
-
-  Stdio.print_endline (tokens |> lex_tokens_as_string);

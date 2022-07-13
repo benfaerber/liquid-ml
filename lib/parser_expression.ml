@@ -29,18 +29,22 @@ let parse_expression full_tokens =
     | _ -> []
     in
 
-  let func_list = aux full_tokens in
+  match full_tokens with
+  | [LexValue v] -> Value (lex_value_to_value v)
+  | _ -> (
+    let func_list = aux full_tokens in
 
-  let remove_skip = function
-    | Value Skip -> []
-    | e -> [e] in
+    let remove_skip = function
+      | Value Skip -> []
+      | e -> [e] in
 
-  let rec unfold_into_func = function
-    | Func (id, (Value Skip :: other_params)) :: tl ->
-      Func (id, (tl |> unfold_into_func |> remove_skip)  @ other_params)
-    | Func (id, params) :: tl ->
-      Func (id, (tl |> unfold_into_func |> remove_skip) @ params)
-    | _ -> Value Skip
-  in
+    let rec unfold_into_func = function
+      | Func (id, (Value Skip :: other_params)) :: tl ->
+        Func (id, (tl |> unfold_into_func |> remove_skip)  @ other_params)
+      | Func (id, params) :: tl ->
+        Func (id, (tl |> unfold_into_func |> remove_skip) @ params)
+      | _ -> Value Skip
+    in
 
-  unfold_into_func func_list
+    unfold_into_func func_list
+  )

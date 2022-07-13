@@ -1,3 +1,4 @@
+{%comment%}
 This is to test if else
 {% if x == 12 %}
     X is 12
@@ -30,11 +31,31 @@ Now unless
 {% endcase %}
 
 {% capture my_var %}dog cat horse{% endcapture %}
+{%endcomment%}
+
+{%
+# New Comment
+%}
+
+{{ dig }}
 
 {% for beatle in beatles %}
-    {{ item }}
+    {{ beatle }} walked down abby road.
 {% endfor %}
 
-{% for number in (0..10) %}
-    Number: {{ number }}
+Final
+
+{%liquid
+if animal == "horse"
+    echo "I am horse"
+endif
+echo "dog cat"
+%}
+
+{% raw %}
+
+{% for beatle in beatles %}
+    {{ beatle }} walked down abby road.
 {% endfor %}
+
+{%endraw%}
