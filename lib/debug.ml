@@ -21,7 +21,7 @@ let lex_value_as_string = function
   | LexBool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
   | LexString(s) -> "String(" ^ s ^ ")"
   | LexNumber(f) -> Core.sprintf "Num(%f)" f
-  | LexId(id) -> "Id(" ^ id ^ ")"
+  | LexId(id) -> "Id(" ^ join id ^ ")"
   | LexRange(s, e) -> "Range(" ^ (Int.to_string s) ^ ", " ^ (Int.to_string e) ^ ")"
   | LexNil | LexBlank -> "Nil"
 
@@ -77,7 +77,7 @@ let value_as_string = function
   | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
   | String(s) -> "String(" ^ s ^ ")"
   | Number(f) -> Core.sprintf "Num(%f)" f
-  | Var(v) -> "Var(" ^ v ^ ")"
+  | Var(v) -> "Var(" ^ join v ^ ")"
   | Nil -> "Nil"
   | Skip -> "Skip"
   | _ -> "Unknown"
@@ -106,6 +106,7 @@ let tab l =
 let show_in_progress = false
 let ast_as_string =
   let rec aux depth a =
+    let t = tab depth in
     let result = match a with
     | Test (condition, child, next_child_opt) -> (
       let child_text =
@@ -119,10 +120,13 @@ let ast_as_string =
 
       child_text ^ next_child_text
     )
-    | For (name, value, body) ->
-      Core.sprintf "For(%s in %s)\n{  %s\n}\n" name (value_as_string value) (aux (depth+1) body)
+    | For (name, value, body, else_block) -> (
+      match else_block with
+      | Some eb -> Core.sprintf "For(%s in %s)\n{  %s\n}\n{  %s}" name (value_as_string value) (aux (depth+1) body) (aux (depth+1) eb)
+      | None -> Core.sprintf "For(%s in %s)\n{  %s\n}\n" name (value_as_string value) (aux (depth+1) body)
+    )
     | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
-    | Expression exp -> expression_as_string exp
+    | Expression exp -> "Exp(" ^ expression_as_string exp ^ ")"
     | Assignment (name, exp) -> Core.sprintf "Assign(%s: %s)" name (expression_as_string exp)
     | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t
     | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
@@ -130,7 +134,7 @@ let ast_as_string =
     | _ -> "Other" in
 
     if String.strip result = "" then "" else
-    "\n" ^ tab depth ^ result
+    "\n" ^ t ^ result
     in aux 0
 
 let print_ast ast = ast |> ast_as_string |> Stdio.print_endline

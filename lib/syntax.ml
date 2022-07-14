@@ -2,7 +2,7 @@ type value =
   | Bool of bool
   | String of string
   | Number of float
-  | Var of string
+  | Var of string list
   | List of value list
   | Nil
   | Skip
@@ -28,7 +28,7 @@ type ast =
   | Capture of string * ast
   | Block of ast list
   | Test of condition * ast * (ast option)
-  | For of string * value * ast
+  | For of string * value * ast * (ast option)
   | Expression of expression
   | Assignment of string * expression
   | Text of string

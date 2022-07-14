@@ -16,7 +16,7 @@ type lex_value =
   | LexBool of bool
   | LexString of string
   | LexNumber of float
-  | LexId of string
+  | LexId of string list
   | LexRange of int * int
   | LexNil
   | LexBlank

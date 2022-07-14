@@ -23,7 +23,11 @@ let bounds_from_opener = function
     ; other = Some [When; Else]
     }
   | Unless -> pair_to_bounds Unless EndUnless
-  | For -> pair_to_bounds For EndFor
+  | For -> Some
+    { start = For
+    ; stop = EndFor
+    ; other = Some [Else]
+    }
   | Raw -> pair_to_bounds Raw EndRaw
   | Capture -> pair_to_bounds Capture EndCapture
   | Paginate -> pair_to_bounds Paginate EndPaginate
@@ -58,6 +62,8 @@ let find_bounds tokens start_point =
   let other_bounds = unwrap_or bounds.other [] in
 
   let folder (tally, found) index =
+    (* Stdio.printf " %d " index;
+    Debug.print_lex_tokens_with_index tokens; *)
     let token = nth tokens index in
     match token with
     | _ when token = bounds.start ->

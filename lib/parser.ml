@@ -19,11 +19,11 @@ let parse_assignment _ tokens =
   | Assign :: LexValue (LexId id) :: Equals :: assign_tl ->
     let (raw_exp, tl) = scan_until_eos assign_tl in
     let exp = Parser_expression.parse_expression raw_exp in
-    Some (Assignment (id, exp), tl)
+    Some (Assignment (List.hd_exn id, exp), tl)
   | Increment :: LexValue (LexId id) :: tl ->
-    Some (Assignment (id, add_exp id "plus"), tl)
+    Some (Assignment (List.hd_exn id, add_exp id "plus"), tl)
   | Decrement :: LexValue (LexId id) :: tl ->
-    Some (Assignment (id, add_exp id "minus"), tl)
+    Some (Assignment (List.hd_exn id, add_exp id "minus"), tl)
   | _ -> None
 
 let is_parsable_test =
@@ -49,21 +49,34 @@ let parse_capture block_parser = function
     let body = List.sub tl ~pos:0 ~len:stop_point in
     let rest = sub_list_suffix tokens stop_point in
 
-    let capture = Capture (id, block_parser body) in
+    let capture = Capture (List.hd_exn id, block_parser body) in
     Some (capture, rest)
   | _ -> None
 
 let parse_for block_parser tokens =
   match tokens with
-  | Keyword.For :: LexValue (LexId id) :: In :: LexValue lex_val :: EOS :: tl ->
+  | Keyword.For :: LexValue (LexId id) :: In :: LexValue lex_val :: EOS :: tl -> (
     let value = lex_value_to_value lex_val in
 
-    let bounds = Bounds.find_bounds tokens 0 in
+    let ts = [Keyword.For] @ tl in
+    let bounds = Bounds.find_bounds ts 0 in
+    let chunks = bounds |> Bounds.bounds_to_chunks ts in
     let stop_point = Bounds.stop_point_from_bounds bounds in
-    let rest = sub_list_suffix tokens stop_point in
+    let rest = sub_list_suffix ts stop_point in
 
-    let for_loop = For (id, value, block_parser tl) in
-    Some (for_loop, rest)
+    match List.length chunks with
+    | 1 ->
+      let for_loop = For (List.hd_exn id, value, block_parser tl, None) in
+      Some (for_loop, rest)
+    | 2 ->
+      let bchunk = nth chunks 0 in
+      let body_chunk = List.tl_exn bchunk in
+      let else_chunk = List.tl_exn (nth chunks 1) in
+      Debug.print_lex_tokens_with_index else_chunk;
+      let for_loop = For (List.hd_exn id, value, block_parser body_chunk, Some (block_parser else_chunk)) in
+      Some (for_loop, rest)
+    | _ -> raise (Failure "A for loop can only have a body and an else statement")
+  )
   | _ -> None
 
 let parse_other _ = function
@@ -94,10 +107,11 @@ let rec parse_block init_tokens =
 and parse_one tokens =
   let parsers =
     [ parse_assignment
-    ; parse_expression
     ; parse_test
     ; parse_capture
     ; parse_for
+    ; parse_expression
+
     ; parse_other ] in
 
   first_successful parse_block tokens parsers
@@ -108,9 +122,9 @@ let should_log = true
 let log r = if should_log then Stdio.print_endline r else ()
 
 let test_liquid_block liq =
-  Debug.print_line ();
+  if should_log then Debug.print_line ();
   log (liq |> Preprocessor.preprocess);
-  Debug.print_line ();
+  if should_log then Debug.print_line ();
   let tokens = liq |> Preprocessor.preprocess |> Lexer.lex_text in
   if should_log then Stdio.print_endline "Tokens:";
   if should_log then Debug.print_lex_tokens_with_index tokens;

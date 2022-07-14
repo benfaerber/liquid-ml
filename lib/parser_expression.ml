@@ -13,7 +13,7 @@ let parse_expression full_tokens =
       | _ -> Value Skip, tokens in
 
     let make_func id params tl =
-      [Func (id, [prefix] @ to_exp_values params)] @ aux tl in
+      [Func (List.hd_exn id, [prefix] @ to_exp_values params)] @ aux tl in
 
     match tail with
     | [LexValue v] ->

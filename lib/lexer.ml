@@ -104,25 +104,49 @@ let lex_string text =
   | _ -> (None, text)
 
 let lex_id text =
+  let lex_bracket_group text =
+    if starts_with text "[" then
+      let wo_bracket = remove_prefix text "[" in
+      match lex_string wo_bracket with
+      | (Some r, rest) when starts_with rest "]" ->
+        Some r, remove_prefix rest "]"
+      | _ -> None, text
+    else
+      None, text
+  in
+
   let alpha = "abcdefghijklmnopqrstuvwxyz" in
   let alpha_upper = alpha |> String.uppercase in
   let digits = "0123456679" in
   let valid_first_letters = alpha ^ alpha_upper ^ "_" |> String.to_list  in
-  let valid_letters = valid_first_letters @ (digits |> String.to_list) in
+  let valid_letters = valid_first_letters @ (digits |> String.to_list) @ ['.'] in
 
   let to_char x = x.[0] in
 
   if contains valid_first_letters (first_letter text |> to_char) then
     let folder acc index =
-      let letter = String.sub text ~pos:(index) ~len:1 in
-      if contains valid_letters (letter |> to_char) then
-        Next ((acc ^ letter, index + 1))
-      else
-        Stop (acc)
+      match lex_bracket_group (String.sub text ~pos:index ~len:(String.length text - index)) with
+      | (Some (LexValue (LexString r)), _) ->
+        let offset = index + String.length r + 4 in
+        let rest = String.sub text ~pos:(offset) ~len:(String.length text - offset) in
+        if contains valid_letters (first_letter rest |> to_char) then
+          Next ((acc @ [r]), index + (String.length r) + 4)
+        else begin
+          Debug.dump (acc @ [r] @ ["****"]);
+          Stop (acc @ [r] @ ["****"])
+        end
+      | _ -> (
+        let letter = String.sub text ~pos:(index) ~len:1 in
+        if contains valid_letters (letter |> to_char) then
+          Next ((acc @ [letter], index + 1))
+        else
+          Stop (acc)
+      )
     in
 
-    let id_literal = first_letter text ^ (unfold "" 1 folder) in
-    (Some (LexValue (LexId id_literal)), remove_prefix text id_literal)
+    let id_literal = first_letter text ^ (unfold [] 1 folder |> join) in
+    Debug.dump id_literal;
+    (Some (LexValue (LexId [id_literal])), remove_prefix text id_literal)
   else
     (None, text)
 
@@ -185,8 +209,8 @@ let lex_line_tokens text =
 let echo_to_expression tokens =
   let rec aux acc pool =
     match pool with
-    | LexValue (LexId "echo") :: LexValue (LexString t) :: tl -> aux (acc @ [LexText t]) tl
-    | LexValue (LexId "echo") :: LexValue (LexId id) :: tl -> aux (acc @ [LexExpression [LexValue (LexId id)]]) tl
+    | LexValue (LexId ["echo"]) :: LexValue (LexString t) :: tl -> aux (acc @ [LexExpression [LexText t]]) tl
+    | LexValue (LexId ["echo"]) :: LexValue (LexId id) :: tl -> aux (acc @ [LexExpression [LexValue (LexId id)]]) tl
     | hd :: tl -> aux (acc @ [hd]) tl
     | [] -> acc
   in aux [] tokens

@@ -11,8 +11,10 @@ let remove_comments inp =
   |> remove hash_comment
 
 let remove_liquid_comments inp =
-  let exp = ~/"^comment(.|\n)+^endcomment" in
-  remove exp inp
+  let tag_comment = ~/"^comment(.|\n)+^endcomment" in
+  let hash_comment = ~/"#.+" in
+  remove tag_comment inp
+  |> remove hash_comment
 
 let add_eof text = text ^ "  "
 

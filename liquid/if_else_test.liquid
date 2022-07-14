@@ -33,29 +33,20 @@ Now unless
 {% capture my_var %}dog cat horse{% endcapture %}
 {%endcomment%}
 
-{%
-# New Comment
-%}
-
-{{ dig }}
-
-{% for beatle in beatles %}
-    {{ beatle }} walked down abby road.
-{% endfor %}
-
-Final
-
 {%liquid
-if animal == "horse"
-    echo "I am horse"
+if a == 1
+    # this is comm
+    echo a
 endif
-echo "dog cat"
+#this is comm
 %}
-
-{% raw %}
-
+{%- comment -%}
 {% for beatle in beatles %}
     {{ beatle }} walked down abby road.
+{% else %}
+    No beatles!
 {% endfor %}
+{%- endcomment -%}
 
-{%endraw%}
+{{ fruits.apple["fuji"] }}
+{{ fruits["banana"].cavendish }}
