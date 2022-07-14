@@ -120,10 +120,13 @@ let ast_as_string =
 
       child_text ^ next_child_text
     )
-    | For (name, value, body, else_block) -> (
+    | For (name, value, params, body, else_block) -> (
+      let vars = Core.sprintf "(l=%s,o=%s,r=%s)" (value_as_string params.limit) (value_as_string params.offset) (value_as_string params.reved) in
       match else_block with
-      | Some eb -> Core.sprintf "For(%s in %s)\n{  %s\n}\n{  %s}" name (value_as_string value) (aux (depth+1) body) (aux (depth+1) eb)
-      | None -> Core.sprintf "For(%s in %s)\n{  %s\n}\n" name (value_as_string value) (aux (depth+1) body)
+      | Some eb ->
+        Core.sprintf "For(%s in %s %s)\n{  %s\n}\n{  %s}" name (value_as_string value) vars (aux (depth+1) body) (aux (depth+1) eb)
+      | None ->
+        Core.sprintf "For(%s in %s %s)\n{  %s\n}\n" name (value_as_string value) vars (aux (depth+1) body)
     )
     | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
     | Expression exp -> "Exp(" ^ expression_as_string exp ^ ")"

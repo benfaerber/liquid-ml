@@ -49,3 +49,7 @@ endif
 {{ fruits.apple["fuji"] }}
 {{ fruits["banana"].cavendish }}
 {{ fruits["pear"]["green"] }}
+
+{% for beatle in beatles limit: 10 offset: 40%}
+    {{ beatle }} walked down abby road.
+{% endfor %}

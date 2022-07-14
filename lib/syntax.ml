@@ -24,11 +24,17 @@ type condition =
   | Not of condition
   | AlwaysTrue
 
+type for_params =
+  { limit: value
+  ; offset: value
+  ; reved: value
+  }
+
 type ast =
   | Capture of string * ast
   | Block of ast list
   | Test of condition * ast * (ast option)
-  | For of string * value * ast * (ast option)
+  | For of string * value * for_params * ast * (ast option)
   | Expression of expression
   | Assignment of string * expression
   | Text of string
