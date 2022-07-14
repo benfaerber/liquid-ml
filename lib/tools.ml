@@ -17,12 +17,24 @@ let first_letter text = sub_prefix text 1
 let starts_with text prefix =
   if String.length text > String.length prefix then (
     let rprefix = sub_prefix text (String.length prefix) in
-    (Caml.(=)) rprefix prefix
+    rprefix = prefix
+  ) else false
+
+let ends_with text suffix =
+  if String.length text > String.length suffix then (
+    let rsuffix = sub_suffix text (String.length suffix) in
+    rsuffix = suffix
   ) else false
 
 let remove_prefix text prefix =
   if starts_with text prefix then
     String.sub text ~pos:(String.length prefix) ~len:(String.length text - String.length prefix)
+  else
+    text
+
+let remove_suffix text suffix =
+  if ends_with text suffix then
+    String.sub text ~pos:0 ~len:(String.length text - String.length suffix)
   else
     text
 
@@ -47,6 +59,8 @@ let first lst = nth lst 0
 
 let join_by_space lst = String.concat ~sep:" " lst
 let join_by_comma lst = String.concat ~sep:", " lst
+let join_by_arrow lst = String.concat ~sep:"->" lst
+
 let join lst = String.concat ~sep:"" lst
 
 let contains lst item =

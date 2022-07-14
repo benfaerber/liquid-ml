@@ -1,4 +1,3 @@
-{%comment%}
 This is to test if else
 {% if x == 12 %}
     X is 12
@@ -31,7 +30,6 @@ Now unless
 {% endcase %}
 
 {% capture my_var %}dog cat horse{% endcapture %}
-{%endcomment%}
 
 {%liquid
 if a == 1
@@ -50,3 +48,4 @@ endif
 
 {{ fruits.apple["fuji"] }}
 {{ fruits["banana"].cavendish }}
+{{ fruits["pear"]["green"] }}

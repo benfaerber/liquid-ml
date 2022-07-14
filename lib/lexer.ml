@@ -113,45 +113,25 @@ let rec first_successful (text: string) =
   )
   | _ -> None, text
 
+let (~/) = Re2.create_exn
 let lex_id text =
-  let lex_bracket_group inner =
-    match lex_string inner with
-    | (Some (LexValue (LexString s)), rest) when starts_with rest "]" ->
-      Some ("." ^ s), remove_prefix rest "]"
-    | _ -> None, inner
-  in
+  let id_exp = ~/"^[a-zA-Z_](?:(?:[a-zA-Z0-9_\\.]|((\\[(\"|\').+)(\"|\')\\]))+)?" in
+  if Re2.matches id_exp text then
+    let literal = Re2.find_first_exn id_exp text in
+    let bracket_group_exp = ~/"\\[(?:\"|')(.+?)(?:\"|')\\]" in
+    let wo_bg =
+      match Re2.find_all bracket_group_exp text with
+      | Ok mats ->
+        List.fold mats ~init:literal ~f:(fun acc m -> (
+          let dot_notation = "." ^ String.sub m ~pos:2 ~len:(String.length m - 4) in
+          String.substr_replace_first acc ~pattern:m ~with_:dot_notation
+        ))
+      | Error _ -> literal in
 
-  let lex_id_part inner =
-    let alpha = "abcdefghijklmnopqrstuvwxyz" in
-    let alpha_upper = alpha |> String.uppercase in
-    let digits = "0123456679" in
-    let valid_letters = alpha ^ alpha_upper ^ "_." ^ digits |> String.to_list in
-
-    let rec aux acc = function
-    | hd :: tl when contains valid_letters hd -> aux (acc @ [hd]) tl
-    | _ :: tl -> acc, tl
-    | [] -> acc, []
-    in
-
-    let char_list_to_string lst = List.map lst ~f:Char.to_string |> join in
-
-    match aux [] (inner |> String.to_list) with
-    | [], _ -> None, inner
-    | lst, rest -> Some (char_list_to_string lst), char_list_to_string rest
-  in
-
-  let rec lex_all (lst, rest) =
-    match first_successful rest [lex_id_part; lex_bracket_group] with
-    | Some s, next_rest ->
-      lex_all (lst @ [s], next_rest)
-    | _ -> (lst, rest)
-  in
-
-
-  match lex_all ([], text) with
-  | [], _ -> None, text
-  | lst, rest -> Some (LexValue (LexId lst)), rest
-
+    let pieces = String.split wo_bg ~on:'.' in
+    Some (LexValue (LexId pieces)), remove_prefix text literal
+  else
+    None, text
 
 let lex_token text =
   let lexers = [lex_keyword; lex_range; lex_bool; lex_string; lex_number; lex_id] in

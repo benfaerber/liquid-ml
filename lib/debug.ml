@@ -21,7 +21,7 @@ let lex_value_as_string = function
   | LexBool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
   | LexString(s) -> "String(" ^ s ^ ")"
   | LexNumber(f) -> Core.sprintf "Num(%f)" f
-  | LexId(id) -> "Id(" ^ join id ^ ")"
+  | LexId(id) -> "Id(" ^ join_by_arrow id ^ ")"
   | LexRange(s, e) -> "Range(" ^ (Int.to_string s) ^ ", " ^ (Int.to_string e) ^ ")"
   | LexNil | LexBlank -> "Nil"
 
@@ -77,7 +77,7 @@ let value_as_string = function
   | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
   | String(s) -> "String(" ^ s ^ ")"
   | Number(f) -> Core.sprintf "Num(%f)" f
-  | Var(v) -> "Var(" ^ join v ^ ")"
+  | Var(v) -> "Var(" ^ join_by_arrow v ^ ")"
   | Nil -> "Nil"
   | Skip -> "Skip"
   | _ -> "Unknown"
@@ -89,14 +89,14 @@ let rec condition_as_string =
   | AlwaysTrue -> "Always True"
   | Not x -> "Not(\n" ^ (condition_as_string x) ^ "\n)"
   | Combine (combiner, conditions) ->
-    (combiner_as_string combiner) ^ "(\n  " ^ (join (List.map conditions ~f:aux)) ^ "\n)"
+    (combiner_as_string combiner) ^ "(\n  " ^ (join_by_space (List.map conditions ~f:aux)) ^ "\n)"
   in aux
 
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
 
 let rec expression_as_string = function
   | Value v -> value_as_string v
-  | Func (n, e) -> "f:" ^ n ^ "(\n  " ^ (join (List.map e ~f:expression_as_string)) ^ "\n)"
+  | Func (n, e) -> "f:" ^ n ^ "(\n  " ^ (join_by_space (List.map e ~f:expression_as_string)) ^ "\n)"
 
 let print_expression e = e |> expression_as_string |> Stdio.print_endline
 
@@ -130,7 +130,7 @@ let ast_as_string =
     | Assignment (name, exp) -> Core.sprintf "Assign(%s: %s)" name (expression_as_string exp)
     | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t
     | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
-    | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join) ^ ")"
+    | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_space) ^ ")"
     | _ -> "Other" in
 
     if String.strip result = "" then "" else
