@@ -103,52 +103,54 @@ let lex_string text =
   | (_, (Some r, rest)) -> (Some r, rest)
   | _ -> (None, text)
 
+
+let rec first_successful (text: string) =
+  function
+  | lexer :: other_lexers -> (
+    match lexer text with
+    | Some (got), rest -> Some (got), rest
+    | None, _ -> first_successful text other_lexers
+  )
+  | _ -> None, text
+
 let lex_id text =
-  let lex_bracket_group text =
-    if starts_with text "[" then
-      let wo_bracket = remove_prefix text "[" in
-      match lex_string wo_bracket with
-      | (Some r, rest) when starts_with rest "]" ->
-        Some r, remove_prefix rest "]"
-      | _ -> None, text
-    else
-      None, text
+  let lex_bracket_group inner =
+    match lex_string inner with
+    | (Some (LexValue (LexString s)), rest) when starts_with rest "]" ->
+      Some ("." ^ s), remove_prefix rest "]"
+    | _ -> None, inner
   in
 
-  let alpha = "abcdefghijklmnopqrstuvwxyz" in
-  let alpha_upper = alpha |> String.uppercase in
-  let digits = "0123456679" in
-  let valid_first_letters = alpha ^ alpha_upper ^ "_" |> String.to_list  in
-  let valid_letters = valid_first_letters @ (digits |> String.to_list) @ ['.'] in
+  let lex_id_part inner =
+    let alpha = "abcdefghijklmnopqrstuvwxyz" in
+    let alpha_upper = alpha |> String.uppercase in
+    let digits = "0123456679" in
+    let valid_letters = alpha ^ alpha_upper ^ "_." ^ digits |> String.to_list in
 
-  let to_char x = x.[0] in
-
-  if contains valid_first_letters (first_letter text |> to_char) then
-    let folder acc index =
-      match lex_bracket_group (String.sub text ~pos:index ~len:(String.length text - index)) with
-      | (Some (LexValue (LexString r)), _) ->
-        let offset = index + String.length r + 4 in
-        let rest = String.sub text ~pos:(offset) ~len:(String.length text - offset) in
-        if contains valid_letters (first_letter rest |> to_char) then
-          Next ((acc @ [r]), index + (String.length r) + 4)
-        else begin
-          Debug.dump (acc @ [r] @ ["****"]);
-          Stop (acc @ [r] @ ["****"])
-        end
-      | _ -> (
-        let letter = String.sub text ~pos:(index) ~len:1 in
-        if contains valid_letters (letter |> to_char) then
-          Next ((acc @ [letter], index + 1))
-        else
-          Stop (acc)
-      )
+    let rec aux acc = function
+    | hd :: tl when contains valid_letters hd -> aux (acc @ [hd]) tl
+    | _ :: tl -> acc, tl
+    | [] -> acc, []
     in
 
-    let id_literal = first_letter text ^ (unfold [] 1 folder |> join) in
-    Debug.dump id_literal;
-    (Some (LexValue (LexId [id_literal])), remove_prefix text id_literal)
-  else
-    (None, text)
+    let char_list_to_string lst = List.map lst ~f:Char.to_string |> join in
+
+    match aux [] (inner |> String.to_list) with
+    | [], _ -> None, inner
+    | lst, rest -> Some (char_list_to_string lst), char_list_to_string rest
+  in
+
+  let rec lex_all (lst, rest) =
+    match first_successful rest [lex_id_part; lex_bracket_group] with
+    | Some s, next_rest ->
+      lex_all (lst @ [s], next_rest)
+    | _ -> (lst, rest)
+  in
+
+
+  match lex_all ([], text) with
+  | [], _ -> None, text
+  | lst, rest -> Some (LexValue (LexId lst)), rest
 
 
 let lex_token text =
