@@ -28,6 +28,8 @@ type for_params =
   { limit: value
   ; offset: value
   ; reved: value
+  ; cols: value
+  ; is_tablerow: bool
   }
 
 type variable_context =
@@ -51,6 +53,7 @@ type ast =
   | Include of string
   | Section of string
   | Render of string * variable_context list * ast option
+  | Paginate of string * int * ast
   | Nothing
 
 let list_of_range = function
@@ -73,6 +76,8 @@ let for_params_default =
   { limit = Number 50.
   ; offset = Number 0.
   ; reved = Bool false
+  ; cols = Number 10.
+  ; is_tablerow = false
   }
 
 let context_var id =

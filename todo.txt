@@ -12,5 +12,5 @@ Parser
   Low Priority
   X Implement form tag
   X Implement style tag
-  - Implement table row tag
-  - Implement paginate tag
+  X Implement table row tag
+  X Implement paginate tag

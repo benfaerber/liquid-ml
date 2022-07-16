@@ -43,12 +43,7 @@ let parse_test block_parser = function
 
 let parse_capture block_parser = function
   | Keyword.Capture :: LexValue (LexId id) :: EOS :: tl ->
-    let tokens = [Keyword.Capture] @ tl in
-    let bounds = Bounds.find_bounds tokens 0 in
-    let stop_point = Bounds.stop_point_from_bounds bounds in
-    let body = List.sub tl ~pos:0 ~len:stop_point in
-    let rest = sub_list_suffix tokens stop_point in
-
+    let (body, rest) = parse_single_body Capture tl in
     let capture = Capture (List.hd_exn id, block_parser body) in
     Some (capture, rest)
   | _ -> None
@@ -79,6 +74,8 @@ let parse_other _ = function
   | _ -> None
 
 let parse_for = Parser_for.parse_for
+let parse_tablerow = Parser_for.parse_tablerow
+let parse_paginate = Parser_for.parse_paginate
 let parse_theme = Parser_theme.parse_theme
 
 let rec first_successful block_parser tokens =
@@ -107,8 +104,10 @@ and parse_one tokens =
     ; parse_test
     ; parse_capture
     ; parse_for
+    ; parse_tablerow
     ; parse_cycle
     ; parse_theme
+    ; parse_paginate
     ; parse_expression
     ; parse_other ] in
 

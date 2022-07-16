@@ -45,7 +45,6 @@ endif
 {% else %}
     No beatles!
 {% endfor %}
-{%- endcomment -%}
 
 {{ fruits.apple["fuji"] }}
 {{ fruits["banana"].cavendish }}
@@ -75,4 +74,19 @@ endif
 }
 {% endstyle %}
 
+{%- endcomment -%}
+
+
 Out of here
+
+{% capture tools %}
+
+    {% tablerow product in collection.products offset: 2 %}
+        COOL!!!!
+    {% endtablerow %}
+
+    {% paginate products by 5 %}
+        PAGINATE
+    {% endpaginate %}
+
+{% endcapture %}

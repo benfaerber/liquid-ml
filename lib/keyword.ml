@@ -85,6 +85,9 @@ let lex_keyword text =
     ; ("tablerow", TableRow)
     ; ("endtablerow", EndTableRow)
 
+    ; ("paginate", Paginate)
+    ; ("endpaginate", EndPaginate)
+
     ; ("assign", Assign)
     ; ("increment", Increment)
     ; ("decrement", Decrement)

@@ -1,5 +1,7 @@
+open Base
 open Keyword
 open Syntax
+open Tools
 
 let scan_until_eos tokens =
   let rec aux acc = function
@@ -23,3 +25,12 @@ let parse_variable_context tokens =
 
   let (got, rest) = aux [] tokens in
   if got = [] then None else Some (got, rest)
+
+let parse_single_body tag all_tokens =
+  let tokens = [tag] @ all_tokens in
+  let bounds = Bounds.find_bounds tokens 0 in
+  let stop_point = Bounds.stop_point_from_bounds bounds in
+  let body = List.sub all_tokens ~pos:0 ~len:stop_point in
+  let rest = sub_list_suffix tokens stop_point in
+
+  (body, rest)
