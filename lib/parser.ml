@@ -54,7 +54,7 @@ let parse_capture block_parser = function
   | _ -> None
 
 let parse_for block_parser tokens =
-  let params_def = {limit = Number 9999.; offset = Number 0.; reved = Bool false } in
+  let params_def = {limit = Number 50.; offset = Number 0.; reved = Bool false } in
   let do_for id lex_val tl ~params =
     let value = lex_value_to_value lex_val in
 
@@ -102,6 +102,8 @@ let parse_other _ = function
   | LexText t :: tl -> Some (Text t, tl)
   | Newline :: tl -> Some (Text "\n", tl)
   | EOS :: tl -> Some (Nothing, tl)
+  | Keyword.Break :: tl -> Some(Break, tl)
+  | Keyword.Continue :: tl -> Some(Continue, tl)
   | _ -> None
 
 let rec first_successful block_parser tokens =

@@ -39,6 +39,8 @@ type ast =
   | Assignment of string * expression
   | Text of string
   | InProgress of Keyword.lex_token list
+  | Break
+  | Continue
   | Nothing
 
 let list_of_range = function

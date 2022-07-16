@@ -134,6 +134,8 @@ let ast_as_string =
     | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t
     | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
     | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_space) ^ ")"
+    | Break -> "Break"
+    | Continue -> "Continue"
     | _ -> "Other" in
 
     if String.strip result = "" then "" else

@@ -9,7 +9,7 @@ type bound_finders =
   }
 
 let pair_to_bounds start stop = Some { start = start; stop = stop; other = None }
-
+let pair_to_bounds_else start stop = Some { start = start; stop = stop; other = Some [Else] }
 (* TODO: Else Keyword used as base case could break nested if else chain *)
 let bounds_from_opener = function
   | If -> Some
@@ -22,12 +22,8 @@ let bounds_from_opener = function
     ; stop = EndCase
     ; other = Some [When; Else]
     }
-  | Unless -> pair_to_bounds Unless EndUnless
-  | For -> Some
-    { start = For
-    ; stop = EndFor
-    ; other = Some [Else]
-    }
+  | Unless -> pair_to_bounds_else Unless EndUnless
+  | For -> pair_to_bounds_else For EndFor
   | Raw -> pair_to_bounds Raw EndRaw
   | Capture -> pair_to_bounds Capture EndCapture
   | Paginate -> pair_to_bounds Paginate EndPaginate
