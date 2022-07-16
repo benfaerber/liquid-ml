@@ -113,6 +113,8 @@ let tab l =
 
 let variable_context_as_string vc = Core.sprintf "%s=%s" (value_as_string vc.variable) (value_as_string vc.value)
 
+let id_as_string = join_by_arrow
+
 let show_in_progress = false
 let ast_as_string =
   let rec aux depth a =
@@ -130,20 +132,20 @@ let ast_as_string =
 
       child_text ^ next_child_text
     )
-    | For (name, value, params, body, else_block) -> (
+    | For (id, value, params, body, else_block) -> (
       let vars = Core.sprintf "(l=%s,o=%s,r=%s,c=%s)" (value_as_string params.limit) (value_as_string params.offset) (value_as_string params.reved) (value_as_string params.cols) in
       let ft = if params.is_tablerow then "TableRow" else "For" in
       match else_block with
       | Some eb ->
-        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n{  %s}" ft name (value_as_string value) vars (aux (depth+1) body) (aux (depth+1) eb)
+        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n{  %s}" ft (id_as_string id) (value_as_string value) vars (aux (depth+1) body) (aux (depth+1) eb)
       | None ->
-        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n" ft name (value_as_string value) vars (aux (depth+1) body)
+        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n" ft (id_as_string id) (value_as_string value) vars (aux (depth+1) body)
     )
     | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
     | Expression exp -> "Exp(" ^ expression_as_string exp ^ ")"
-    | Assignment (name, exp) -> Core.sprintf "Assign(%s: %s)" name (expression_as_string exp)
+    | Assignment (id, exp) -> Core.sprintf "Assign(%s: %s)" (id_as_string id) (expression_as_string exp)
     | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t
-    | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
+    | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" (id_as_string id) (aux (depth+1) body)
     | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_space) ^ ")"
     | Break -> "Break"
     | Continue -> "Continue"
@@ -155,7 +157,7 @@ let ast_as_string =
     | Layout t -> "Layout(" ^ (match t with Some(x) -> x | _ -> "None") ^ ")"
     | Include t -> "Include(" ^ t ^ ")"
     | Section t -> "Section(" ^ t ^ ")"
-    | Paginate (id, num, body) -> Core.sprintf "Paginate(%s by %d) { %s }" id num (aux (depth+1) body)
+    | Paginate (id, num, body) -> Core.sprintf "Paginate(%s by %d) { %s }" (id_as_string id) num (aux (depth+1) body)
     | Render (n, t, bl) ->
       Core.sprintf "Render(%s: [%s])" n (join_by_comma (List.map t ~f:variable_context_as_string))
       ^ (match bl with Some b -> Core.sprintf "{%s}" (aux (depth+1) b) | _ -> "")

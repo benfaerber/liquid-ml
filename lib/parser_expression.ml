@@ -1,11 +1,12 @@
 open Base
 open Keyword
 open Syntax
+open Parser_tools
 
 let to_exp_value v = Value (lex_value_to_value v)
 let to_exp_values lst = List.map lst ~f:to_exp_value
 
-let parse_expression full_tokens =
+let expression_from_tokens full_tokens =
   let rec aux tokens =
     let (prefix, tail) =
       match tokens with
@@ -48,3 +49,23 @@ let parse_expression full_tokens =
 
     unfold_into_func func_list
   )
+
+let parse_expression _ = function
+  | LexExpression exp :: tl -> Some (Expression (expression_from_tokens exp), tl)
+  | _ -> None
+
+let parse_assignment _ tokens =
+  let add_exp id modifier =
+    Func (modifier, [Value (Var id); Value (Number 1.)])
+  in
+
+  match tokens with
+  | Assign :: LexValue (LexId id) :: Equals :: assign_tl ->
+    let (raw_exp, tl) = scan_until_eos assign_tl in
+    let exp = expression_from_tokens raw_exp in
+    Some (Assignment (id, exp), tl)
+  | Increment :: LexValue (LexId id) :: tl ->
+    Some (Assignment (id, add_exp id "plus"), tl)
+  | Decrement :: LexValue (LexId id) :: tl ->
+    Some (Assignment (id, add_exp id "minus"), tl)
+  | _ -> None

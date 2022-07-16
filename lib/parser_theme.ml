@@ -12,7 +12,7 @@ let parse_render = function
     | For :: LexValue (list) :: LexAs :: LexValue (LexId var) :: EOS :: tl ->
       let render = Render (filename, [context_var var], None) in
       let iter_list = lex_value_to_value list in
-      let iter = For (List.hd_exn var, iter_list, for_params_default, Block [render], None) in
+      let iter = For (var, iter_list, for_params_default, Block [render], None) in
       Some (iter, tl)
     | LexWith :: tl
     | Comma :: tl -> (

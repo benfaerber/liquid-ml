@@ -135,14 +135,7 @@ let lex_id text =
 
 let lex_token text =
   let lexers = [lex_keyword; lex_range; lex_bool; lex_string; lex_number; lex_id] in
-  let found_lexer =
-    List.find lexers ~f:(
-      fun lexer -> match lexer text with Some(_), _ -> true | None, _ -> false
-    ) in
-
-  match found_lexer with
-  | Some(lexer) -> lexer text
-  | None -> (None, text)
+  first_successful text lexers
 
 
 let lex_block_tokens text =

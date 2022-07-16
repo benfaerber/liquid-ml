@@ -37,14 +37,16 @@ type variable_context =
   ; value: value
   }
 
+type id = string list
+
 type ast =
-  | Capture of string * ast
+  | Capture of id * ast
   | Block of ast list
   | Test of condition * ast * (ast option)
-  | For of string * value * for_params * ast * (ast option)
+  | For of id * value * for_params * ast * (ast option)
   | Cycle of string option * string list
   | Expression of expression
-  | Assignment of string * expression
+  | Assignment of id * expression
   | Text of string
   | InProgress of Keyword.lex_token list
   | Break
@@ -53,7 +55,7 @@ type ast =
   | Include of string
   | Section of string
   | Render of string * variable_context list * ast option
-  | Paginate of string * int * ast
+  | Paginate of id * int * ast
   | Nothing
 
 let list_of_range = function

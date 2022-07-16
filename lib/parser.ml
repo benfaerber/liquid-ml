@@ -6,26 +6,6 @@ open Parser_tools
 
 type parse_result = (ast * lex_token list) option
 
-let parse_expression _ = function
-  | LexExpression exp :: tl -> Some (Expression (Parser_expression.parse_expression exp), tl)
-  | _ -> None
-
-let parse_assignment _ tokens =
-  let add_exp id modifier =
-    Func (modifier, [Value (Var id); Value (Number 1.)])
-  in
-
-  match tokens with
-  | Assign :: LexValue (LexId id) :: Equals :: assign_tl ->
-    let (raw_exp, tl) = scan_until_eos assign_tl in
-    let exp = Parser_expression.parse_expression raw_exp in
-    Some (Assignment (List.hd_exn id, exp), tl)
-  | Increment :: LexValue (LexId id) :: tl ->
-    Some (Assignment (List.hd_exn id, add_exp id "plus"), tl)
-  | Decrement :: LexValue (LexId id) :: tl ->
-    Some (Assignment (List.hd_exn id, add_exp id "minus"), tl)
-  | _ -> None
-
 let is_parsable_test =
   function
   | If :: _ | Case :: _ | Unless :: _ -> true
@@ -44,7 +24,7 @@ let parse_test block_parser = function
 let parse_capture block_parser = function
   | Keyword.Capture :: LexValue (LexId id) :: EOS :: tl ->
     let (body, rest) = parse_single_body Capture tl in
-    let capture = Capture (List.hd_exn id, block_parser body) in
+    let capture = Capture (id, block_parser body) in
     Some (capture, rest)
   | _ -> None
 
@@ -77,6 +57,8 @@ let parse_for = Parser_for.parse_for
 let parse_tablerow = Parser_for.parse_tablerow
 let parse_paginate = Parser_for.parse_paginate
 let parse_theme = Parser_theme.parse_theme
+let parse_expression = Parser_expression.parse_expression
+let parse_assignment = Parser_expression.parse_assignment
 
 let rec first_successful block_parser tokens =
   function

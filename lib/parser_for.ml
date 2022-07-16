@@ -20,14 +20,14 @@ let parse_forlike for_type block_parser tokens =
 
     match List.length chunks with
     | 1 ->
-      let for_loop = For (List.hd_exn id, value, params, block_parser tl, None) in
+      let for_loop = For (id, value, params, block_parser tl, None) in
       Some (for_loop, rest)
     | 2 ->
       let bchunk = nth chunks 0 in
       let body_chunk = List.tl_exn bchunk in
       let else_chunk = List.tl_exn (nth chunks 1) in
       Debug.print_lex_tokens_with_index else_chunk;
-      let for_loop = For (List.hd_exn id, value, params, block_parser body_chunk, Some (block_parser else_chunk)) in
+      let for_loop = For (id, value, params, block_parser body_chunk, Some (block_parser else_chunk)) in
       Some (for_loop, rest)
     | _ -> raise (Failure "A for loop can only have a body and an else statement")
   in
@@ -60,7 +60,7 @@ let parse_tablerow = parse_forlike TableRow
 let parse_paginate block_parser = function
   | Keyword.Paginate :: LexValue (LexId id) :: By :: LexValue (LexNumber num) :: tl -> (
     let (body, rest) = parse_single_body Keyword.Paginate tl in
-    let page = Paginate (List.hd_exn id, Float.to_int num, block_parser body) in
+    let page = Paginate (id, Float.to_int num, block_parser body) in
     Some (page, rest)
   )
   | _ -> None
