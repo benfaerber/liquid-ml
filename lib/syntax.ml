@@ -30,17 +30,27 @@ type for_params =
   ; reved: value
   }
 
+type variable_context =
+  { variable: value
+  ; value: value
+  }
+
 type ast =
   | Capture of string * ast
   | Block of ast list
   | Test of condition * ast * (ast option)
   | For of string * value * for_params * ast * (ast option)
+  | Cycle of string option * string list
   | Expression of expression
   | Assignment of string * expression
   | Text of string
   | InProgress of Keyword.lex_token list
   | Break
   | Continue
+  | Layout of string option
+  | Include of string
+  | Section of string
+  | Render of string * variable_context list * ast option
   | Nothing
 
 let list_of_range = function
@@ -58,3 +68,12 @@ let lex_value_to_value = function
   | LexNumber n -> Number n
   | LexRange (st, sp) -> liq_list_of_range (LexRange (st, sp))
   | LexNil | LexBlank -> Nil
+
+let for_params_default =
+  { limit = Number 50.
+  ; offset = Number 0.
+  ; reved = Bool false
+  }
+
+let context_var id =
+  {variable = Var id; value = Var id }

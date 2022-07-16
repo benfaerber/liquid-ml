@@ -52,6 +52,27 @@ endif
 {{ fruits["pear"]["green"] }}
 
 {% for beatle in beatles limit: 10 offset: 40%}
-    {% break %}
+    {% cycle 'a', 'b', 'c', 'd' %}
     {{ beatle }} walked down abby road.
 {% endfor %}
+
+{% layout none %}
+{% layout 'secion' %}
+{% include 'dog' %}
+{% render "apple" %}
+
+{% render "beatle-fan-page" for beatles as beatle %}
+
+{% render "test_file", dog as "cat", horse: "sheep" %}
+
+{% form "im cool", dog: "cat" %}
+    Inside form body
+{% endform %}
+
+{% style %}
+.some-css {
+    color: #ffff;
+}
+{% endstyle %}
+
+Out of here

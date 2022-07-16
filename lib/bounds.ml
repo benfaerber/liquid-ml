@@ -25,6 +25,8 @@ let bounds_from_opener = function
   | Unless -> pair_to_bounds_else Unless EndUnless
   | For -> pair_to_bounds_else For EndFor
   | Raw -> pair_to_bounds Raw EndRaw
+  | LexStyle -> pair_to_bounds LexStyle LexEndStyle
+  | LexForm -> pair_to_bounds LexForm LexEndForm
   | Capture -> pair_to_bounds Capture EndCapture
   | Paginate -> pair_to_bounds Paginate EndPaginate
   | TableRow -> pair_to_bounds TableRow EndTableRow

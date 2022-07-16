@@ -53,49 +53,21 @@ let parse_capture block_parser = function
     Some (capture, rest)
   | _ -> None
 
-let parse_for block_parser tokens =
-  let params_def = {limit = Number 50.; offset = Number 0.; reved = Bool false } in
-  let do_for id lex_val tl ~params =
-    let value = lex_value_to_value lex_val in
 
-    let ts = [Keyword.For] @ tl in
-    let bounds = Bounds.find_bounds ts 0 in
-    let chunks = bounds |> Bounds.bounds_to_chunks ts in
-    let stop_point = Bounds.stop_point_from_bounds bounds in
-    let rest = sub_list_suffix ts stop_point in
-
-    match List.length chunks with
-    | 1 ->
-      let for_loop = For (List.hd_exn id, value, params, block_parser tl, None) in
-      Some (for_loop, rest)
-    | 2 ->
-      let bchunk = nth chunks 0 in
-      let body_chunk = List.tl_exn bchunk in
-      let else_chunk = List.tl_exn (nth chunks 1) in
-      Debug.print_lex_tokens_with_index else_chunk;
-      let for_loop = For (List.hd_exn id, value, params, block_parser body_chunk, Some (block_parser else_chunk)) in
-      Some (for_loop, rest)
-    | _ -> raise (Failure "A for loop can only have a body and an else statement")
+let parse_cycle _ all_tokens =
+  let parse_state name tokens =
+    let (state, rest) = scan_until_eos tokens in
+    let rec aux acc = function
+      | LexValue (LexString s) :: Comma :: tl -> aux (acc @ [s]) tl
+      | LexValue (LexString s) :: _ -> acc @ [s]
+      | _ -> []
+    in
+    Some (Cycle (name, aux [] state), rest)
   in
 
-  match tokens with
-  | Keyword.For :: LexValue (LexId id) :: In :: LexValue lex_val :: EOS :: tl ->
-    do_for id lex_val tl ~params:params_def
-  | Keyword.For :: LexValue (LexId id) :: In :: LexValue lex_val :: tl -> (
-    let (params, rest) = scan_until_eos tl in
-    let param_folder found = function
-      | LexValue (LexId ["reversed"]) :: ptl ->
-        Next ({ limit = found.limit; offset = found.offset; reved = Bool true }, ptl)
-      | LexValue (LexId ["offset"]) :: Colon :: LexValue v :: ptl ->
-        Next ({ limit = found.limit; offset = lex_value_to_value v; reved = found.reved }, ptl)
-      | LexValue (LexId ["limit"]) :: Colon :: LexValue v :: ptl ->
-        Next ({ limit = lex_value_to_value v; offset = found.offset; reved = found.reved }, ptl)
-      | _ -> Stop (found) in
-
-    let params = unfold params_def params param_folder in
-
-    do_for id lex_val rest ~params:params
-  )
+  match all_tokens with
+  | Keyword.Cycle :: LexValue (LexString name) :: Colon :: tl -> parse_state (Some name) tl
+  | Cycle :: tl -> parse_state None tl
   | _ -> None
 
 let parse_other _ = function
@@ -106,6 +78,9 @@ let parse_other _ = function
   | Keyword.Continue :: tl -> Some(Continue, tl)
   | _ -> None
 
+let parse_for = Parser_for.parse_for
+let parse_theme = Parser_theme.parse_theme
+
 let rec first_successful block_parser tokens =
   function
   | parser :: other_parsers -> (
@@ -114,6 +89,7 @@ let rec first_successful block_parser tokens =
     | None -> first_successful block_parser tokens other_parsers
   )
   | _ -> None
+
 
 let rec parse_block init_tokens =
   let folder block tokens =
@@ -131,8 +107,9 @@ and parse_one tokens =
     ; parse_test
     ; parse_capture
     ; parse_for
+    ; parse_cycle
+    ; parse_theme
     ; parse_expression
-
     ; parse_other ] in
 
   first_successful parse_block tokens parsers

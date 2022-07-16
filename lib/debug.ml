@@ -52,6 +52,13 @@ let rec lex_token_as_string = function
   | LexValue v -> lex_value_as_string v
   | LexText t -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
   | EOS -> "EOS"
+  | LexNone -> "None"
+  | LexLayout -> "Layout"
+  | LexSection -> "Section"
+  | LexRender -> "Render"
+  | LexInclude -> "Include"
+  | LexStyle -> "Style" | LexEndStyle -> "EndStyle"
+  | LexForm -> "Form" | LexEndForm -> "EndForm"
   | LexExpression(e) ->
     "Expression<\n  " ^ join_by_space (List.map e ~f:lex_token_as_string) ^ "\n>"
   | _ -> "Unknown"
@@ -103,6 +110,8 @@ let print_expression e = e |> expression_as_string |> Stdio.print_endline
 let tab l =
   List.map (range l) ~f:(fun _ -> "  ") |> join
 
+let variable_context_as_string vc = Core.sprintf "%s=%s" (value_as_string vc.variable) (value_as_string vc.value)
+
 let show_in_progress = false
 let ast_as_string =
   let rec aux depth a =
@@ -136,6 +145,17 @@ let ast_as_string =
     | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_space) ^ ")"
     | Break -> "Break"
     | Continue -> "Continue"
+    | Cycle (name, items) -> (
+      match name with
+      | Some n -> Core.sprintf "Cycle(%s) {%s}" n (join_by_comma items)
+      | _ -> Core.sprintf "Cycle {%s}" (join_by_comma items)
+    )
+    | Layout t -> "Layout(" ^ (match t with Some(x) -> x | _ -> "None") ^ ")"
+    | Include t -> "Include(" ^ t ^ ")"
+    | Section t -> "Section(" ^ t ^ ")"
+    | Render (n, t, bl) ->
+      Core.sprintf "Render(%s: [%s])" n (join_by_comma (List.map t ~f:variable_context_as_string))
+      ^ (match bl with Some b -> Core.sprintf "{%s}" (aux (depth+1) b) | _ -> "")
     | _ -> "Other" in
 
     if String.strip result = "" then "" else

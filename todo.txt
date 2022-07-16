@@ -5,12 +5,12 @@ Parser
   X Test break / continue
 
   Medium Priority
-  - Implement cycle
-  - Implement include, layout, render, section
+  X Implement cycle
+  X Implement include, layout, render, section
   - Implement whitespace control ({{-, -%}, etc)
 
   Low Priority
-  - Implement form tag
-  - Implement style tag
+  X Implement form tag
+  X Implement style tag
   - Implement table row tag
   - Implement paginate tag

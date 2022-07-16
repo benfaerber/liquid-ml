@@ -35,12 +35,16 @@ type lex_token =
   | ElseIf
   | Else
   | When
+  | LexForm | LexStyle | LexEndForm | LexEndStyle
+  | LexInclude | LexRender | LexLayout | LexSection
   | Break | Continue
   | Cycle
   | In | By
+  | LexWith | LexAs
   | Assign | Increment | Decrement
   | Pipe | Colon | Equals | Comma
   | DotDot
+  | LexNone
   | Space | Newline
   | Operator of operator
   | LexText of string
@@ -62,6 +66,13 @@ let lex_keyword text =
     ; ("raw", Raw)
     ; ("endraw", EndRaw)
     ; ("when", When)
+    ; ("with", LexWith)
+    ; ("as", LexAs)
+
+    ; ("form", LexForm)
+    ; ("endform", LexEndForm)
+    ; ("style", LexStyle)
+    ; ("endstyle", LexEndStyle)
 
     ; ("for", For)
     ; ("endfor", EndFor)
@@ -77,6 +88,11 @@ let lex_keyword text =
     ; ("assign", Assign)
     ; ("increment", Increment)
     ; ("decrement", Decrement)
+
+    ; ("include", LexInclude)
+    ; ("layout", LexLayout)
+    ; ("render", LexRender)
+    ; ("section", LexSection)
 
     ; ("in", In)
     ; ("by", By)
@@ -102,6 +118,7 @@ let lex_keyword text =
 
     ; ("nil", LexValue LexNil)
     ; ("blank", LexValue LexBlank)
+    ; ("none", LexNone)
   ] in
 
   let found_keyword =
