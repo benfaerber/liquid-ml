@@ -10,7 +10,7 @@ let interpret_function ctx name params =
   func ctx params
 
 let rec interpret_expression ctx = function
-  | Value v -> v
+  | Value v -> Values.unwrap ctx v
   | Func (name, exps) -> (
     let params = List.map exps ~f:(interpret_expression ctx) in
     interpret_function ctx name params

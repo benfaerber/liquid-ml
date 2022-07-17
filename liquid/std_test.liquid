@@ -61,3 +61,13 @@ obcaecati dicta, illo tempora. Impedit, delectus. Veniam.
 {{ lorem | truncatewords: 10 }}
 {{ lorem | truncatewords: 10, ", ender" }}
 {{ lorem | truncatewords: 10 | newline_to_br }}
+
+List
+First: {{ beatles.first }}
+Last: {{ beatles.last }}
+Size: {{ beatles.size }}
+
+
+{% if beatles.first == "John" %}
+    John is first!
+{% endif %}
