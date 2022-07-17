@@ -48,7 +48,7 @@ let rec interpret ctx str ast =
     ctx, str ^ (Values.string_from_value ctx value)
   )
   | Break -> notifier "break" ctx, str
-  | Continue -> notifier "break" ctx, str
+  | Continue -> notifier "continue" ctx, str
   | Capture (id, body) -> (
     let (_, rendered) = interpret ctx str body in
     Ctx.add id (String rendered) ctx, str

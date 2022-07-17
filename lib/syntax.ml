@@ -1,3 +1,5 @@
+open Base
+open Tools
 
 type value =
   | Bool of bool
@@ -66,7 +68,7 @@ let list_of_range = function
   | _ -> raise (Failure "This is not a range!")
 
 let liq_list_of_range r = List (
-  List.map (fun n -> Number (Int.to_float n)) (list_of_range r)
+  List.map (list_of_range r) ~f:(fun n -> Number (Int.to_float n))
 )
 
 let lex_value_to_value = function
@@ -92,19 +94,14 @@ module VariableContext =
   struct
     type t = id
     let compare a b =
-      let la = Base.String.concat ~sep:"." a in
-      let lb = Base.String.concat ~sep:"." b in
-      Stdio.print_endline la;
-      Stdio.print_endline lb;
-      Stdio.print_endline "----";
+      let dot = String.concat ~sep:"." in
+      let la = dot a in
+      let lb = dot b in
 
-      if Base.String.length la > Base.String.length lb then
-        1
-      else if Base.String.length la < Base.String.length lb then
-        -1
-      else
-        (if Caml.(=) la lb then 0 else -1)
-
+      match (String.length la, String.length lb) with
+      | (ta, tb) when ta > tb -> 1
+      | (ta, tb) when ta < tb -> -1
+      | _ -> if la = lb then 0 else -1
   end
 
-module Ctx = Map.Make(VariableContext)
+module Ctx = Caml.Map.Make(VariableContext)
