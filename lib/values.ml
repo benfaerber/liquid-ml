@@ -13,6 +13,11 @@ let rec context_get ctx id =
   | _ :: tl -> context_get tl id
   | _ -> Nil
 
+let context_has ctx id =
+  match context_get ctx id with
+  | Nil -> false
+  | _ -> true
+
 let rec eq ctx va vb  =
   match (va, vb) with
   | Bool (a), Bool (b) -> a = b

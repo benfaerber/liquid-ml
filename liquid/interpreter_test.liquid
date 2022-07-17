@@ -23,8 +23,11 @@
     T is not 10!!!
 {% endif %}
 
-{% for num in (0..190) offset: 6 reversed %}
+{% for num in (0..10) %}
     Num is {{ num }}
-{% else %}
-    List is empty!
+
+    {% if num == 5 %}
+        {% continue %}
+    {% endif %}
+    Nice!
 {% endfor %}

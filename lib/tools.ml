@@ -52,6 +52,21 @@ let rec unfold acc curr func =
   | Next (nacc, ncurr) -> unfold nacc ncurr func
   | Stop acc -> acc
 
+
+type ('acc, 'curr) fold_until_notifier =
+  | Forward of 'acc
+  | Done of 'acc
+
+let rec fold_until lst acc func =
+  match lst with
+  | hd :: tl -> (
+    match func acc hd with
+    | Forward nacc -> fold_until tl nacc func
+    | Done nacc -> nacc
+  )
+  | _ -> acc
+
+
 let nth lst index =
   match List.nth lst index with
   | Some(x) -> x
