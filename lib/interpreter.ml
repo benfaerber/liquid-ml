@@ -2,6 +2,8 @@ open Base
 open Syntax
 open Tools
 
+let notifier t = [(["notifier_" ^ t], String ("notifier_" ^ t))]
+
 (* CTX Funcname exps *)
 let interpret_function _ _ params = List.hd_exn params
 
@@ -46,28 +48,27 @@ let rec interpret ctx str ast =
     let value = interpret_expression ctx exp in
     ctx, str ^ (Values.string_from_value ctx value)
   )
+  | Break -> ctx @ (notifier "break"), str
+  | Continue -> ctx @ (notifier "continue"), str
   | Capture (id, body) -> (
     let (_, rendered) = interpret ctx str body in
     ctx @ [(id, String rendered)], str
   )
   | _ -> ctx, str
 
+and interpret_else ctx str = function
+  | Some eb -> interpret ctx str eb
+  | None -> ctx, str
+
 and interpret_test ctx str cond body else_body =
   if interpret_condition ctx cond then
     interpret ctx str body
-  else begin
-    match else_body with
-    | Some eb -> interpret ctx str eb
-    | None -> ctx, str
-  end
+  else
+    interpret_else ctx str else_body
 
 and interpret_for ctx str alias packed_iterable params body else_body =
   let iterable = Values.unwrap ctx packed_iterable in
 
-  let eval_else = function
-    | Some (eb) -> interpret ctx str eb
-    | _ -> ctx, str
-  in
 
   let loop (acc_ctx, acc_str) curr =
     (* TODO: Add forloop variable *)
@@ -84,9 +85,9 @@ and interpret_for ctx str alias packed_iterable params body else_body =
       let r = if p.r_reved then List.rev limited else limited in
       List.fold_left r ~init:(ctx, str) ~f:loop
     end else
-      eval_else else_body
+      interpret_else ctx str else_body
   )
-  | _ -> eval_else else_body
+  | _ -> interpret_else ctx str else_body
 
 
 let interpret_file filename =
