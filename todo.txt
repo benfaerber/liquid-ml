@@ -14,3 +14,8 @@ Parser
   X Implement style tag
   X Implement table row tag
   X Implement paginate tag
+
+Lexer
+-----
+  High Priority
+  - If a keyword is in an id (example: asapple, ifname) a keyword is lexed instead of an

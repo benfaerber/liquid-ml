@@ -1,6 +1,16 @@
-{% assign t = 10 %}
+{% assign t = 10 | capitalize %}
 
-{% if t == 10 %}
+{% assign word = "dog" %}
+{% assign sentence = "the dog went to the park" %}
+
+{% if sentence contains word %}
+    The animal went to the park!!!
+{% else %}
+    It didn't go to the parkl
+{% endif %}
+
+
+{% if t == 4 %}
     T is 10!!!!
 {% else %}
     T is not 10!!!

@@ -190,3 +190,9 @@ let variable_context_as_string vc =
   |> join_by_comma
 
 let print_variable_context vc = vc |> variable_context_as_string |> Stdio.print_endline
+
+
+let print_rendered r =
+  let remove_double_nl = Re2.create_exn "\n\n" in
+  let t = Re2.rewrite_exn remove_double_nl ~template:"" r in
+  Stdio.print_endline t
