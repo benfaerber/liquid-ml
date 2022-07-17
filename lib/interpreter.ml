@@ -2,8 +2,8 @@ open Base
 open Syntax
 open Tools
 
-let notifier t = [(["notifier_" ^ t], String ("notifier_" ^ t))]
-let has_notifier ctx t = Values.context_has ctx ["notifier_" ^ t]
+let notifier t = Ctx.add ["notifier_" ^ t] (String ("notifier_" ^ t))
+let has_notifier t = Ctx.mem ["notifier_" ^ t]
 (* CTX Funcname exps *)
 let interpret_function _ _ params = List.hd_exn params
 
@@ -39,7 +39,7 @@ let num_int n = (Number (n |> Int.to_float))
 let rec interpret ctx str ast =
   match ast with
   | Block cmds -> interpret_while ctx str cmds
-  | Assignment (id, exp) -> ctx @ [(id, interpret_expression ctx exp)], str
+  | Assignment (id, exp) -> ctx |> Ctx.add id (interpret_expression ctx exp), str
   | Test (cond, body, else_body) -> interpret_test ctx str cond body else_body
   | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
   | Text t -> ctx, str ^ t
@@ -47,11 +47,11 @@ let rec interpret ctx str ast =
     let value = interpret_expression ctx exp in
     ctx, str ^ (Values.string_from_value ctx value)
   )
-  | Break -> ctx @ (notifier "break"), str
-  | Continue -> ctx @ (notifier "continue"), str
+  | Break -> notifier "break" ctx, str
+  | Continue -> notifier "break" ctx, str
   | Capture (id, body) -> (
     let (_, rendered) = interpret ctx str body in
-    ctx @ [(id, String rendered)], str
+    Ctx.add id (String rendered) ctx, str
   )
   | _ -> ctx, str
 
@@ -60,11 +60,10 @@ and interpret_while ctx str cmds =
   | [cmd] -> interpret ctx str cmd
   | hd :: tl ->
     let (nctx, nstr) = interpret ctx str hd in
-    let has = has_notifier nctx in
-    if has "break" then
-      ctx @ (notifier "break"), str
-    else if has "continue" then
-      ctx @ (notifier "continue"), str
+    if has_notifier "break" nctx then
+      notifier "break" ctx, str
+    else if has_notifier "continue" nctx then
+      notifier "continue" ctx, str
     else
       interpret_while nctx nstr tl
   | _ -> ctx, str
@@ -84,12 +83,12 @@ and interpret_for ctx str alias packed_iterable params body else_body =
 
   let loop (acc_ctx, acc_str) curr =
     (* TODO: Add forloop.parent *)
-    let loop_ctx = acc_ctx @ [(alias, curr)] in
+    let loop_ctx = Ctx.add alias curr acc_ctx in
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
       let res = (acc_ctx, acc_str ^ rendered) in
-      if has_notifier inner_ctx "break" then
+      if has_notifier "break" inner_ctx then
         Done res
       else
         Forward res
@@ -131,8 +130,8 @@ let interpret_file filename =
   Debug.print_ast ast;
   Debug.print_line();
 
-  let test_list = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
-  let default_ctx = [(["test_list"], test_list)] in
+  let _ = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
+  let default_ctx = Ctx.empty in
   let default_str = "" in
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in

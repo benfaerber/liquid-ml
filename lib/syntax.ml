@@ -1,3 +1,4 @@
+
 type value =
   | Bool of bool
   | String of string
@@ -39,7 +40,6 @@ type render_variable_context =
 
 type id = string list
 type variable_context = (id * value) list
-module VariableContext = Set.Make(struct type t = id * value let compare = compare end)
 
 
 type ast =
@@ -87,3 +87,24 @@ let for_params_default =
 
 let context_var id =
   {variable = Var id; value = Var id }
+
+module VariableContext =
+  struct
+    type t = id
+    let compare a b =
+      let la = Base.String.concat ~sep:"." a in
+      let lb = Base.String.concat ~sep:"." b in
+      Stdio.print_endline la;
+      Stdio.print_endline lb;
+      Stdio.print_endline "----";
+
+      if Base.String.length la > Base.String.length lb then
+        1
+      else if Base.String.length la < Base.String.length lb then
+        -1
+      else
+        (if Caml.(=) la lb then 0 else -1)
+
+  end
+
+module Ctx = Map.Make(VariableContext)

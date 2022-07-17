@@ -193,11 +193,14 @@ let remove_nl text =
   let exp = Re2.create_exn "\n" in
   Re2.rewrite_exn exp ~template:"" text
 
-let variable_context_as_string vc =
-  List.map vc ~f:(fun (id, value) -> Core.sprintf "%s=%s" (id_as_string id) (value_as_string value |> remove_nl))
-  |> join_by_comma
+(* let variable_context_as_string vc =
+  Seq.map (Ctx.to_seq vc) ~f:(fun (id, value) -> Core.sprintf "%s=%s" (id_as_string id) (value_as_string value |> remove_nl))
+  |> join_by_comma *)
 
-let print_variable_context vc = vc |> variable_context_as_string |> Stdio.print_endline
+let print_variable_context m =
+  Syntax.Ctx.iter (fun id v -> Stdio.printf "%s=%s\n" (Tools.join_by_arrow id) (value_as_string v |> remove_nl)) m;
+  print_line ()
+
 
 let print_rendered r =
   r |> remove_double_nl |> Stdio.print_endline

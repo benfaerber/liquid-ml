@@ -1,5 +1,4 @@
-{%- comment -%}
-{% assign t = 10 | capitalize %}
+{% assign tado = 5 | capitalize %}
 {% assign y = 3 %}
 {% assign word = "dog" %}
 {% assign sentence = "the dog went to the park" %}
@@ -18,13 +17,15 @@
 {% endif %}
 
 
-{% if t == 4 and y == 3 %}
+{% if tado == 4 or y == 3 %}
     T is 10!!!!
 {% else %}
     T is not 10!!!
 {% endif %}
-{%- endcomment -%}
+
 
 {% for num in (0..10) offset:3 reversed %}
     Num is {{num}}
 {% endfor %}
+
+{{ test_cap }}
