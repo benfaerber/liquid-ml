@@ -74,7 +74,7 @@ Func (eq) (
 )
 
 How to build an Ast:
-Just from token to token
+Jump from token to token
 If it is opener:
 scan down while counting openers and closers
 Once closer is found

@@ -8,8 +8,8 @@ let lex_to_equation a op b =
   Equation (lex_value_to_value a, op, lex_value_to_value b)
 
 let combine_condition p1 p2 = function
-  | LexAnd -> Combine (And, [p1; p2])
-  | LexOr -> Combine (Or, [p1; p2])
+  | LexAnd -> Combine (And, p1, p2)
+  | LexOr -> Combine (Or, p1, p2)
 
 let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in

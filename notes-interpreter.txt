@@ -1,0 +1,39 @@
+How to build an interpreter:
+Variable Context
+
+File number_in_english:
+case number
+  when 1: "One"
+  when 2: "Two"
+  ....
+endcase
+
+
+File global:
+Assign (x, 2)
+
+Test (x < 10) {
+  Assign (y, func:plus (x, 5))
+  Render (number_in_english, number: y)
+} else {
+  I don't know!!!
+}
+
+Assign (beatles, func:split (
+  String(ringo,paul,john),
+  String(,)
+))
+
+For (beatle in beatles) {
+  Expression(beatle) walked down abbey road!
+}
+
+Let's start with this basic AST:
+First the variable context is populated with all global vars (product, collection, etc)
+When then run into first assignment, add x into variable context
+Now we reach first test
+We lookup X in the variable context
+It passed!
+Now we enter a new scope. This scope has access to all parent variables
+Entering a new scope:
+let rendered_scope = enter_scope parent_variable_context

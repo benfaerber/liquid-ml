@@ -19,7 +19,7 @@ type operator_equation = value * Keyword.operator * value
 
 type combiner = And | Or
 type condition =
-  | Combine of combiner * condition list
+  | Combine of combiner * condition * condition
   | Equation of operator_equation
   | Not of condition
   | AlwaysTrue
@@ -32,12 +32,14 @@ type for_params =
   ; is_tablerow: bool
   }
 
-type variable_context =
+type render_variable_context =
   { variable: value
   ; value: value
   }
 
 type id = string list
+type variable_context = (id * value) list
+
 
 type ast =
   | Capture of id * ast
@@ -54,7 +56,7 @@ type ast =
   | Layout of string option
   | Include of string
   | Section of string
-  | Render of string * variable_context list * ast option
+  | Render of string * render_variable_context list * ast option
   | Paginate of id * int * ast
   | Nothing
 

@@ -67,7 +67,6 @@ let lex_keyword text =
     ; ("endraw", EndRaw)
     ; ("when", When)
     ; ("with", LexWith)
-    ; ("as", LexAs)
 
     ; ("form", LexForm)
     ; ("endform", LexEndForm)
@@ -99,6 +98,7 @@ let lex_keyword text =
 
     ; ("in", In)
     ; ("by", By)
+    ; ("as", LexAs)
 
     ; ("==", Operator Eq)
     ; (">=", Operator Gte)

@@ -60,8 +60,6 @@ let find_bounds tokens start_point =
   let other_bounds = unwrap_or bounds.other [] in
 
   let folder (tally, found) index =
-    (* Stdio.printf " %d " index;
-    Debug.print_lex_tokens_with_index tokens; *)
     let token = nth tokens index in
     match token with
     | _ when token = bounds.start ->

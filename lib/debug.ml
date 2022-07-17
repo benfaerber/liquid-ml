@@ -96,8 +96,8 @@ let rec condition_as_string =
   | Equation (a, op, b) -> (value_as_string a) ^ " " ^ (operator_as_string op) ^ " " ^ (value_as_string b)
   | AlwaysTrue -> "Always True"
   | Not x -> "Not(\n" ^ (condition_as_string x) ^ "\n)"
-  | Combine (combiner, conditions) ->
-    (combiner_as_string combiner) ^ "(\n  " ^ (join_by_space (List.map conditions ~f:aux)) ^ "\n)"
+  | Combine (c, l, r) ->
+    Core.sprintf "%s(\n%s %s\n)" (combiner_as_string c) (aux l) (aux r)
   in aux
 
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
@@ -184,3 +184,9 @@ let parse_result_with_rest_as_string = function
 
 let print_parse_result pr = pr |> parse_result_as_string |> Stdio.print_endline
 let print_parse_result_with_rest pr = pr |> parse_result_with_rest_as_string |> Stdio.print_endline
+
+let variable_context_as_string vc =
+  List.map vc ~f:(fun (id, value) -> Core.sprintf "%s=%s" (id_as_string id) (value_as_string value))
+  |> join_by_comma
+
+let print_variable_context vc = vc |> variable_context_as_string |> Stdio.print_endline
