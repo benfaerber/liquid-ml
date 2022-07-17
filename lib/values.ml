@@ -3,6 +3,7 @@ open Tools
 open Syntax
 
 
+let as_id s = [s]
 let id_eq a b =
   List.equal (fun x y -> x = y) a b
 
@@ -64,7 +65,11 @@ let ne ctx a b = if eq ctx a b then false else true
 let rec string_from_value ctx = function
   | Bool(b) -> (if b then "True" else "False")
   | String(s) -> s
-  | Number(f) -> Core.sprintf "%f" f
+  | Number(f) -> (
+    if Float.round_down f = f then
+      Core.sprintf "%d" (Float.to_int f)
+    else
+      Core.sprintf "%f" f)
   | Var(v) -> string_from_value ctx (context_get ctx v)
   | Nil -> ""
   | _ -> "Unknown"

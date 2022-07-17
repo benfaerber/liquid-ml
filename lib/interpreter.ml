@@ -39,6 +39,7 @@ let rec interpret ctx str ast =
   )
   | Assignment (id, exp) -> ctx @ [(id, interpret_expression ctx exp)], str
   | Test (cond, body, else_body) -> interpret_test ctx str cond body else_body
+  | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
   | Text t -> ctx, str ^ t
   | Expression exp -> (
     let value = interpret_expression ctx exp in
@@ -49,6 +50,7 @@ let rec interpret ctx str ast =
     ctx @ [(id, String rendered)], str
   )
   | _ -> ctx, str
+
 and interpret_test ctx str cond body else_body =
   if interpret_condition ctx cond then
     interpret ctx str body
@@ -57,6 +59,24 @@ and interpret_test ctx str cond body else_body =
     | Some eb -> interpret ctx str eb
     | None -> ctx, str
   end
+
+and interpret_for ctx str alias packed_iterable _ body _ =
+  let iterable =
+    match packed_iterable with
+    | Var v -> Values.context_get ctx v
+    | other -> other in
+
+  let loop (acc_ctx, acc_str) curr =
+    (* TODO: Add forloop variable *)
+    let loop_ctx = acc_ctx @ [(alias, curr)] in
+    let (_, rendered) = interpret loop_ctx "" body in
+    acc_ctx, (acc_str ^ rendered)
+  in
+
+  match iterable with
+  | List l -> List.fold_left l ~init:(ctx, str) ~f:loop
+  | _ -> ctx, str
+
 
 let interpret_file filename =
   let ast =
@@ -69,7 +89,8 @@ let interpret_file filename =
   Debug.print_ast ast;
   Debug.print_line();
 
-  let default_ctx = [] in
+  let test_list = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
+  let default_ctx = [(["test_list"], test_list)] in
   let default_str = "" in
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in
