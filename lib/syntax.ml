@@ -25,10 +25,10 @@ type condition =
   | AlwaysTrue
 
 type for_params =
-  { limit: value
-  ; offset: value
-  ; reved: value
-  ; cols: value
+  { limit: int
+  ; offset: int
+  ; reved: bool
+  ; cols: int
   ; is_tablerow: bool
   }
 
@@ -77,10 +77,10 @@ let lex_value_to_value = function
   | LexNil | LexBlank -> Nil
 
 let for_params_default =
-  { limit = Number 50.
-  ; offset = Number 0.
-  ; reved = Bool false
-  ; cols = Number 10.
+  { limit = 50
+  ; offset = 0
+  ; reved = false
+  ; cols = 10
   ; is_tablerow = false
   }
 

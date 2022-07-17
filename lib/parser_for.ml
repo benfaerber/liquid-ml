@@ -39,13 +39,13 @@ let parse_forlike for_type block_parser tokens =
     let (params, rest) = scan_until_eos tl in
     let param_folder found = function
       | LexValue (LexId ["reversed"]) :: ptl ->
-        Next ({ limit = found.limit; offset = found.offset; reved = Bool true; cols = found.cols; is_tablerow = is_tablerow }, ptl)
-      | LexValue (LexId ["offset"]) :: Colon :: LexValue v :: ptl ->
-        Next ({ limit = found.limit; offset = lex_value_to_value v; reved = found.reved; cols = found.cols; is_tablerow = is_tablerow }, ptl)
-      | LexValue (LexId ["limit"]) :: Colon :: LexValue v :: ptl ->
-        Next ({ limit = lex_value_to_value v; offset = found.offset; reved = found.reved; cols = found.cols; is_tablerow = is_tablerow }, ptl)
-      | LexValue (LexId ["cols"]) :: Colon :: LexValue v :: ptl ->
-        Next ({ limit = found.limit; offset = found.offset; reved = found.reved; cols = lex_value_to_value v; is_tablerow = is_tablerow }, ptl)
+        Next ({ limit = found.limit; offset = found.offset; reved = true; cols = found.cols; is_tablerow = is_tablerow }, ptl)
+      | LexValue (LexId ["offset"]) :: Colon :: LexValue (LexNumber n) :: ptl ->
+        Next ({ limit = found.limit; offset = Float.to_int n; reved = found.reved; cols = found.cols; is_tablerow = is_tablerow }, ptl)
+      | LexValue (LexId ["limit"]) :: Colon :: LexValue (LexNumber n) :: ptl ->
+        Next ({ limit = Float.to_int n; offset = found.offset; reved = found.reved; cols = found.cols; is_tablerow = is_tablerow }, ptl)
+      | LexValue (LexId ["cols"]) :: Colon :: LexValue (LexNumber n) :: ptl ->
+        Next ({ limit = found.limit; offset = found.offset; reved = found.reved; cols = Float.to_int n; is_tablerow = is_tablerow }, ptl)
       | _ -> Stop (found) in
 
     let params = unfold for_params_default params param_folder in

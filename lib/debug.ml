@@ -81,13 +81,13 @@ let combiner_as_string = function
   | Or -> "Or"
 
 
-let value_as_string = function
-  | Bool(b) -> "Bool(" ^ (if b then "True" else "False") ^ ")"
-  | String(s) -> "String(" ^ s ^ ")"
-  | Number(f) -> Core.sprintf "Num(%f)" f
-  | Var(v) -> "Var(" ^ join_by_arrow v ^ ")"
+let rec value_as_string = function
+  | Bool b -> "Bool(" ^ (if b then "True" else "False") ^ ")"
+  | String s -> "String(" ^ s ^ ")"
+  | Number f -> Core.sprintf "Num(%f)" f
+  | Var v -> "Var(" ^ join_by_arrow v ^ ")"
   | Nil -> "Nil"
-  | Skip -> "Skip"
+  | List l -> Core.sprintf "List(%s)" (List.map l ~f:value_as_string |> join_by_comma)
   | _ -> "Unknown"
 
 
@@ -133,7 +133,7 @@ let ast_as_string =
       child_text ^ next_child_text
     )
     | For (id, value, params, body, else_block) -> (
-      let vars = Core.sprintf "(l=%s,o=%s,r=%s,c=%s)" (value_as_string params.limit) (value_as_string params.offset) (value_as_string params.reved) (value_as_string params.cols) in
+      let vars = Core.sprintf "(l=%d,o=%d,r=%b,c=%d)" params.limit params.offset params.reved params.cols in
       let ft = if params.is_tablerow then "TableRow" else "For" in
       match else_block with
       | Some eb ->
@@ -185,14 +185,19 @@ let parse_result_with_rest_as_string = function
 let print_parse_result pr = pr |> parse_result_as_string |> Stdio.print_endline
 let print_parse_result_with_rest pr = pr |> parse_result_with_rest_as_string |> Stdio.print_endline
 
+let remove_double_nl text =
+  let exp = Re2.create_exn "\n\n" in
+  Re2.rewrite_exn exp ~template:"" text
+
+let remove_nl text =
+  let exp = Re2.create_exn "\n" in
+  Re2.rewrite_exn exp ~template:"" text
+
 let variable_context_as_string vc =
-  List.map vc ~f:(fun (id, value) -> Core.sprintf "%s=%s" (id_as_string id) (value_as_string value))
+  List.map vc ~f:(fun (id, value) -> Core.sprintf "%s=%s" (id_as_string id) (value_as_string value |> remove_nl))
   |> join_by_comma
 
 let print_variable_context vc = vc |> variable_context_as_string |> Stdio.print_endline
 
-
 let print_rendered r =
-  let remove_double_nl = Re2.create_exn "\n\n" in
-  let t = Re2.rewrite_exn remove_double_nl ~template:"" r in
-  Stdio.print_endline t
+  r |> remove_double_nl |> Stdio.print_endline

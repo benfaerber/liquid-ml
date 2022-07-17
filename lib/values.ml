@@ -94,20 +94,3 @@ let rec unwrap_bool ctx = function
   | Var v -> unwrap_bool ctx (context_get ctx v)
   | Bool b -> b
   | _ -> raise (Failure "Failed to get bool")
-
-
-type unwrapped_forloop_params =
-  { r_limit: int
-  ; r_offset: int
-  ; r_reved: bool
-  ; r_cols: int
-  ; r_is_tablerow: bool
-  }
-
-let unwarp_forloop_params ctx params =
-  { r_limit = unwrap_int ctx params.limit
-  ; r_offset = unwrap_int ctx params.offset
-  ; r_reved = unwrap_bool ctx params.reved
-  ; r_cols = unwrap_int ctx params.cols
-  ; r_is_tablerow = params.is_tablerow
-  }
