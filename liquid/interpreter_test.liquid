@@ -41,4 +41,20 @@ After:
 {% assign tttt = false %}
 {% if tttt %}
     This is good!
+{% elsif tado == 5 %}
+    Bad but tado
+{% else %}
+    SUPER BaD
 {% endif %}
+
+{% assign animal = "cow" %}
+{% case animal %}
+    {% when "dog" %}
+        Woof
+    {% when "cat" %}
+        Meow
+    {% when "cow" %}
+        Moo
+    {% else %}
+        No sound
+{% endcase %}
