@@ -175,7 +175,6 @@ let remove ctx params =
   | String haystack :: String needle :: _ ->
     let exp = ~/needle in
     let res = Re2.rewrite_exn exp haystack ~template:"" in
-    Debug.dump res;
     String res
   | _ -> raise (Failure "Invalid use")
 
@@ -195,7 +194,6 @@ let replace ctx params =
   | String haystack :: String find_needle :: String replace_needle :: _ ->
     let exp = ~/find_needle in
     let res = Re2.rewrite_exn exp haystack ~template:replace_needle in
-    Debug.dump res;
     String res
   | _ -> raise (Failure "Invalid use")
 
@@ -240,6 +238,16 @@ let strip_html ctx params =
   )
   | _ -> raise (Failure "Invalid use")
 
+
+let strip_newlines ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> (
+    let exp = ~/"\n" in
+    let r = Re2.rewrite_exn exp ~template:"" s in
+    String (r)
+  )
+  | _ -> raise (Failure "Invalid use")
+
 let slice ctx params =
   match unwrap_all ctx params with
   | String s :: Number fstart :: Number fstop :: _ ->
@@ -252,7 +260,35 @@ let slice ctx params =
     String ns
   | _ -> raise (Failure "Invalid use")
 
+let times = apply_op Float.( * )
 
+let truncate ctx params =
+  let trunc finisher s chars =
+    if String.length s > chars then
+      String ((String.sub s ~pos:0 ~len:chars) ^ finisher)
+    else
+      String (s)
+  in
+
+  match unwrap_all ctx params with
+  | String s :: Number fchars :: String finisher :: _ -> trunc finisher s (Float.to_int fchars)
+  | String s :: Number fchars :: _ -> trunc "..." s (Float.to_int fchars)
+  | _ -> raise (Failure "Invalid use")
+
+let truncatewords ctx params =
+  let trunc finisher s count =
+    let words = String.split s ~on:' ' in
+    if List.length words > count then
+      let picked_words = List.sub words ~pos:0 ~len:count |> join_by_space in
+      String (picked_words ^ finisher)
+    else
+      String (s)
+  in
+
+  match unwrap_all ctx params with
+  | String s :: Number fcount :: String finisher :: _ -> trunc finisher s (Float.to_int fcount)
+  | String s :: Number fcount :: _ -> trunc "..." s (Float.to_int fcount)
+  | _ -> raise (Failure "Invalid use")
 
 let split ctx params =
   match unwrap_all ctx params with
@@ -294,6 +330,9 @@ let function_from_id = function
   | "size" -> size
   | "strip" -> strip
   | "strip_html" -> strip_html
+  | "strip_newlines" -> strip_newlines
   | "slice" -> slice
   | "split" -> split
+  | "truncate" -> truncate
+  | "truncatewords" -> truncatewords
   | other -> Failure (Core.sprintf "Unknown function %s!" other) |> raise

@@ -66,7 +66,7 @@ let rec interpret ctx str ast =
   | Break -> notifier "break" ctx, str
   | Continue -> notifier "continue" ctx, str
   | Capture (id, body) -> (
-    let (_, rendered) = interpret ctx str body in
+    let (_, rendered) = interpret ctx "" body in
     Ctx.add id (String rendered) ctx, str
   )
   | _ -> ctx, str

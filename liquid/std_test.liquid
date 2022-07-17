@@ -37,13 +37,7 @@ Tio kve
 {{ 4 | minus: 2 }}
 {{ 101 | modulo: 10 }}
 
-{% capture a_thing %}
-Lorem ipsum dolor sit,
-amet consectetur adipisicing elit.
-Officia, dolore rerum facilis mollitia aut fuga
-consequatur atque aperiam vero minima magnam hic laborum,
-obcaecati dicta, illo tempora. Impedit, delectus. Veniam.
-{% endcapture %}
+
 
 
 {% assign lots_of_dogs = "dog dog dog" %}
@@ -53,3 +47,17 @@ Replace Dog: {{ lots_of_dogs | replace: "dog", "cat"}}
 Replace First Dog: {{ lots_of_dogs | replace_first: "dog", "cat"}}
 
 {{ "Have <em>you</em> read <strong>Ulysses</strong>?" | strip_html }}
+
+{% capture lorem %}
+Lorem ipsum dolor sit,
+amet consectetur adipisicing elit.
+Officia, dolore rerum facilis mollitia aut fuga
+consequatur atque aperiam vero minima magnam hic laborum,
+obcaecati dicta, illo tempora. Impedit, delectus. Veniam.
+{% endcapture %}
+
+{{ lorem | truncate: 10 }}
+{{ lorem | truncate: 10, ", keep going..." }}
+{{ lorem | truncatewords: 10 }}
+{{ lorem | truncatewords: 10, ", ender" }}
+{{ lorem | truncatewords: 10 | newline_to_br }}
