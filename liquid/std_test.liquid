@@ -17,8 +17,37 @@
 {{ 4.345 | ceil }}
 
 {% assign fruits = "apple,banana,pear" | split: "," %}
-
+Tio kve
 {% assign fruity_beatles = beatles | concat: fruits %}
 {{ fruity_beatles }}
 
 {{ my_cool_var | default: "defo val"}}
+
+{{ 10 | divided_by: 2 }}
+
+{{ beatles | join: " kisses "}}
+
+{{ beatles | last }}
+
+{% assign dirty = "    horse radish    " %}
+({{ dirty | lstrip }})
+({{ dirty | rstrip }})
+({{ dirty | strip }})
+
+{{ 4 | minus: 2 }}
+{{ 101 | modulo: 10 }}
+
+{% capture a_thing %}
+Lorem ipsum dolor sit,
+amet consectetur adipisicing elit.
+Officia, dolore rerum facilis mollitia aut fuga
+consequatur atque aperiam vero minima magnam hic laborum,
+obcaecati dicta, illo tempora. Impedit, delectus. Veniam.
+{% endcapture %}
+
+
+{% assign lots_of_dogs = "dog dog dog" %}
+Remove Dog: {{ lots_of_dogs | remove: "dog" }}
+Remove First Dog: {{ lots_of_dogs | remove_first: "dog" }}
+Replace Dog: {{ lots_of_dogs | replace: "dog", "cat"}}
+Replace First Dog: {{ lots_of_dogs | replace_first: "dog", "cat"}}

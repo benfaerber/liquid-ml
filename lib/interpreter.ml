@@ -6,8 +6,6 @@ let notifier t = Ctx.add ["notifier_" ^ t] (String ("notifier_" ^ t))
 let has_notifier t = Ctx.mem ["notifier_" ^ t]
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
-  Stdio.print_endline name;
-  Debug.dump params;
   let func = Liquid_std.function_from_id name in
   func ctx params
 
@@ -102,7 +100,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
   let loop (acc_ctx, acc_str) curr =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
-    Debug.print_variable_context loop_ctx;
+    (* Debug.print_variable_context loop_ctx; *)
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
@@ -141,7 +139,6 @@ and interpret_cycle ctx str _ values =
   let index = Ctx.find ["forloop"; "index"] ctx |> Values.unwrap_int ctx in
   let vlen = List.length values in
   let vindex = index % vlen in
-  Stdio.printf "%d" vindex;
   let curr = nth values vindex in
 
   ctx, str ^ curr
