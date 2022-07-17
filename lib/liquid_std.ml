@@ -209,6 +209,36 @@ let replace_first ctx params =
     String (repped_first ^ wo_first_chunk)
   | _ -> raise (Failure "Invalid use")
 
+let reverse ctx params =
+  match unwrap_all ctx params with
+  | List lst :: _ -> List (List.rev lst)
+  | _ -> raise (Failure "Invalid use")
+
+let round ctx params =
+  match unwrap_all ctx params with
+  | Number a :: Number fplaces :: _ -> (
+    let places = Float.to_int fplaces in
+    Number (Float.round_decimal a ~decimal_digits:places)
+  )
+  | Number a :: _ -> Number (Float.round_nearest a)
+  | _ -> raise (Failure "Invalid use")
+
+(* TODO: Dot notation *)
+let size ctx params =
+  match unwrap_all ctx params with
+  | List lst :: _ -> Number (lst |> List.length |> Int.to_float)
+  | _ -> raise (Failure "Invalid use")
+
+(* TODO: SOrt *)
+
+let strip_html ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> (
+    let exp = ~/"<.+?/?>" in
+    let r = Re2.rewrite_exn exp ~template:"" s in
+    String (r)
+  )
+  | _ -> raise (Failure "Invalid use")
 
 let slice ctx params =
   match unwrap_all ctx params with
@@ -258,9 +288,12 @@ let function_from_id = function
   | "remove_first" -> remove_first
   | "replace" -> replace
   | "replace_first" -> replace_first
-
+  | "reverse" -> reverse
+  | "round" -> round
   | "rstrip" -> rstrip
+  | "size" -> size
   | "strip" -> strip
+  | "strip_html" -> strip_html
   | "slice" -> slice
   | "split" -> split
   | other -> Failure (Core.sprintf "Unknown function %s!" other) |> raise
