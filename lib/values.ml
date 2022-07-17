@@ -18,6 +18,12 @@ let context_has ctx id =
   | Nil -> false
   | _ -> true
 
+let context_get_or ctx id default =
+  match context_get ctx id with
+  | Nil -> default
+  | other -> other
+
+
 let rec eq ctx va vb  =
   match (va, vb) with
   | Bool (a), Bool (b) -> a = b
@@ -76,7 +82,7 @@ let rec string_from_value ctx = function
     else
       Core.sprintf "%f" f)
   | Var(v) -> string_from_value ctx (context_get ctx v)
-  | Nil -> ""
+  | Nil -> "nil"
   | _ -> "Unknown"
 
 let unwrap ctx = function

@@ -39,6 +39,7 @@ type render_variable_context =
 
 type id = string list
 type variable_context = (id * value) list
+module VariableContext = Set.Make(struct type t = id * value let compare = compare end)
 
 
 type ast =

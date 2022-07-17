@@ -34,6 +34,7 @@ let rec interpret_condition ctx cond =
   | Combine (And, l, r) -> interpret_condition ctx l && interpret_condition ctx r
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
 
+let num_int n = (Number (n |> Int.to_float))
 
 let rec interpret ctx str ast =
   match ast with
@@ -82,7 +83,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
   let iterable = Values.unwrap ctx packed_iterable in
 
   let loop (acc_ctx, acc_str) curr =
-    (* TODO: Add forloop variable *)
+    (* TODO: Add forloop.parent *)
     let loop_ctx = acc_ctx @ [(alias, curr)] in
     match body with
     | Block b -> (
@@ -116,12 +117,16 @@ and interpret_for ctx str alias packed_iterable params body else_body =
 
 
 let interpret_file filename =
-  let ast =
+  let raw_text =
     filename
     |> File.read
     |> Preprocessor.preprocess
-    |> Lexer.lex_text
-    |> Parser.parse_block in
+  in
+
+  let tokens = raw_text |> Lexer.lex_text in
+  Debug.print_lex_tokens_with_index tokens;
+  Debug.print_line ();
+  let ast = tokens |> Parser.parse_block in
 
   Debug.print_ast ast;
   Debug.print_line();

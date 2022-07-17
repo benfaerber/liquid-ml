@@ -1,3 +1,4 @@
+{%- comment -%}
 {% assign t = 10 | capitalize %}
 {% assign y = 3 %}
 {% assign word = "dog" %}
@@ -22,12 +23,8 @@
 {% else %}
     T is not 10!!!
 {% endif %}
+{%- endcomment -%}
 
 {% for num in (0..10) offset:3 reversed %}
-    Num is {{ num }}
-
-    {% if num == 5 %}
-        {% break %}
-    {% endif %}
-    Nice!
+    Num is {{num}}
 {% endfor %}
