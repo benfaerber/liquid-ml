@@ -1,7 +1,14 @@
 {% assign t = 10 | capitalize %}
-
+{% assign y = 3 %}
 {% assign word = "dog" %}
 {% assign sentence = "the dog went to the park" %}
+
+{% capture test_cap %}
+{% assign num = 4 %}
+{% if num == 4 %}
+    NUM IS 44444
+{% endif %}
+{% endcapture %}
 
 {% if sentence contains word %}
     The animal went to the park!!!
@@ -10,8 +17,10 @@
 {% endif %}
 
 
-{% if t == 4 %}
+{% if t == 4 and y == 3 %}
     T is 10!!!!
 {% else %}
     T is not 10!!!
 {% endif %}
+
+{{ test_cap }}

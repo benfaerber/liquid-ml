@@ -60,3 +60,11 @@ let rec contains ctx va vb =
 let lte ctx a b = lt ctx a b || eq ctx a b
 let gte ctx a b = gt ctx a b || eq ctx a b
 let ne ctx a b = if eq ctx a b then false else true
+
+let rec string_from_value ctx = function
+  | Bool(b) -> (if b then "True" else "False")
+  | String(s) -> s
+  | Number(f) -> Core.sprintf "%f" f
+  | Var(v) -> string_from_value ctx (context_get ctx v)
+  | Nil -> ""
+  | _ -> "Unknown"

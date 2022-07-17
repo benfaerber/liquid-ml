@@ -31,24 +31,32 @@ let rec interpret_condition ctx cond =
   | Combine (And, l, r) -> interpret_condition ctx l && interpret_condition ctx r
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
 
+
 let rec interpret ctx str ast =
-  let no_match = ctx, str in
   match ast with
   | Block cmds -> (
-    Debug.print_line();
-    Debug.print_ast (Block cmds);
     List.fold_left cmds ~init:(ctx, str) ~f:(fun (acc_ctx, acc_str) cmd -> interpret acc_ctx acc_str cmd)
   )
-  | Assignment (id, exp) -> ctx @ [(id, interpret_expression ctx exp)], ""
-  | Test (cond, body, else_body) -> (
-    if interpret_condition ctx cond then
-      interpret ctx str body
-    else
-      (match else_body with Some eb -> interpret ctx str eb | None -> no_match)
-  )
+  | Assignment (id, exp) -> ctx @ [(id, interpret_expression ctx exp)], str
+  | Test (cond, body, else_body) -> interpret_test ctx str cond body else_body
   | Text t -> ctx, str ^ t
-  | Capture (id, _) -> ctx @ [(id, String ("NYI"))], str
-  | _ -> no_match
+  | Expression exp -> (
+    let value = interpret_expression ctx exp in
+    ctx, str ^ (Values.string_from_value ctx value)
+  )
+  | Capture (id, body) -> (
+    let (_, rendered) = interpret ctx str body in
+    ctx @ [(id, String rendered)], str
+  )
+  | _ -> ctx, str
+and interpret_test ctx str cond body else_body =
+  if interpret_condition ctx cond then
+    interpret ctx str body
+  else begin
+    match else_body with
+    | Some eb -> interpret ctx str eb
+    | None -> ctx, str
+  end
 
 let interpret_file filename =
   let ast =
@@ -57,7 +65,6 @@ let interpret_file filename =
     |> Preprocessor.preprocess
     |> Lexer.lex_text
     |> Parser.parse_block in
-
 
   Debug.print_ast ast;
   Debug.print_line();
