@@ -5,6 +5,7 @@ let (=) = Caml.(=)
 let (!=) = Caml.(!=)
 let (>) = Caml.(>)
 let (<) = Caml.(<)
+let (~/) = Re2.create_exn
 
 let range x =
   Batteries.(--) 0 x |> Batteries.List.of_enum
@@ -15,6 +16,8 @@ let sub_list lst start_i end_i = List.sub lst ~pos:start_i ~len:(end_i - start_i
 let sub_list_suffix lst x = List.sub lst ~pos:x ~len:(List.length lst - x)
 let first_letter text = sub_prefix text 1
 
+let string_range s start_i end_i =
+  String.sub s ~pos:start_i ~len:(String.length s - end_i)
 
 let starts_with text prefix =
   if String.length text > String.length prefix then (

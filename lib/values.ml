@@ -71,6 +71,7 @@ let rec string_from_value ctx = function
       Core.sprintf "%f" f)
   | Var(v) -> string_from_value ctx (find ctx v)
   | Nil -> "nil"
+  | List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
   | _ -> "Unknown"
 
 let unwrap ctx = function
@@ -98,3 +99,5 @@ let rec is_truthy ctx = function
   | Var id -> is_truthy ctx (find ctx id)
   | Bool false | Nil -> false
   | _ -> true
+
+let unwrap_all ctx lst = List.map lst ~f:(unwrap ctx)

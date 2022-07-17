@@ -6,7 +6,9 @@ let notifier t = Ctx.add ["notifier_" ^ t] (String ("notifier_" ^ t))
 let has_notifier t = Ctx.mem ["notifier_" ^ t]
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
-  let func = Liquid_std.function_from_string name in
+  Stdio.print_endline name;
+  Debug.dump params;
+  let func = Liquid_std.function_from_id name in
   func ctx params
 
 let rec interpret_expression ctx = function
@@ -171,5 +173,5 @@ let interpret_file filename =
   ()
 
 let test () =
-interpret_file "liquid/interpreter_test.liquid"
-  (* interpret_file "liquid/std_test.liquid" *)
+(* interpret_file "liquid/interpreter_test.liquid" *)
+  interpret_file "liquid/std_test.liquid"

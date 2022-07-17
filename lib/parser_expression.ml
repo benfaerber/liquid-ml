@@ -41,13 +41,13 @@ let expression_from_tokens full_tokens =
 
     let rec unfold_into_func = function
       | Func (id, (Value Skip :: other_params)) :: tl ->
-        Func (id, (tl |> unfold_into_func |> remove_skip)  @ other_params)
+        Func (id, (tl |> unfold_into_func |> remove_skip) @ other_params)
       | Func (id, params) :: tl ->
         Func (id, (tl |> unfold_into_func |> remove_skip) @ params)
       | _ -> Value Skip
     in
 
-    unfold_into_func func_list
+    unfold_into_func (List.rev func_list)
   )
 
 let parse_expression _ = function

@@ -188,7 +188,7 @@ let print_parse_result_with_rest pr = pr |> parse_result_with_rest_as_string |> 
 
 let remove_double_nl text =
   let exp = Re2.create_exn "\n\n" in
-  Re2.rewrite_exn exp ~template:"" text
+  Re2.rewrite_exn exp ~template:"\n" text
 
 let remove_nl text =
   let exp = Re2.create_exn "\n" in

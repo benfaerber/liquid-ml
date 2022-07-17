@@ -1,0 +1,24 @@
+{{ "big hairy dog" | capitalize | slice: 0, 11 | remove: "y" }} <br>
+{% assign beatles = "John, Paul, George, Ringo" | split: ", " %}
+
+{% for beatle in beatles %}
+    {{ beatle }} walked down abbey road!
+{% endfor %}
+{%- comment -%}
+{{ -1.234 | abs }} <br>
+{{ "623.2" | abs }} <br>
+
+{%- endcomment -%}
+
+{{ "horse" | append: "radish" }}
+
+{{ 4 | at_least: 3 }} and {{ 6 | at_most: 2 }}
+
+{{ 4.345 | ceil }}
+
+{% assign fruits = "apple,banana,pear" | split: "," %}
+
+{% assign fruity_beatles = beatles | concat: fruits %}
+{{ fruity_beatles }}
+
+{{ my_cool_var | default: "defo val"}}

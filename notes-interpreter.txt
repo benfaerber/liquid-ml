@@ -37,3 +37,50 @@ It passed!
 Now we enter a new scope. This scope has access to all parent variables
 Entering a new scope:
 let rendered_scope = enter_scope parent_variable_context
+
+
+Exp(
+    f:remove(
+      f:slice(
+          f:capitalize(
+              String(big hairy dog)
+          )
+          Num(0.000000)
+          Num(2.000000)
+      )
+      String(y)
+  )
+)
+
+First step:
+See remove func
+It has func inside, execute that
+Has func slice inside, execute that
+Has func capitalize inside execute that
+Got: BIG HAIRY DOG
+
+Exp(
+  f:remove(
+    f:slice(
+        String (BIG HAIRY DOG)
+        Num(0.000000)
+        Num(2.000000)
+    )
+    String(y)
+)
+)
+
+Now run slice:
+Exp(
+  f:remove(
+    String(HAIRY DOG)
+    String(y)
+)
+)
+Now run remove:
+Exp(
+  String(HAIR DOG)
+)
+
+Render:
+HAIR DOG
