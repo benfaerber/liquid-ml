@@ -134,6 +134,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
   | _ -> interpret_else ctx str else_body
 
 
+let does_log = true
 let interpret_file filename =
   let raw_text =
     filename
@@ -142,21 +143,21 @@ let interpret_file filename =
   in
 
   let tokens = raw_text |> Lexer.lex_text in
-  Debug.print_lex_tokens_with_index tokens;
-  Debug.print_line ();
+  if does_log then Debug.print_lex_tokens_with_index tokens;
+  if does_log then Debug.print_line ();
   let ast = tokens |> Parser.parse_block in
 
-  Debug.print_ast ast;
-  Debug.print_line();
+  if does_log then Debug.print_ast ast;
+  if does_log then Debug.print_line();
 
   let _ = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
   let default_ctx = Ctx.empty in
   let default_str = "" in
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in
-  Debug.print_variable_context final_ctx;
-  Stdio.print_endline "Render:";
-  Debug.print_rendered final_str;
+  if does_log then Debug.print_variable_context final_ctx;
+  if does_log then Stdio.print_endline "Render:";
+  if does_log then Debug.print_rendered final_str;
   ()
 
 let test () =

@@ -1,8 +1,7 @@
-{%- comment -%}
 
 {% assign tado = 5 | capitalize %}
 {% assign y = 3 %}
-{% assign word = "cat" %}
+{% assign word = "dog" %}
 {% assign sentence = "the dog went to the park" %}
 
 {% capture test_cap %}
@@ -25,17 +24,14 @@
     T is not 10!!!
 {% endif %}
 
-
-
-{%- endcomment -%}
 {% for num in (0..10) reversed %}
-    Index: {{xforloop.index}}
-    Length: {{xforloop.length}}
-    First: {{ xforloop.first }}
-    Index0: {{ xforloop.index0 }}
-    Last: {{ xforloop.last }}
-    R Index: {{ xforloop.rindex }}
-    R Index 0: {{ xforloop.rindex0 }}
+    Index: {{ forloop.index }}
+    Length: {{forloop.length}}
+    First: {{ forloop.first }}
+    Index0: {{ forloop.index0 }}
+    Last: {{ forloop.last }}
+    R Index: {{ forloop.rindex }}
+    R Index 0: {{ forloop.rindex0 }}
     <br>
 {% endfor %}
 <br>

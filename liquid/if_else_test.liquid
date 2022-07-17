@@ -1,4 +1,3 @@
-{%- comment -%}
 
 This is to test if else
 {% if x == 12 %}
@@ -33,13 +32,8 @@ Now unless
 
 {% capture my_var %}dog cat horse{% endcapture %}
 
-{%liquid
-if a == 1
-    # this is comm
-    echo a
-endif
-#this is comm
-%}
+
+
 {% for beatle in beatles %}
     {{ beatle }} walked down abby road.
 {% else %}
@@ -74,7 +68,6 @@ endif
 }
 {% endstyle %}
 
-{%- endcomment -%}
 
 
 Out of here
@@ -90,3 +83,11 @@ Out of here
     {% endpaginate %}
 
 {% endcapture %}
+
+{%liquid
+if a == 1
+    # this is comm
+    echo a
+endif
+#this is comm
+%}
