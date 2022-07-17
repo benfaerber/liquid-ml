@@ -24,6 +24,7 @@ type combiner = And | Or
 type condition =
   | Combine of combiner * condition * condition
   | Equation of operator_equation
+  | IsTruthy of value
   | Not of condition
   | AlwaysTrue
 

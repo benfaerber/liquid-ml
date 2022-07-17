@@ -20,6 +20,7 @@ let build_condition tokens =
   | Unless :: statement -> (
     let rec aux acc pool =
       match pool with
+      | [LexValue a1] -> IsTruthy (lex_value_to_value a1)
       | [LexValue a1; Operator op1; LexValue b1] ->
         lex_to_equation a1 op1 b1
       | LexValue a1 :: Operator op1 :: LexValue b1 :: LexCombiner c :: LexValue a2 :: Operator op2 :: LexValue b2 :: tl ->

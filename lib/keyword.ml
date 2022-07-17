@@ -133,7 +133,7 @@ let lex_keyword text =
     (None, text)
   else
     let finder =
-      fun (check_literal, _) -> Stdio.printf "(%s)" text; starts_with text (check_literal ^ " ") || starts_with text (check_literal ^ "\n") in
+      fun (check_literal, _) -> starts_with text (check_literal ^ " ") || starts_with text (check_literal ^ "\n") in
     let found_keyword =
       List.find keywords ~f:finder in
     match found_keyword with

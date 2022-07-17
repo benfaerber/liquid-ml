@@ -95,6 +95,7 @@ let rec condition_as_string =
   let rec aux = function
   | Equation (a, op, b) -> (value_as_string a) ^ " " ^ (operator_as_string op) ^ " " ^ (value_as_string b)
   | AlwaysTrue -> "Always True"
+  | IsTruthy v -> "IsTruthy(" ^ (value_as_string v) ^ ")"
   | Not x -> "Not(\n" ^ (condition_as_string x) ^ "\n)"
   | Combine (c, l, r) ->
     Core.sprintf "%s(\n%s %s\n)" (combiner_as_string c) (aux l) (aux r)

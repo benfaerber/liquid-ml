@@ -18,21 +18,27 @@
 {% endif %}
 
 
-{% if tado == 4 and y == 3 %}
+{% if tado == 4 or y == 3 %}
     T is 10!!!!
 {% else %}
     T is not 10!!!
 {% endif %}
 
-{% for num in (0..10) reversed %}
-    Index: {{ forloop.index }}
-    Length: {{forloop.length}}
-    First: {{ forloop.first }}
-    Index0: {{ forloop.index0 }}
-    Last: {{ forloop.last }}
-    R Index: {{ forloop.rindex }}
-    R Index 0: {{ forloop.rindex0 }}
-    <br>
-{% endfor %}
+
 <br>
 After:
+
+{%- comment -%}
+
+{% for num in (0..10) %}
+    {% cycle 'odd', 'even' %}
+    {% cycle 'odd', 'even' %}
+    {{ num }}
+    <br>
+{% endfor %}
+{%- endcomment -%}
+
+{% assign tttt = false %}
+{% if tttt %}
+    This is good!
+{% endif %}

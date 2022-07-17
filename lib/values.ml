@@ -88,3 +88,13 @@ let rec unwrap_bool ctx = function
   | Var v -> unwrap_bool ctx (find ctx v)
   | Bool b -> b
   | _ -> raise (Failure "Failed to get bool")
+
+let rec unwrap_string ctx = function
+  | Var v -> unwrap_string ctx (find ctx v)
+  | String s -> s
+  | _ -> raise (Failure "Failed to get string")
+
+let rec is_truthy ctx = function
+  | Var id -> is_truthy ctx (find ctx id)
+  | Bool false | Nil -> false
+  | _ -> true

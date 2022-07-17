@@ -5,7 +5,9 @@ open Tools
 let notifier t = Ctx.add ["notifier_" ^ t] (String ("notifier_" ^ t))
 let has_notifier t = Ctx.mem ["notifier_" ^ t]
 (* CTX Funcname exps *)
-let interpret_function _ _ params = List.hd_exn params
+let interpret_function ctx name params =
+  let func = Liquid_std.function_from_string name in
+  func ctx params
 
 let rec interpret_expression ctx = function
   | Value v -> v
@@ -33,11 +35,12 @@ let rec interpret_condition ctx cond =
   | Equation eq -> interpret_equation ctx eq
   | Combine (And, l, r) -> interpret_condition ctx l && interpret_condition ctx r
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
+  | IsTruthy v -> Values.is_truthy ctx v
 
 let num_int n = (Number (n |> Int.to_float))
 
 let make_forloop_ctx ctx index length =
-  let fl = "xforloop" in
+  let fl = "forloop" in
   let add_fl k v = Ctx.add [fl; k] v in
   ctx
     |> add_fl "index" (num_int (index + 1))
@@ -54,6 +57,7 @@ let rec interpret ctx str ast =
   | Assignment (id, exp) -> ctx |> Ctx.add id (interpret_expression ctx exp), str
   | Test (cond, body, else_body) -> interpret_test ctx str cond body else_body
   | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
+  | Cycle (group, values) -> interpret_cycle ctx str group values
   | Text t -> ctx, str ^ t
   | Expression exp -> (
     let value = interpret_expression ctx exp in
@@ -91,13 +95,12 @@ and interpret_test ctx str cond body else_body =
     interpret_else ctx str else_body
 
 and interpret_for ctx str alias packed_iterable params body else_body =
-  let fl = "xforloop" in
-
   let iterable = Values.unwrap ctx packed_iterable in
 
   let loop (acc_ctx, acc_str) curr =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
+    Debug.print_variable_context loop_ctx;
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
@@ -105,7 +108,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
       if has_notifier "break" inner_ctx then
         Done (ctx, r_str)
       else
-        let find_int k = Ctx.find [fl; k] acc_ctx |> Values.unwrap_int acc_ctx in
+        let find_int k = Ctx.find ["forloop"; k] acc_ctx |> Values.unwrap_int acc_ctx in
         let index = find_int "index" in
         let length = find_int "length" in
         let nacc = make_forloop_ctx acc_ctx index length in
@@ -132,7 +135,14 @@ and interpret_for ctx str alias packed_iterable params body else_body =
     ctx, r_str
   )
   | _ -> interpret_else ctx str else_body
+and interpret_cycle ctx str _ values =
+  let index = Ctx.find ["forloop"; "index"] ctx |> Values.unwrap_int ctx in
+  let vlen = List.length values in
+  let vindex = index % vlen in
+  Stdio.printf "%d" vindex;
+  let curr = nth values vindex in
 
+  ctx, str ^ curr
 
 let does_log = true
 let interpret_file filename =
@@ -161,4 +171,5 @@ let interpret_file filename =
   ()
 
 let test () =
-  interpret_file "liquid/interpreter_test.liquid"
+interpret_file "liquid/interpreter_test.liquid"
+  (* interpret_file "liquid/std_test.liquid" *)

@@ -1,3 +1,7 @@
+Interpreter
+-----------
+  Implement cycle groups (are they stored globally?)
+
 Parser
 ------
   High Priority
@@ -18,4 +22,4 @@ Parser
 Lexer
 -----
   High Priority
-  - If a keyword is in an id (example: asapple, ifname) a keyword is lexed instead of an
+  X If a keyword is in an id (example: asapple, ifname) a keyword is lexed instead of an
