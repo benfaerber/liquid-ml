@@ -1,5 +1,6 @@
 open Base
 open Syntax
+open Tools
 
 (* CTX Funcname exps *)
 let interpret_function _ _ params = List.hd_exn params
@@ -60,11 +61,13 @@ and interpret_test ctx str cond body else_body =
     | None -> ctx, str
   end
 
-and interpret_for ctx str alias packed_iterable _ body _ =
-  let iterable =
-    match packed_iterable with
-    | Var v -> Values.context_get ctx v
-    | other -> other in
+and interpret_for ctx str alias packed_iterable params body else_body =
+  let iterable = Values.unwrap ctx packed_iterable in
+
+  let eval_else = function
+    | Some (eb) -> interpret ctx str eb
+    | _ -> ctx, str
+  in
 
   let loop (acc_ctx, acc_str) curr =
     (* TODO: Add forloop variable *)
@@ -74,8 +77,16 @@ and interpret_for ctx str alias packed_iterable _ body _ =
   in
 
   match iterable with
-  | List l -> List.fold_left l ~init:(ctx, str) ~f:loop
-  | _ -> ctx, str
+  | List l -> (
+    if List.length l != 0 then begin
+      let p = Values.unwarp_forloop_params ctx params in
+      let limited = List.sub l ~pos:(p.r_offset) ~len:(p.r_limit - p.r_offset) in
+      let r = if p.r_reved then List.rev limited else limited in
+      List.fold_left r ~init:(ctx, str) ~f:loop
+    end else
+      eval_else else_body
+  )
+  | _ -> eval_else else_body
 
 
 let interpret_file filename =
