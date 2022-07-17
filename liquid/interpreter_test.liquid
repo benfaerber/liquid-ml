@@ -29,9 +29,14 @@
 
 {%- endcomment -%}
 {% for num in (0..10) reversed %}
-    Num is {{num}}
-    {% if num == 5 %}
-        {% continue %}
-    {% endif %}
-    Nice
+    Index: {{xforloop.index}}
+    Length: {{xforloop.length}}
+    First: {{ xforloop.first }}
+    Index0: {{ xforloop.index0 }}
+    Last: {{ xforloop.last }}
+    R Index: {{ xforloop.rindex }}
+    R Index 0: {{ xforloop.rindex0 }}
+    <br>
 {% endfor %}
+<br>
+After:

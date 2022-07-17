@@ -36,6 +36,18 @@ let rec interpret_condition ctx cond =
 
 let num_int n = (Number (n |> Int.to_float))
 
+let make_forloop_ctx ctx index length =
+  let fl = "xforloop" in
+  let add_fl k v = Ctx.add [fl; k] v in
+  ctx
+    |> add_fl "index" (num_int (index + 1))
+    |> add_fl "length" (num_int length)
+    |> add_fl "first" (Bool (index = 0))
+    |> add_fl "index0" (num_int index)
+    |> add_fl "last" (Bool (index = length - 1))
+    |> add_fl "rindex" (num_int (length - index))
+    |> add_fl "rindex0" (num_int (length - index - 1))
+
 let rec interpret ctx str ast =
   match ast with
   | Block cmds -> interpret_while ctx str cmds
@@ -79,38 +91,45 @@ and interpret_test ctx str cond body else_body =
     interpret_else ctx str else_body
 
 and interpret_for ctx str alias packed_iterable params body else_body =
+  let fl = "xforloop" in
+
   let iterable = Values.unwrap ctx packed_iterable in
 
   let loop (acc_ctx, acc_str) curr =
-    (* TODO: Add forloop.parent *)
+    (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
-      let res = (acc_ctx, acc_str ^ rendered) in
+      let r_str = acc_str ^ rendered in
       if has_notifier "break" inner_ctx then
-        Done res
+        Done (ctx, r_str)
       else
-        Forward res
+        let find_int k = Ctx.find [fl; k] acc_ctx |> Values.unwrap_int acc_ctx in
+        let index = find_int "index" in
+        let length = find_int "length" in
+        let nacc = make_forloop_ctx acc_ctx index length in
+        Forward (nacc, r_str)
     )
-    | _ -> Done (acc_ctx, acc_str)
+    | _ -> Done (ctx, acc_str)
   in
 
   match iterable with
-  | List l -> (
-    if List.length l != 0 then begin
-      let len =
-        if List.length l < (params.limit - params.offset) then
-          List.length l - params.offset
-        else
-          params.limit - params.offset in
+  | List l when List.length l != 0 -> (
+    let len = List.length l in
+    let trim_len =
+      if len < (params.limit - params.offset) then
+        len - params.offset
+      else
+        params.limit - params.offset in
 
-      let limited = List.sub l ~pos:(params.offset) ~len:len in
-      let r = if params.reved then List.rev limited else limited in
+    let limited = List.sub l ~pos:params.offset ~len:trim_len in
+    let r = if params.reved then List.rev limited else limited in
 
-      fold_until r (ctx, str) loop
-    end else
-      interpret_else ctx str else_body
+    let forlen = List.length r in
+    let forloop_ctx = make_forloop_ctx ctx 0 forlen in
+    let (_, r_str) = fold_until r (forloop_ctx, str) loop in
+    ctx, r_str
   )
   | _ -> interpret_else ctx str else_body
 

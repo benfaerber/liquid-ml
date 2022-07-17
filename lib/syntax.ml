@@ -105,3 +105,5 @@ module VariableContext =
   end
 
 module Ctx = Caml.Map.Make(VariableContext)
+
+let idf id = String.split id ~on:'.'
