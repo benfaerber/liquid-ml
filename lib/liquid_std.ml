@@ -297,6 +297,21 @@ let split ctx params =
     List literal
   | _ -> raise (Failure "Invalid use")
 
+let uniq ctx params =
+  match unwrap_all ctx params with
+  | List lst :: _ ->
+    let folder acc curr = if Tools.contains acc curr then acc else acc @ [curr] in
+    let rl = List.fold_left lst ~init:[] ~f:folder in
+    List (rl)
+  | _ -> raise (Failure "Invalid use")
+
+let upcase ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> String (s |> String.capitalize)
+  | _ -> raise (Failure "Invalid use")
+
+(* TODO: url_encode, url_decode *)
+(* TODO: where, depends on objects *)
 let function_from_id = function
   | "abs" -> abs
   | "append" -> append
@@ -335,4 +350,6 @@ let function_from_id = function
   | "split" -> split
   | "truncate" -> truncate
   | "truncatewords" -> truncatewords
+  | "uniq" -> uniq
+  | "upcase" -> upcase
   | other -> Failure (Core.sprintf "Unknown function %s!" other) |> raise
