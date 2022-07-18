@@ -35,19 +35,19 @@ let without_last id =
 
 let unwrap ctx = function
   | Var v when is_calling v "first" -> (
-    match find ctx (without_last v) with
+    match without_last v |> find ctx with
     | List [] -> Nil
     | List lst -> List.hd_exn lst
     | _ -> raise (Failure "first can only be used on list")
   )
   | Var v when is_calling v "last" -> (
-    match find ctx (without_last v) with
+    match without_last v |> find ctx with
     | List [] -> Nil
     | List lst -> lst |> List.rev |> List.hd_exn
     | _ -> raise (Failure "last can only be used on list")
   )
   | Var v when is_calling v "size" -> (
-    match find ctx (without_last v) with
+    match without_last v |> find ctx with
     | List lst -> Number (List.length lst |> Int.to_float)
     | _ -> raise (Failure "first can only be used on list")
   )
@@ -112,12 +112,10 @@ let string_contains big little =
   let exp = Re2.create_exn little in
   Re2.matches exp big
 
-let rec contains ctx va vb =
-  match (va, vb) with
+let contains ctx va vb =
+  match (unwrap ctx va, unwrap ctx vb) with
   | List a, b -> list_contains ctx a b
   | String a, String b -> string_contains a b
-  | Var a, b -> contains ctx (find ctx a) b
-  | a, Var b -> contains ctx a (find ctx b)
   | _ -> false
 
 let lte ctx a b = lt ctx a b || eq ctx a b

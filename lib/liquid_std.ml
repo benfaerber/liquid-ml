@@ -74,6 +74,20 @@ let concat ctx params =
   | _ -> raise (Failure "Invalid use")
 
 (* TODO: Date *)
+(* TODO: Implement Date Type *)
+(* TODO: Compare Ocaml date handling with Ruby date handling *)
+open CalendarLib
+let date ctx params =
+  match unwrap_all ctx params with
+  | String date_str :: String fmat :: _ ->
+    let date = Printer.Date.from_string date_str in
+    Debug.dump date;
+
+    let frmd = Printer.Date.sprint fmat date in
+    Debug.dump frmd;
+    String (date_str ^ " " ^ fmat)
+  | _ -> raise (Failure "Invalid use")
+
 (* TODO: Add support for "default: true, allow_false: true" *)
 let default ctx params =
   match unwrap_all ctx params with
@@ -104,7 +118,6 @@ let escape_one ctx params =
   | String s :: _ -> String ("NYI " ^ s)
   | _ -> raise (Failure "Invalid use")
 
-(* TODO: Add support for dot notation (parser sugar?) *)
 let first ctx params =
   match unwrap_all ctx params with
   | List (hd :: _) :: _ -> hd
@@ -123,7 +136,6 @@ let join ctx params =
     String (String.concat ~sep:delim vs)
   | _ -> raise (Failure "Invalid use")
 
-(* TODO: dot notation *)
 let last ctx params =
   match unwrap_all ctx params with
   | List [] :: _ -> Nil
@@ -152,7 +164,6 @@ let strip ctx params =
 let minus = apply_op Float.(-)
 let modulo = apply_op Float.(%)
 
-(* TODO: Something wierd going on *)
 let newline_to_br ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> (
@@ -221,7 +232,6 @@ let round ctx params =
   | Number a :: _ -> Number (Float.round_nearest a)
   | _ -> raise (Failure "Invalid use")
 
-(* TODO: Dot notation *)
 let size ctx params =
   match unwrap_all ctx params with
   | List lst :: _ -> Number (lst |> List.length |> Int.to_float)
@@ -320,6 +330,7 @@ let function_from_id = function
   | "capitalize" -> capitalize
   | "ceil" -> ceil
   | "concat" -> concat
+  | "date" -> date
   | "default" -> default
   | "divided_by" -> divided_by
   | "downcase" -> downcase
