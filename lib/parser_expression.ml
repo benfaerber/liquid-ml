@@ -55,8 +55,15 @@ let parse_expression _ = function
   | _ -> None
 
 let parse_assignment _ tokens =
-  let add_exp id modifier =
-    Func (modifier, [Value (Var id); Value (Number 1.)])
+  let add_increment id modifier =
+    let inc_id = ["increment"] @ id in
+    Block [
+      Assignment (
+        inc_id,
+        Func (modifier, [Value (Var inc_id); Value (Number 1.)])
+      );
+      Expression (Value (Var inc_id))
+    ]
   in
 
   match tokens with
@@ -65,7 +72,7 @@ let parse_assignment _ tokens =
     let exp = expression_from_tokens raw_exp in
     Some (Assignment (id, exp), tl)
   | Increment :: LexValue (LexId id) :: tl ->
-    Some (Assignment (id, add_exp id "plus"), tl)
+    Some (add_increment id "plus", tl)
   | Decrement :: LexValue (LexId id) :: tl ->
-    Some (Assignment (id, add_exp id "minus"), tl)
+    Some (add_increment id "minus", tl)
   | _ -> None

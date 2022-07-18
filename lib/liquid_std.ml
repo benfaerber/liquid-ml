@@ -21,8 +21,11 @@ let pick_at_by_op op ctx params =
   | _ -> raise (Failure "Invalid use")
 
 
+(* NOTE: For incr, decr to work, it must tolerate nil value. Maybe create incr_op func? *)
 let apply_op op ctx params =
+  Debug.dump params;
   match unwrap_all ctx params with
+  | Nil :: Number b :: _ -> Number (op 0. b)
   | Number a :: Number b :: _ ->
     Number (op a b)
   | _ -> raise (Failure "Invalid use")
