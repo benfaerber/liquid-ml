@@ -90,3 +90,12 @@ Rendered at: {{ render_date | date: "%Y-%m-%d %H:%M" }}
 {% assign handles = collection.products | map: "handle" | join: ", " %}
 
 {{ handles }}
+
+{% assign cats = collection.products | map: "category" | compact | join: ", " %}
+{{ cats }}
+
+{% assign avail_prods = collection.products | where: "status", "available" | map: "title" | join: ", " %}
+{{ avail_prods }}
+
+{% assign has_id = collection.products | where: "id" | map: "title" | join: ", " %}
+{{ has_id }}

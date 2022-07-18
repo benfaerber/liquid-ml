@@ -5,6 +5,7 @@ let test_collection =
     Obj.empty
     |> Obj.add "handle" (String "my-product-a")
     |> Obj.add "title" (String "My Product A")
+    |> Obj.add "status" (String "available")
     |> Obj.add "id" (Number 1.)
   ) in
 
@@ -12,6 +13,8 @@ let test_collection =
     Obj.empty
     |> Obj.add "handle" (String "my-product-b")
     |> Obj.add "title" (String "My Product B")
+    |> Obj.add "category" (String "Food")
+    |> Obj.add "status" (String "available")
     |> Obj.add "id" (Number 2.)
   ) in
 
@@ -19,6 +22,8 @@ let test_collection =
     Obj.empty
     |> Obj.add "handle" (String "my-product-c")
     |> Obj.add "title" (String "My Product C")
+    |> Obj.add "category" (String "Toy")
+    |> Obj.add "status" (String "sold_out")
     |> Obj.add "id" (Number 3.)
   ) in
 

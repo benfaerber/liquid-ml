@@ -67,6 +67,10 @@ let ceil ctx params =
   | _ -> raise (Failure "Invalid use")
 
 (* TODO: Compact *)
+let compact ctx params =
+  match unwrap_all ctx params with
+  | List lst :: _ -> List (List.filter lst ~f:(function Nil -> false | _ -> true))
+  | _ -> raise (Failure "Invalid use")
 
 let concat ctx params =
   match unwrap_all ctx params with
@@ -164,7 +168,7 @@ let map ctx params =
   | List lst :: String key :: _ ->
     let get_key =
       function
-      | Object obj -> Stdio.print_endline key; Obj.find key obj
+      | Object obj -> (match Obj.find_opt key obj with Some x -> x | _ -> Nil)
       | _ -> raise (Failure "Map can only be used on a list of objects")
     in
 
@@ -334,12 +338,35 @@ let upcase ctx params =
   | _ -> raise (Failure "Invalid use")
 
 (* TODO: url_encode, url_decode *)
-(* TODO: where, depends on objects *)
+
+let where ctx params =
+  let do_where lst test_key check =
+    let fr = function
+      | Object obj -> (
+        match Obj.find_opt test_key obj with
+        | Some value -> check value
+        | _ -> false
+      )
+      | _ -> false
+    in
+
+    let filtered_lst = List.filter lst ~f:fr in
+    List filtered_lst
+  in
+
+  match unwrap_all ctx params with
+  | List lst :: String key :: test_value :: _ ->
+    do_where lst key (Values.eq ctx test_value)
+  | List lst :: String key :: _ ->
+    do_where lst key (Values.is_truthy ctx)
+  | _ -> raise (Failure "Invalid Use")
+
 let function_from_id = function
   | "abs" -> abs
   | "append" -> append
   | "at_least" -> at_least
   | "at_most" -> at_most
+  | "compact" -> compact
   | "capitalize" -> capitalize
   | "ceil" -> ceil
   | "concat" -> concat
@@ -377,4 +404,5 @@ let function_from_id = function
   | "truncatewords" -> truncatewords
   | "uniq" -> uniq
   | "upcase" -> upcase
+  | "where" -> where
   | other -> Failure (Core.sprintf "Unknown function %s!" other) |> raise
