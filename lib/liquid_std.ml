@@ -159,8 +159,20 @@ let strip ctx params =
   | String s :: _ -> String (remove_whitespace Both s)
   | _ -> raise (Failure "Invalid use")
 
+let map ctx params =
+  match unwrap_all ctx params with
+  | List lst :: String key :: _ ->
+    let get_key =
+      function
+      | Object obj -> Stdio.print_endline key; Obj.find key obj
+      | _ -> raise (Failure "Map can only be used on a list of objects")
+    in
 
-(* TODO: Map *)
+    let mapped_lst = List.map lst ~f:get_key in
+    List mapped_lst
+  | _ -> raise (Failure "Map can only be used on a list of objects")
+
+
 
 let minus = apply_op Float.(-)
 let modulo = apply_op Float.(%)
@@ -342,6 +354,7 @@ let function_from_id = function
   | "join" -> join
   | "last" -> last
   | "lstrip" -> lstrip
+  | "map" -> map
   | "minus" -> minus
   | "modulo" -> modulo
   | "newline_to_br" -> newline_to_br

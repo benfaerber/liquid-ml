@@ -78,5 +78,15 @@ Default: {{ "now" | date }}
 
 Rendered at: {{ render_date | date: "%Y-%m-%d %H:%M" }}
 
-{% assign fp = collection.products.last %}
+{% assign fp = collection.products %}
 {{ fp.title }}
+
+{{ collection.products.size }}
+
+{% for p in collection.products %}
+    Product: {{ p.title }}
+{% endfor %}
+
+{% assign handles = collection.products | map: "handle" | join: ", " %}
+
+{{ handles }}

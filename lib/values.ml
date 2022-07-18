@@ -67,12 +67,11 @@ and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
 
 and unwrap_obj ctx = function
   | hd_id :: tl_id -> (
-    Stdio.print_endline hd_id;
     match Ctx.find_opt [hd_id] ctx with
     | Some (Object init_obj) -> begin
       let folder acc id =
         match acc with
-        | Object (obj) -> Stdio.print_endline id; Obj.find id obj
+        | Object (obj) -> Obj.find id obj
         | other -> other
       in
 

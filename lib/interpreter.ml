@@ -172,7 +172,6 @@ let interpret_file filename =
   if does_log then Stdio.print_endline "Render:";
   if does_log then Debug.print_rendered final_str;
 
-  Debug.value_as_string Test_data.test_collection |> Stdio.print_endline;
   ()
 
 let test () =
