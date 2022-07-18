@@ -95,7 +95,7 @@ let rec value_as_string = function
   | Object obj -> (
     Core.sprintf "Obj(%s)" (Batteries.dump obj)
   )
-  | _ -> "Unknown"
+  | Skip -> "Skip"
 
 
 let rec condition_as_string =

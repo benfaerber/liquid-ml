@@ -69,15 +69,17 @@ and unwrap_obj ctx = function
   | hd_id :: tl_id -> (
     Stdio.print_endline hd_id;
     match Ctx.find_opt [hd_id] ctx with
-    | Some (Object init_obj) -> (
+    | Some (Object init_obj) -> begin
       let folder acc id =
         match acc with
         | Object (obj) -> Stdio.print_endline id; Obj.find id obj
         | other -> other
       in
 
-      Some (List.fold tl_id ~init:(Object init_obj) ~f:folder)
-    )
+      let leaf = List.fold tl_id ~init:(Object init_obj) ~f:folder in
+
+      Some leaf
+    end
     | _ -> None
   )
   | _ -> None

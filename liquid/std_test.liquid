@@ -78,4 +78,5 @@ Default: {{ "now" | date }}
 
 Rendered at: {{ render_date | date: "%Y-%m-%d %H:%M" }}
 
-{{ collection.handle }}
+{% assign fp = collection.products.last %}
+{{ fp.title }}
