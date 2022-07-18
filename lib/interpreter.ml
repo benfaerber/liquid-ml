@@ -16,8 +16,7 @@ let rec interpret_expression ctx = function
     interpret_function ctx name params
   )
 
-let interpret_equation ctx eq =
-  match eq with
+let interpret_equation ctx = function
   | a, Keyword.Eq, b -> Values.eq ctx a b
   | a, Gte, b -> Values.gte ctx a b
   | a, Gt, b -> Values.gt ctx a b
@@ -28,8 +27,7 @@ let interpret_equation ctx eq =
 
 let not b = if b then false else true
 
-let rec interpret_condition ctx cond =
-  match cond with
+let rec interpret_condition ctx = function
   | AlwaysTrue -> true
   | Not inner -> not (interpret_condition ctx inner)
   | Equation eq -> interpret_equation ctx eq
@@ -43,19 +41,18 @@ let make_forloop_ctx ctx index length =
   let fl = "forloop" in
   let add_fl k v = Ctx.add [fl; k] v in
   ctx
-    |> add_fl "index" (num_int (index + 1))
-    |> add_fl "length" (num_int length)
-    |> add_fl "first" (Bool (index = 0))
-    |> add_fl "index0" (num_int index)
-    |> add_fl "last" (Bool (index = length - 1))
-    |> add_fl "rindex" (num_int (length - index))
-    |> add_fl "rindex0" (num_int (length - index - 1))
+  |> add_fl "index" (num_int (index + 1))
+  |> add_fl "length" (num_int length)
+  |> add_fl "first" (Bool (index = 0))
+  |> add_fl "index0" (num_int index)
+  |> add_fl "last" (Bool (index = length - 1))
+  |> add_fl "rindex" (num_int (length - index))
+  |> add_fl "rindex0" (num_int (length - index - 1))
 
-let rec interpret ctx str ast =
-  match ast with
+let rec interpret ctx str = function
   | Block cmds -> interpret_while ctx str cmds
   | Assignment (id, exp) -> ctx |> Ctx.add id (interpret_expression ctx exp), str
-  | Test (cond, body, else_body) -> interpret_test ctx str cond body else_body
+  | Test (cond, body, else_body) -> interpret_test ctx str cond ~body ~else_body
   | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
   | Cycle (group, values) -> interpret_cycle ctx str group values
   | Text t -> ctx, str ^ t
@@ -71,8 +68,7 @@ let rec interpret ctx str ast =
   )
   | _ -> ctx, str
 
-and interpret_while ctx str cmds =
-  match cmds with
+and interpret_while ctx str = function
   | [cmd] -> interpret ctx str cmd
   | hd :: tl ->
     let (nctx, nstr) = interpret ctx str hd in
@@ -88,7 +84,7 @@ and interpret_else ctx str = function
   | Some eb -> interpret ctx str eb
   | None -> ctx, str
 
-and interpret_test ctx str cond body else_body =
+and interpret_test ctx str cond ~body ~else_body =
   if interpret_condition ctx cond then
     interpret ctx str body
   else

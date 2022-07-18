@@ -52,9 +52,9 @@ let parse_when_statement block_parser case_id =
     let (vals, rest) = scan_until_eos tl in
     let make_eq v = Equation (Var case_id, Eq, lex_value_to_value v) in
     let rec aux acc = function
-    | LexValue v :: Comma :: tl -> aux (acc @ [make_eq v]) tl
-    | LexValue v :: _ -> acc @ [make_eq v]
-    | _ -> acc
+      | LexValue v :: Comma :: tl -> aux (acc @ [make_eq v]) tl
+      | LexValue v :: _ -> acc @ [make_eq v]
+      | _ -> acc
     in
 
     let conds = aux [] vals in
