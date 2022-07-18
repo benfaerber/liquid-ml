@@ -7,6 +7,7 @@ type value =
   | Number of float
   | Var of string list
   | List of value list
+  | Date of Date.t
   | Nil
   | Skip
 

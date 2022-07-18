@@ -143,7 +143,7 @@ and interpret_cycle ctx str _ values =
 
   ctx, str ^ curr
 
-let does_log = false
+let does_log = true
 let interpret_file filename =
   let raw_text =
     filename

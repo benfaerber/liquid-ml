@@ -76,16 +76,17 @@ let concat ctx params =
 (* TODO: Date *)
 (* TODO: Implement Date Type *)
 (* TODO: Compare Ocaml date handling with Ruby date handling *)
-open CalendarLib
-let date ctx params =
-  match unwrap_all ctx params with
-  | String date_str :: String fmat :: _ ->
-    let date = Printer.Date.from_string date_str in
-    Debug.dump date;
 
-    let frmd = Printer.Date.sprint fmat date in
-    Debug.dump frmd;
-    String (date_str ^ " " ^ fmat)
+let date ctx params =
+  let do_date date_str fmat =
+    match date_str with
+    | "now" ->  String (Date.now_as_string fmat)
+    | _ -> String (Date.format_date_string date_str fmat)
+  in
+
+  match unwrap_all ctx params with
+  | String date_str :: String fmat :: _ -> do_date date_str fmat
+  | String date_str :: _ -> do_date date_str "%m/%d/%Y"
   | _ -> raise (Failure "Invalid use")
 
 (* TODO: Add support for "default: true, allow_false: true" *)
