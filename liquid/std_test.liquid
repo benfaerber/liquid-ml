@@ -99,3 +99,6 @@ Rendered at: {{ render_date | date: "%Y-%m-%d %H:%M" }}
 
 {% assign has_id = collection.products | where: "id" | map: "title" | join: ", " %}
 {{ has_id }}
+
+{{ "john@liquid.com e$2453[]1234" | url_encode }}
+{{ "%27Stop%21%27+said+Fred" | url_decode }}

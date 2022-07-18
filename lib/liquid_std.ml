@@ -337,7 +337,48 @@ let upcase ctx params =
   | String s :: _ -> String (s |> String.capitalize)
   | _ -> raise (Failure "Invalid use")
 
-(* TODO: url_encode, url_decode *)
+
+type enc_type = Encode | Decode
+let encode_decode_url enc_type url =
+  let reps =
+    [ ("%", "%25")
+    ; (":", "%3A")
+    ; ("/", "%2F")
+    ; ("?", "%3F")
+    ; ("#", "%23")
+    ; ("[", "%5B")
+    ; ("]", "%5D")
+    ; ("@", "%40")
+    ; ("!", "%21")
+    ; ("$", "%24")
+    ; ("&", "%26")
+    ; ("\'", "%27")
+    ; ("(", "%28")
+    ; (")", "%29")
+    ; ("*", "%2A")
+    ; ("+", "%2B")
+    ; (",", "%2C")
+    ; (";", "%3B")
+    ; ("=", "%3D")
+    ; (" ", "+")
+    ]
+  in
+
+  let folder acc (d, e) =
+    let p, w = match enc_type with Encode -> (d, e) | Decode -> (e, d) in
+    String.substr_replace_all acc ~pattern:p ~with_:w
+  in
+  List.fold reps ~init:url ~f:folder
+let url_encode ctx params =
+  match unwrap_all ctx params with
+  | String url :: _ -> String (encode_decode_url Encode url)
+  | _ -> raise (Failure "Invalid use")
+
+let url_decode ctx params =
+  match unwrap_all ctx params with
+  | String url :: _ -> String (encode_decode_url Decode url)
+  | _ -> raise (Failure "Invalid use")
+
 
 let where ctx params =
   let do_where lst test_key check =
@@ -404,5 +445,7 @@ let function_from_id = function
   | "truncatewords" -> truncatewords
   | "uniq" -> uniq
   | "upcase" -> upcase
+  | "url_decode" -> url_decode
+  | "url_encode" -> url_encode
   | "where" -> where
   | other -> Failure (Core.sprintf "Unknown function %s!" other) |> raise

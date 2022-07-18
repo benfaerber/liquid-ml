@@ -28,10 +28,6 @@ type value =
   | Nil
   | Skip
 
-type syntax_token =
-  | Operator of Keyword.operator
-  | Value of value
-
 type expression =
   | Value of value
   | Func of string * expression list
@@ -58,9 +54,6 @@ type render_variable_context =
   { variable: value
   ; value: value
   }
-
-type variable_context = (id * value) list
-
 
 type ast =
   | Capture of id * ast
