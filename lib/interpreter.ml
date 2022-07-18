@@ -164,10 +164,9 @@ let interpret_file filename =
   if does_log then Debug.print_ast ast;
   if does_log then Debug.print_line();
 
-  let _ = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
   let default_ctx =
     Ctx.empty
-    |> Ctx.add "render_date" (Date (Date.now ()))
+    |> Ctx.add "rendered_at" (Date (Date.now ()))
     |> Ctx.add "collection" Test_data.test_collection
   in
   let default_str = "" in
@@ -180,6 +179,6 @@ let interpret_file filename =
   ()
 
 let test () =
-  interpret_file "liquid/interpreter_test.liquid";
-  (* interpret_file "liquid/std_test.liquid" *)
+  (* interpret_file "liquid/interpreter_test.liquid"; *)
+  interpret_file "liquid/std_test.liquid"
   (* interpret_file "liquid/forloop_vars.liquid" *)

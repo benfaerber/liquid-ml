@@ -109,6 +109,16 @@ let is_truthy ctx v =
   | Bool false | Nil -> false
   | _ -> true
 
+let is_nil ctx v =
+  match unwrap ctx v with
+  | Nil -> true
+  | _ -> false
+
+let is_not_nil ctx v =
+  match unwrap ctx v with
+  | Nil -> false
+  | _ -> true
+
 let unwrap_all ctx lst = List.map lst ~f:(unwrap ctx)
 
 

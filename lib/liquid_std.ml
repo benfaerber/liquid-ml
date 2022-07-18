@@ -6,6 +6,12 @@ open Values
 let fi = Float.to_int
 let identity _ params = List.hd_exn params
 
+let err t = Failure ("Liquid Error: " ^ t)
+let errc t c = Failure (
+  Core.sprintf "Liquid Error: %s, Params: %s" t
+  (List.map c ~f:Debug.value_as_string |> join_by_comma)
+)
+
 type whitespace_remover = Beginning | End | Both
 let remove_whitespace remover text =
   let exp = match remover with
@@ -18,7 +24,7 @@ let remove_whitespace remover text =
 let pick_at_by_op op ctx params =
   match unwrap_all ctx params with
   | Number a :: Number b :: _ -> Number (if op a b then a else b)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "at_most/at_least accepts 2 numbers" other)
 
 
 (* NOTE: For incr, decr to work, it must tolerate nil value. Maybe create incr_op func? *)
@@ -28,7 +34,7 @@ let apply_op op ctx params =
   | Nil :: Number b :: _ -> Number (op 0. b)
   | Number a :: Number b :: _ ->
     Number (op a b)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "operator accepts 2 numbers" other)
 
 let template ctx params =
   match unwrap_all ctx params with
@@ -43,14 +49,14 @@ let abs ctx params =
     let n = Float.of_string s in
     do_abs n
   )
-  | _ -> raise (Failure "Invalid abs use")
+  | other -> raise (errc "abs accepts a number" other)
 
 
 let append ctx params =
   match unwrap_all ctx params with
   | String base :: String addition :: _ ->
     String (base ^ addition)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "append accepts 2 strings" other)
 
 let at_least = pick_at_by_op Float.(<)
 let at_most = pick_at_by_op Float.(>)
@@ -61,24 +67,23 @@ let capitalize ctx params =
     let capped = s |> first_letter |> String.capitalize in
     let tl = String.sub s ~pos:1 ~len:(String.length s - 1) in
     String (capped ^ tl)
-  | _ -> raise (Failure "Invalid capitalize use")
+  | other -> raise (errc "capitalize accepts a string" other)
 
 let ceil ctx params =
   match unwrap_all ctx params with
   | Number n :: _ -> Number (Float.round_up n)
   | String s :: _ -> Number (s |> Float.of_string |> Float.round_up)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "ceil takes a number" other)
 
-(* TODO: Compact *)
 let compact ctx params =
   match unwrap_all ctx params with
-  | List lst :: _ -> List (List.filter lst ~f:(function Nil -> false | _ -> true))
-  | _ -> raise (Failure "Invalid use")
+  | List lst :: _ -> List (List.filter lst ~f:(Values.is_not_nil ctx))
+  | other -> raise (errc "compact accepts a list" other)
 
 let concat ctx params =
   match unwrap_all ctx params with
   | List a :: List b :: _ -> List (a @ b)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "concat accepts 2 lists" other)
 
 (* TODO: Date, Compare Ocaml date handling with Ruby date handling  *)
 
@@ -93,27 +98,27 @@ let date ctx params =
   | String date_str :: String fmat :: _ -> do_date date_str fmat
   | String date_str :: _ -> do_date date_str "%m/%d/%Y"
   | Date date :: String fmat :: _ -> String (Date.date_as_string date fmat)
-  | Date date :: _ -> String (Date.date_as_string date "%m/%d/%Y")
-  | _ -> raise (Failure "Invalid use")
+  | [Date date] -> String (Date.date_as_string date "%m/%d/%Y")
+  | other -> raise (errc "date accepts a string or a date and an optional format string" other)
 
 (* TODO: Add support for "default: true, allow_false: true" *)
 let default ctx params =
   match unwrap_all ctx params with
   | a :: b :: _ -> (match a with Nil -> b | _ -> a)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "Default accepts 2 values" other)
 
 let divided_by ctx params =
   match unwrap_all ctx params with
   | Number _ :: Number 0. :: _ ->
-    raise (Failure "Cannot divide by zero!")
+    raise (err "Cannot divide by zero!")
   | Number a :: Number b :: _ ->
     Number (a /. b)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "divided_by accepts 2 numbers" other)
 
 let downcase ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (s |> String.lowercase)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "downcase accepts a string" other)
 
 (* TODO: Escape *)
 let escape ctx params =
@@ -129,42 +134,42 @@ let escape_one ctx params =
 let first ctx params =
   match unwrap_all ctx params with
   | List (hd :: _) :: _ -> hd
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "first accepts a list" other)
 
 let floor ctx params =
   match unwrap_all ctx params with
   | Number n :: _ -> Number (Float.round_down n)
   | String s :: _ -> Number (s |> Float.of_string |> Float.round_down)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "floor accepts a number or a string containing a number" other)
 
 let join ctx params =
   match unwrap_all ctx params with
   | List lst :: String delim :: _ ->
     let vs = List.map (unwrap_all ctx lst) ~f:(string_from_value ctx) in
     String (String.concat ~sep:delim vs)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "join accepts a list and a delimiter (string)" other)
 
 let last ctx params =
   match unwrap_all ctx params with
   | List [] :: _ -> Nil
   | List lst :: _ -> lst |> List.rev |> List.hd_exn
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "last accepts a list" other)
 
 
 let lstrip ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (remove_whitespace Beginning s)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "lstrip accepts a string" other)
 
 let rstrip ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (remove_whitespace End s)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "rstrip accepts a string" other)
 
 let strip ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (remove_whitespace Both s)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "strip accepts a string" other)
 
 let map ctx params =
   match unwrap_all ctx params with
@@ -172,12 +177,12 @@ let map ctx params =
     let get_key =
       function
       | Object obj -> (match Obj.find_opt key obj with Some x -> x | _ -> Nil)
-      | _ -> raise (Failure "Map can only be used on a list of objects")
+      | _ -> raise (err "map can only be used on a list of objects")
     in
 
     let mapped_lst = List.map lst ~f:get_key in
     List mapped_lst
-  | _ -> raise (Failure "Map can only be used on a list of objects")
+  | other -> raise (errc "map accepts a list and a key (string)" other)
 
 
 
@@ -191,7 +196,7 @@ let newline_to_br ctx params =
     let r = Re2.rewrite_exn nl ~template:"<br />\n" s in
     String r
   )
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "newline_to_br accepts a string" other)
 
 let plus = apply_op Float.(+)
 
@@ -199,7 +204,7 @@ let prepend ctx params =
   match unwrap_all ctx params with
   | String base :: String addition :: _ ->
     String (addition ^ base)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "prepend accepts 2 strings" other)
 
 let remove ctx params =
   match unwrap_all ctx params with
@@ -207,7 +212,7 @@ let remove ctx params =
     let exp = ~/needle in
     let res = Re2.rewrite_exn exp haystack ~template:"" in
     String res
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "remove accepts 2 strings" other)
 
 let remove_first ctx params =
   match unwrap_all ctx params with
@@ -217,7 +222,7 @@ let remove_first ctx params =
     let wo_first_chunk = remove_prefix haystack first_chunk in
     let repped_first = Re2.rewrite_exn exp ~template:"" first_chunk in
     String (repped_first ^ wo_first_chunk)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "remove_fist accepts 2 strings" other)
 
 
 let replace ctx params =
@@ -226,7 +231,7 @@ let replace ctx params =
     let exp = ~/find_needle in
     let res = Re2.rewrite_exn exp haystack ~template:replace_needle in
     String res
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "replace accepts 3 strings" other)
 
 let replace_first ctx params =
   match unwrap_all ctx params with
@@ -236,7 +241,7 @@ let replace_first ctx params =
     let wo_first_chunk = remove_prefix haystack first_chunk in
     let repped_first = Re2.rewrite_exn exp ~template:replace_needle first_chunk in
     String (repped_first ^ wo_first_chunk)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "replace_first accepts 3 strings" other)
 
 let reverse ctx params =
   match unwrap_all ctx params with
