@@ -160,13 +160,19 @@ let interpret_file filename =
   if does_log then Debug.print_line();
 
   let _ = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
-  let default_ctx = Ctx.empty in
+  let default_ctx =
+    Ctx.empty
+    |> Ctx.add ["render_date"] (Date (Date.now ()))
+    |> Ctx.add ["collection"] Test_data.test_collection
+  in
   let default_str = "" in
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in
   if does_log then Debug.print_variable_context final_ctx;
   if does_log then Stdio.print_endline "Render:";
   if does_log then Debug.print_rendered final_str;
+
+  Debug.value_as_string Test_data.test_collection |> Stdio.print_endline;
   ()
 
 let test () =

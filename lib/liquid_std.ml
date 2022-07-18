@@ -73,9 +73,7 @@ let concat ctx params =
   | List a :: List b :: _ -> List (a @ b)
   | _ -> raise (Failure "Invalid use")
 
-(* TODO: Date *)
-(* TODO: Implement Date Type *)
-(* TODO: Compare Ocaml date handling with Ruby date handling *)
+(* TODO: Date, Compare Ocaml date handling with Ruby date handling  *)
 
 let date ctx params =
   let do_date date_str fmat =
@@ -87,6 +85,8 @@ let date ctx params =
   match unwrap_all ctx params with
   | String date_str :: String fmat :: _ -> do_date date_str fmat
   | String date_str :: _ -> do_date date_str "%m/%d/%Y"
+  | Date date :: String fmat :: _ -> String (Date.date_as_string date fmat)
+  | Date date :: _ -> String (Date.date_as_string date "%m/%d/%Y")
   | _ -> raise (Failure "Invalid use")
 
 (* TODO: Add support for "default: true, allow_false: true" *)

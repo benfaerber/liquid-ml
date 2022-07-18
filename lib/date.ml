@@ -5,6 +5,8 @@ let () = Time_Zone.change mountain_time
 
 type t = Calendar.t
 
+let now = Calendar.now
+
 let now_as_string fmat =
   let now = Calendar.now () in
   let formatted = Printer.Calendar.sprint fmat now in

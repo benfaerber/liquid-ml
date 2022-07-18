@@ -1,6 +1,22 @@
 open Base
 open Tools
 
+module LiquidObject =
+  struct
+    type t = string
+    let compare a b =
+      match (String.length a, String.length b) with
+      | (ta, tb) when ta > tb -> 1
+      | (ta, tb) when ta < tb -> -1
+      | _ -> if a = b then 0 else -1
+  end
+
+module Obj = Caml.Map.Make(LiquidObject)
+
+let idf id = String.split id ~on:'.'
+
+type id = string list
+
 type value =
   | Bool of bool
   | String of string
@@ -8,6 +24,7 @@ type value =
   | Var of string list
   | List of value list
   | Date of Date.t
+  | Object of value Obj.t
   | Nil
   | Skip
 
@@ -42,7 +59,6 @@ type render_variable_context =
   ; value: value
   }
 
-type id = string list
 type variable_context = (id * value) list
 
 
@@ -107,5 +123,3 @@ module VariableContext =
   end
 
 module Ctx = Caml.Map.Make(VariableContext)
-
-let idf id = String.split id ~on:'.'

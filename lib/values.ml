@@ -26,6 +26,12 @@ let rec string_from_value ctx = function
   | _ -> "Unknown"
 
 
+let make_object obj_name kv_pairs ctx =
+  List.fold_left kv_pairs ~init:ctx ~f:(
+    fun acc_ctx (k, v) -> Ctx.add [obj_name; k] v acc_ctx
+  )
+
+
 let is_calling id c =
   let last = id |> List.rev |> List.hd_exn in
   last = c
@@ -33,26 +39,49 @@ let is_calling id c =
 let without_last id =
   id |> List.rev |> List.tl_exn |> List.rev
 
-let unwrap ctx = function
-  | Var v when is_calling v "first" -> (
-    match without_last v |> find ctx with
+let rec unwrap ctx = function
+  | Var id when is_calling id "first" -> (
+    match unwrap_tail ctx id with
     | List [] -> Nil
     | List lst -> List.hd_exn lst
     | _ -> raise (Failure "first can only be used on list")
   )
-  | Var v when is_calling v "last" -> (
-    match without_last v |> find ctx with
+  | Var id when is_calling id "last" -> (
+    match unwrap_tail ctx id with
     | List [] -> Nil
     | List lst -> lst |> List.rev |> List.hd_exn
     | _ -> raise (Failure "last can only be used on list")
   )
-  | Var v when is_calling v "size" -> (
-    match without_last v |> find ctx with
+  | Var id when is_calling id "size" -> (
+    match unwrap_tail ctx id with
     | List lst -> Number (List.length lst |> Int.to_float)
     | _ -> raise (Failure "first can only be used on list")
   )
-  | Var v -> (find ctx v)
+  | Var id -> (
+    match unwrap_obj ctx id with
+    | Some v -> v
+    | _ -> find ctx id
+  )
   | other -> other
+and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
+
+and unwrap_obj ctx = function
+  | hd_id :: tl_id -> (
+    Stdio.print_endline hd_id;
+    match Ctx.find_opt [hd_id] ctx with
+    | Some (Object init_obj) -> (
+      let folder acc id =
+        match acc with
+        | Object (obj) -> Stdio.print_endline id; Obj.find id obj
+        | other -> other
+      in
+
+      Some (List.fold tl_id ~init:(Object init_obj) ~f:folder)
+    )
+    | _ -> None
+  )
+  | _ -> None
+
 
 
 let unwrap_float ctx v =

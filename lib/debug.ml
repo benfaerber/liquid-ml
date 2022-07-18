@@ -26,6 +26,8 @@ let lex_value_as_string = function
   | LexNil | LexBlank -> "Nil"
 
 let lex_combiner_as_string = function LexAnd -> "And" | LexOr -> "Or"
+let dump x =
+  x |> Batteries.dump |> Stdio.print_endline
 
 let newline_as_token = true
 let rec lex_token_as_string = function
@@ -80,6 +82,7 @@ let combiner_as_string = function
   | And -> "And"
   | Or -> "Or"
 
+let id_as_string = join_by_arrow
 
 let rec value_as_string = function
   | Bool b -> "Bool(" ^ (if b then "True" else "False") ^ ")"
@@ -89,6 +92,9 @@ let rec value_as_string = function
   | Nil -> "Nil"
   | List l -> Core.sprintf "List(%s)" (List.map l ~f:value_as_string |> join_by_comma)
   | Date d -> Core.sprintf "Date(%s)" (Date.date_as_string d "%Y-%m-%d %H:%M")
+  | Object obj -> (
+    Core.sprintf "Obj(%s)" (Batteries.dump obj)
+  )
   | _ -> "Unknown"
 
 
@@ -115,7 +121,6 @@ let tab l =
 
 let variable_context_as_string vc = Core.sprintf "%s=%s" (value_as_string vc.variable) (value_as_string vc.value)
 
-let id_as_string = join_by_arrow
 
 let show_in_progress = false
 let ast_as_string =
@@ -172,9 +177,6 @@ let ast_as_string =
 let print_ast ast = ast |> ast_as_string |> Stdio.print_endline
 
 let print_line () = Stdio.print_endline "----------------------------------------------------------"
-
-let dump x =
-  x |> Batteries.dump |> Stdio.print_endline
 
 let parse_result_as_string = function
   | Some (ast, _) -> Core.sprintf "Ast:\n%s" (ast_as_string ast)
