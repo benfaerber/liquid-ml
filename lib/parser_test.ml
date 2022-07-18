@@ -14,7 +14,7 @@ let combine_condition p1 p2 = function
 let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
   match tokens with
-  | Else :: _ -> AlwaysTrue
+  | Else :: _ -> Always true
   | If :: statement
   | ElseIf :: statement
   | Unless :: statement -> (
@@ -35,7 +35,7 @@ let build_condition tokens =
       | [] -> acc
       | _ -> raise (Failure ("Invalid condition"))
     in
-    let res = aux AlwaysTrue statement in
+    let res = aux (Always true) statement in
     if is_unless then Not res else res
   )
   | _ -> raise (Failure "Invalid token list")
@@ -64,10 +64,10 @@ let parse_when_statement block_parser case_id =
       | _ -> acc
     in
 
-    let condition = unfold_into_or AlwaysTrue conds in
+    let condition = unfold_into_or (Always false) conds in
     (condition, block_parser rest)
   | Else :: tl ->
-    (AlwaysTrue, block_parser tl)
+    (Always true, block_parser tl)
   | _ -> raise (Failure "This is not a when statement")
 
 let parse_when_statements block_parser case_id chunks =

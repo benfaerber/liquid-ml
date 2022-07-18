@@ -1,5 +1,5 @@
 
-{% assign tado = 5 | capitalize %}
+{% assign tado = 5 %}
 {% assign y = 3 %}
 {% assign word = "dog" %}
 {% assign sentence = "the dog went to the park" %}
@@ -47,13 +47,13 @@ After:
     SUPER BaD
 {% endif %}
 
-{% assign animal = "cow" %}
+{% assign animal = "cat" %}
 {% case animal %}
     {% when "dog" %}
         Woof
     {% when "cat" %}
         Meow
-    {% when "cow" %}
+    {% when "cow", "calf" %}
         Moo
     {% else %}
         No sound

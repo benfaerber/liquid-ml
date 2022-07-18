@@ -40,7 +40,7 @@ type condition =
   | Equation of operator_equation
   | IsTruthy of value
   | Not of condition
-  | AlwaysTrue
+  | Always of bool
 
 type for_params =
   { limit: int
@@ -112,3 +112,10 @@ module VariableContext =
   end
 
 module Ctx = Caml.Map.Make(VariableContext)
+
+let make_obj pairs =
+  Object (
+    List.fold pairs ~init:Obj.empty ~f:(fun acc (k, v) -> acc |> Obj.add k v)
+  )
+
+let p a b = a, b

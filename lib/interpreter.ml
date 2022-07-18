@@ -2,8 +2,9 @@ open Base
 open Syntax
 open Tools
 
-let notifier t = Ctx.add ("notifier_" ^ t) (String ("notifier_" ^ t))
-let has_notifier t = Ctx.mem ("notifier_" ^ t)
+let nlit t = "notifier_" ^ t
+let notifier t = Ctx.add (nlit t) (String (nlit t))
+let has_notifier t = Ctx.mem (nlit t)
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
   let func = Liquid_std.function_from_id name in
@@ -28,7 +29,7 @@ let interpret_equation ctx = function
 let not b = if b then false else true
 
 let rec interpret_condition ctx = function
-  | AlwaysTrue -> true
+  | Always b -> b
   | Not inner -> not (interpret_condition ctx inner)
   | Equation eq -> interpret_equation ctx eq
   | Combine (And, l, r) -> interpret_condition ctx l && interpret_condition ctx r
@@ -38,16 +39,15 @@ let rec interpret_condition ctx = function
 let num_int n = (Number (n |> Int.to_float))
 
 let make_forloop_ctx ctx index length =
-  let forloop_obj = Object (
-    Obj.empty
-    |> Obj.add "index" (num_int (index + 1))
-    |> Obj.add "length" (num_int length)
-    |> Obj.add "first" (Bool (index = 0))
-    |> Obj.add "index0" (num_int index)
-    |> Obj.add "last" (Bool (index = length - 1))
-    |> Obj.add "rindex" (num_int (length - index))
-    |> Obj.add "rindex0" (num_int (length - index - 1))
-  ) in
+  let forloop_obj = make_obj
+  [ p "index" (num_int (index + 1))
+  ; p "length" (num_int length)
+  ; p "first" (Bool (index = 0))
+  ; p "index0" (num_int index)
+  ; p "last" (Bool (index = length - 1))
+  ; p "rindex" (num_int (length - index))
+  ; p "rindex0" (num_int (length - index - 1))
+  ] in
 
   ctx
   |> Ctx.add "forloop" forloop_obj
@@ -180,6 +180,6 @@ let interpret_file filename =
   ()
 
 let test () =
-  (* interpret_file "liquid/interpreter_test.liquid" *)
-  interpret_file "liquid/std_test.liquid"
+  interpret_file "liquid/interpreter_test.liquid";
+  (* interpret_file "liquid/std_test.liquid" *)
   (* interpret_file "liquid/forloop_vars.liquid" *)
