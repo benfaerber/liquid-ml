@@ -9,7 +9,8 @@ type for_type = ForLoop | TableRow
 let parse_forlike for_type block_parser tokens =
   let kw = if for_type = ForLoop then Keyword.For else Keyword.TableRow in
   let is_tablerow = for_type = TableRow in
-  let do_for id lex_val tl ~params =
+  let do_for lid lex_val tl ~params =
+    let id = join lid in
     let value = lex_value_to_value lex_val in
 
     let ts = [kw] @ tl in

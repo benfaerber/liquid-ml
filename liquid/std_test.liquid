@@ -74,12 +74,9 @@ Size: {{ beatles.size }}
 
 {{ "2003-01-06" | date: "%y" }}
 {{ "now" | date: "%Y-%m-%d %H:%M" }}
-Default: {{ "now" | date }}
+Default Format: {{ "now" | date }}
 
 Rendered at: {{ render_date | date: "%Y-%m-%d %H:%M" }}
-
-{% assign fp = collection.products %}
-{{ fp.title }}
 
 {{ collection.products.size }}
 

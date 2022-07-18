@@ -20,17 +20,10 @@ let rec string_from_value ctx = function
       Core.sprintf "%d" (Float.to_int f)
     else
       Core.sprintf "%f" f)
-  | Var(v) -> string_from_value ctx (find ctx v)
+  | Var id -> string_from_value ctx (List.fold id ~init:Nil ~f:(fun _ chunk -> find ctx chunk))
   | Nil -> "nil"
   | List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
   | _ -> "Unknown"
-
-
-let make_object obj_name kv_pairs ctx =
-  List.fold_left kv_pairs ~init:ctx ~f:(
-    fun acc_ctx (k, v) -> Ctx.add [obj_name; k] v acc_ctx
-  )
-
 
 
 
@@ -58,7 +51,7 @@ let rec unwrap ctx = function
   | Var id -> (
     match unwrap_obj ctx id with
     | Some v -> v
-    | _ -> find ctx id
+    | _ -> (match List.hd id with Some fid -> find ctx fid | _ -> Nil)
   )
   | other -> other
 and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
@@ -75,7 +68,7 @@ and is_calling ctx id c =
 
 and unwrap_obj ctx = function
   | hd_id :: tl_id -> (
-    match Ctx.find_opt [hd_id] ctx with
+    match Ctx.find_opt hd_id ctx with
     | Some (Object init_obj) -> begin
       let folder acc id =
         match acc with

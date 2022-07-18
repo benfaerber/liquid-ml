@@ -2,8 +2,8 @@ open Base
 open Syntax
 open Tools
 
-let notifier t = Ctx.add ["notifier_" ^ t] (String ("notifier_" ^ t))
-let has_notifier t = Ctx.mem ["notifier_" ^ t]
+let notifier t = Ctx.add ("notifier_" ^ t) (String ("notifier_" ^ t))
+let has_notifier t = Ctx.mem ("notifier_" ^ t)
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
   let func = Liquid_std.function_from_id name in
@@ -50,7 +50,7 @@ let make_forloop_ctx ctx index length =
   ) in
 
   ctx
-  |> Ctx.add ["forloop"] forloop_obj
+  |> Ctx.add "forloop" forloop_obj
 
 let rec interpret ctx str = function
   | Block cmds -> interpret_while ctx str cmds
@@ -107,7 +107,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
         Done (ctx, r_str)
       else
         let find_int k =
-          match Ctx.find ["forloop"] acc_ctx with
+          match Ctx.find "forloop" acc_ctx with
           | Object obj -> (
             match Obj.find k obj with
             | Number n -> Float.to_int n
@@ -141,7 +141,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
   )
   | _ -> interpret_else ctx str else_body
 and interpret_cycle ctx str _ values =
-  let index = Ctx.find ["forloop"; "index"] ctx |> Values.unwrap_int ctx in
+  let index = Values.unwrap_int ctx (Var ["forloop"; "index"]) in
   let vlen = List.length values in
   let vindex = index % vlen in
   let curr = nth values vindex in
@@ -167,8 +167,8 @@ let interpret_file filename =
   let _ = List ([Number 1.; Number 2.; Number 3.; Number 4.]) in
   let default_ctx =
     Ctx.empty
-    |> Ctx.add ["render_date"] (Date (Date.now ()))
-    |> Ctx.add ["collection"] Test_data.test_collection
+    |> Ctx.add "render_date" (Date (Date.now ()))
+    |> Ctx.add "collection" Test_data.test_collection
   in
   let default_str = "" in
 
@@ -181,5 +181,5 @@ let interpret_file filename =
 
 let test () =
   (* interpret_file "liquid/interpreter_test.liquid" *)
-  (* interpret_file "liquid/std_test.liquid" *)
-  interpret_file "liquid/forloop_vars.liquid"
+  interpret_file "liquid/std_test.liquid"
+  (* interpret_file "liquid/forloop_vars.liquid" *)

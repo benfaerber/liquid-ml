@@ -144,15 +144,15 @@ let ast_as_string =
       let ft = if params.is_tablerow then "TableRow" else "For" in
       match else_block with
       | Some eb ->
-        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n{  %s}" ft (id_as_string id) (value_as_string value) vars (aux (depth+1) body) (aux (depth+1) eb)
+        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n{  %s}" ft id (value_as_string value) vars (aux (depth+1) body) (aux (depth+1) eb)
       | None ->
-        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n" ft (id_as_string id) (value_as_string value) vars (aux (depth+1) body)
+        Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n" ft id (value_as_string value) vars (aux (depth+1) body)
     )
     | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
     | Expression exp -> "Exp(" ^ expression_as_string exp ^ ")"
-    | Assignment (id, exp) -> Core.sprintf "Assign(%s: %s)" (id_as_string id) (expression_as_string exp)
+    | Assignment (id, exp) -> Core.sprintf "Assign(%s: %s)" id (expression_as_string exp)
     | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t
-    | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" (id_as_string id) (aux (depth+1) body)
+    | Capture (id, body) -> Core.sprintf "Capture(%s: %s)" id (aux (depth+1) body)
     | Block items -> "Block(\n" ^ (List.map items ~f:(aux (depth+1)) |> join_by_space) ^ ")"
     | Break -> "Break"
     | Continue -> "Continue"
@@ -207,7 +207,7 @@ let add_br text =
 
 let print_variable_context m =
   Syntax.Ctx.iter (fun id v ->
-    Stdio.printf "%s=%s\n" (Tools.join_by_arrow id) (value_as_string v |> remove_nl |> add_br)
+    Stdio.printf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)
   ) m;
   print_line ()
 

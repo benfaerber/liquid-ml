@@ -2,6 +2,7 @@ open Base
 open Keyword
 open Syntax
 open Parser_tools
+open Tools
 
 let to_exp_value v = Value (lex_value_to_value v)
 let to_exp_values lst = List.map lst ~f:to_exp_value
@@ -56,13 +57,13 @@ let parse_expression _ = function
 
 let parse_assignment _ tokens =
   let add_increment id modifier =
-    let inc_id = ["increment"] @ id in
+    let inc_id = "increment_" ^ join id in
     Block [
       Assignment (
         inc_id,
-        Func (modifier, [Value (Var inc_id); Value (Number 1.)])
+        Func (modifier, [Value (Var [inc_id]); Value (Number 1.)])
       );
-      Expression (Value (Var inc_id))
+      Expression (Value (Var [inc_id]))
     ]
   in
 
@@ -70,7 +71,7 @@ let parse_assignment _ tokens =
   | Assign :: LexValue (LexId id) :: Equals :: assign_tl ->
     let (raw_exp, tl) = scan_until_eos assign_tl in
     let exp = expression_from_tokens raw_exp in
-    Some (Assignment (id, exp), tl)
+    Some (Assignment (join_by_dot id, exp), tl)
   | Increment :: LexValue (LexId id) :: tl ->
     Some (add_increment id "plus", tl)
   | Decrement :: LexValue (LexId id) :: tl ->

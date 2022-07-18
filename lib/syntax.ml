@@ -56,13 +56,13 @@ type render_variable_context =
   }
 
 type ast =
-  | Capture of id * ast
+  | Capture of string * ast
   | Block of ast list
   | Test of condition * ast * (ast option)
-  | For of id * value * for_params * ast * (ast option)
+  | For of string * value * for_params * ast * (ast option)
   | Cycle of string option * string list
   | Expression of expression
-  | Assignment of id * expression
+  | Assignment of string * expression
   | Text of string
   | InProgress of Keyword.lex_token list
   | Break
@@ -103,16 +103,12 @@ let context_var id =
 
 module VariableContext =
   struct
-    type t = id
+    type t = string
     let compare a b =
-      let dot = String.concat ~sep:"." in
-      let la = dot a in
-      let lb = dot b in
-
-      match (String.length la, String.length lb) with
+      match (String.length a, String.length b) with
       | (ta, tb) when ta > tb -> 1
       | (ta, tb) when ta < tb -> -1
-      | _ -> if la = lb then 0 else -1
+      | _ -> if a = b then 0 else -1
   end
 
 module Ctx = Caml.Map.Make(VariableContext)

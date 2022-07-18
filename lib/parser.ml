@@ -24,7 +24,7 @@ let parse_test block_parser = function
 let parse_capture block_parser = function
   | Keyword.Capture :: LexValue (LexId id) :: EOS :: tl ->
     let (body, rest) = parse_single_body Capture tl in
-    let capture = Capture (id, block_parser body) in
+    let capture = Capture (join id, block_parser body) in
     Some (capture, rest)
   | _ -> None
 
