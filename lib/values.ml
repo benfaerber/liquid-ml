@@ -32,27 +32,25 @@ let make_object obj_name kv_pairs ctx =
   )
 
 
-let is_calling id c =
-  let last = id |> List.rev |> List.hd_exn in
-  last = c
+
 
 let without_last id =
   id |> List.rev |> List.tl_exn |> List.rev
 
 let rec unwrap ctx = function
-  | Var id when is_calling id "first" -> (
+  | Var id when is_calling ctx id "first" -> (
     match unwrap_tail ctx id with
     | List [] -> Nil
     | List lst -> List.hd_exn lst
     | _ -> raise (Failure "first can only be used on list")
   )
-  | Var id when is_calling id "last" -> (
+  | Var id when is_calling ctx id "last" -> (
     match unwrap_tail ctx id with
     | List [] -> Nil
     | List lst -> lst |> List.rev |> List.hd_exn
     | _ -> raise (Failure "last can only be used on list")
   )
-  | Var id when is_calling id "size" -> (
+  | Var id when is_calling ctx id "size" -> (
     match unwrap_tail ctx id with
     | List lst -> Number (List.length lst |> Int.to_float)
     | _ -> raise (Failure "first can only be used on list")
@@ -64,6 +62,16 @@ let rec unwrap ctx = function
   )
   | other -> other
 and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
+
+and is_calling ctx id c =
+  match id |> List.rev |> List.hd with
+  | Some last -> (
+    match unwrap_tail ctx id with
+    | List _ when last = c -> true
+    | _ -> false
+  )
+  | _ -> false
+
 
 and unwrap_obj ctx = function
   | hd_id :: tl_id -> (

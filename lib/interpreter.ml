@@ -38,16 +38,19 @@ let rec interpret_condition ctx = function
 let num_int n = (Number (n |> Int.to_float))
 
 let make_forloop_ctx ctx index length =
-  let fl = "forloop" in
-  let add_fl k v = Ctx.add [fl; k] v in
+  let forloop_obj = Object (
+    Obj.empty
+    |> Obj.add "index" (num_int (index + 1))
+    |> Obj.add "length" (num_int length)
+    |> Obj.add "first" (Bool (index = 0))
+    |> Obj.add "index0" (num_int index)
+    |> Obj.add "last" (Bool (index = length - 1))
+    |> Obj.add "rindex" (num_int (length - index))
+    |> Obj.add "rindex0" (num_int (length - index - 1))
+  ) in
+
   ctx
-  |> add_fl "index" (num_int (index + 1))
-  |> add_fl "length" (num_int length)
-  |> add_fl "first" (Bool (index = 0))
-  |> add_fl "index0" (num_int index)
-  |> add_fl "last" (Bool (index = length - 1))
-  |> add_fl "rindex" (num_int (length - index))
-  |> add_fl "rindex0" (num_int (length - index - 1))
+  |> Ctx.add ["forloop"] forloop_obj
 
 let rec interpret ctx str = function
   | Block cmds -> interpret_while ctx str cmds
@@ -96,7 +99,6 @@ and interpret_for ctx str alias packed_iterable params body else_body =
   let loop (acc_ctx, acc_str) curr =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
-    (* Debug.print_variable_context loop_ctx; *)
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
@@ -104,7 +106,14 @@ and interpret_for ctx str alias packed_iterable params body else_body =
       if has_notifier "break" inner_ctx then
         Done (ctx, r_str)
       else
-        let find_int k = Ctx.find ["forloop"; k] acc_ctx |> Values.unwrap_int acc_ctx in
+        let find_int k =
+          match Ctx.find ["forloop"] acc_ctx with
+          | Object obj -> (
+            match Obj.find k obj with
+            | Number n -> Float.to_int n
+            | _ -> raise (Failure "You suck"))
+          | _ -> raise (Failure "you suck")
+        in
         let index = find_int "index" in
         let length = find_int "length" in
         let nacc = make_forloop_ctx acc_ctx index length in
@@ -171,5 +180,6 @@ let interpret_file filename =
   ()
 
 let test () =
-(* interpret_file "liquid/interpreter_test.liquid" *)
-  interpret_file "liquid/std_test.liquid"
+  (* interpret_file "liquid/interpreter_test.liquid" *)
+  (* interpret_file "liquid/std_test.liquid" *)
+  interpret_file "liquid/forloop_vars.liquid"
