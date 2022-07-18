@@ -119,4 +119,5 @@ let test_liquid_file filename =
 let test () =
   (* test_liquid_block "{% assign animal = \"horse\" | capitilize %}";
   test_liquid_block "hello there"; *)
-  test_liquid_file "liquid/if_else_test.liquid";
+  (* test_liquid_file "liquid/if_else_test.liquid"; *)
+    test_liquid_file "liquid/case_test.liquid";

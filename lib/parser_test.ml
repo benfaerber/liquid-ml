@@ -48,9 +48,24 @@ let parse_test_statement block_parser chunk =
 
 let parse_when_statement block_parser case_id =
   function
-  | When :: LexValue value :: tl ->
-    let condition = Equation (Var case_id, Eq, lex_value_to_value value) in
-    (condition, block_parser tl)
+  | When :: tl ->
+    let (vals, rest) = scan_until_eos tl in
+    let make_eq v = Equation (Var case_id, Eq, lex_value_to_value v) in
+    let rec aux acc = function
+    | LexValue v :: Comma :: tl -> aux (acc @ [make_eq v]) tl
+    | LexValue v :: _ -> acc @ [make_eq v]
+    | _ -> acc
+    in
+
+    let conds = aux [] vals in
+    let rec unfold_into_or acc = function
+      | a :: b :: tl -> unfold_into_or (Combine (Or, Combine (Or, a, b), acc)) tl
+      | a :: tl -> unfold_into_or (Combine (Or, a, acc)) tl
+      | _ -> acc
+    in
+
+    let condition = unfold_into_or AlwaysTrue conds in
+    (condition, block_parser rest)
   | Else :: tl ->
     (AlwaysTrue, block_parser tl)
   | _ -> raise (Failure "This is not a when statement")
