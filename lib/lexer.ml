@@ -7,11 +7,11 @@ let lex_bool text =
   let literal_false = "false" in
 
   if starts_with text literal_true then
-    Some(LexValue (LexBool true)), remove_prefix text literal_true
+    Some(LexValue (LexBool true), remove_prefix text literal_true)
   else if starts_with text literal_false then
-    Some(LexValue (LexBool false)), remove_prefix text literal_false
+    Some(LexValue (LexBool false), remove_prefix text literal_false)
   else
-    None, text
+    None
 
 
 let lex_digit_group text =
@@ -26,7 +26,7 @@ let lex_digit_group text =
   lex_digit_group_aux text [] |> join
 
 let lex_number text =
-  let to_num v = Some (LexValue (LexNumber(v |> Float.of_string))) in
+  let to_num v t = Some (LexValue (LexNumber(v |> Float.of_string)), t) in
 
   let (neg_literal, t_text) =
     if starts_with text "-" then
@@ -34,43 +34,43 @@ let lex_number text =
     else ("", text) in
 
   match lex_digit_group t_text with
-  | "" -> None, t_text
+  | "" -> None
   | first_group -> (
     let t_first_group = neg_literal ^ first_group in
     let decimal_part = remove_prefix t_text first_group in
     if starts_with decimal_part "." then
       let second_group_part = remove_prefix decimal_part "." in
       match lex_digit_group second_group_part with
-      | "" -> to_num(t_first_group), second_group_part
-      | second_group -> to_num(t_first_group ^ "." ^ second_group), remove_prefix second_group_part second_group
+      | "" -> to_num t_first_group second_group_part
+      | second_group -> to_num (t_first_group ^ "." ^ second_group) (remove_prefix second_group_part second_group)
     else
-      to_num(t_first_group), decimal_part
+      to_num t_first_group decimal_part
   )
 
 let has_prefix_or_fail text prefix func =
   if starts_with text prefix then
     remove_prefix text prefix |> func
   else
-    None, text
+    None
 
 let lex_range text =
   let (popen, pclose) = "(", ")" in
   let dotdot = ".." in
   has_prefix_or_fail text popen (fun wo_paren ->
     match lex_digit_group wo_paren with
-    | "" -> None, text
+    | "" -> None
     | first_number ->
       let after_first = remove_prefix wo_paren first_number in
       has_prefix_or_fail after_first dotdot (fun wo_dot ->
         match lex_digit_group wo_dot with
-        | "" -> None, text
+        | "" -> None
         | second_number ->
           let after_second = remove_prefix wo_dot second_number in
           if starts_with after_second pclose then
             let range = LexValue (LexRange (Int.of_string first_number, Int.of_string second_number)) in
-            Some range, remove_prefix after_second pclose
+            Some (range, (remove_prefix after_second pclose))
           else
-            None, text
+            None
       )
   )
 
@@ -90,28 +90,28 @@ let lex_delimited_string delim escaped_delim text =
     let string_literal = unfold "" 0 folder in
     let complete_literal = delim ^ string_literal ^ delim in
 
-    Some (LexValue (LexString string_literal)), remove_prefix text complete_literal
+    Some (LexValue (LexString string_literal), remove_prefix text complete_literal)
   else
-    None, text
+    None
 
 let lex_string text =
   let double_quote = lex_delimited_string "\"" "\\\"" in
   let single_quote = lex_delimited_string "\'" "\\\'" in
 
   match (double_quote text, single_quote text) with
-  | ((Some r, rest), _) -> (Some r, rest)
-  | (_, (Some r, rest)) -> (Some r, rest)
-  | _ -> (None, text)
+  | (Some (r, rest), _) -> Some (r, rest)
+  | (_, Some (r, rest)) -> Some (r, rest)
+  | _ -> None
 
 
 let rec first_successful (text: string) =
   function
   | lexer :: other_lexers -> (
     match lexer text with
-    | Some (got), rest -> Some (got), rest
-    | None, _ -> first_successful text other_lexers
+    | Some (got, rest) -> Some (got, rest)
+    | _ -> first_successful text other_lexers
   )
-  | _ -> None, text
+  | _ -> None
 
 let (~/) = Re2.create_exn
 let lex_id text =
@@ -129,9 +129,9 @@ let lex_id text =
       | Error _ -> literal in
 
     let pieces = String.split wo_bg ~on:'.' in
-    Some (LexValue (LexId pieces)), remove_prefix text literal
+    Some (LexValue (LexId pieces), remove_prefix text literal)
   else
-    None, text
+    None
 
 let lex_token text =
   let lexers = [lex_keyword; lex_range; lex_bool; lex_string; lex_number; lex_id] in
@@ -171,9 +171,9 @@ let lex_line_tokens text =
   let folder acc index =
     let chunk = String.sub t_text ~pos:index ~len:(String.length t_text - index) in
     match lex_token chunk with
-    | Some(Newline), rest -> Next (acc @ [EOS; Newline], String.length t_text - String.length rest)
-    | Some(t), rest -> Next (acc @ [t], String.length t_text - String.length rest)
-    | None, _ -> Stop (acc)
+    | Some(Newline, rest) -> Next (acc @ [EOS; Newline], String.length t_text - String.length rest)
+    | Some(t, rest) -> Next (acc @ [t], String.length t_text - String.length rest)
+    | _ -> Stop (acc)
   in
 
   let raw_list = unfold [] 0 folder in
