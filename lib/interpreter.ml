@@ -98,11 +98,9 @@ and interpret_test ctx str cond ~body ~else_body =
 and interpret_for ctx str alias packed_iterable params body else_body =
   let iterable = Values.unwrap ctx packed_iterable in
   let pre_state = save_state ctx in
-  (* Debug.dump pre_state; *)
   let loop (acc_ctx, acc_str) curr ~last =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
-    (* Debug.dump last; *)
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
@@ -153,7 +151,7 @@ and interpret_cycle ctx str _ values =
   let curr = nth values vindex in
 
   ctx, str ^ curr
-and render_file render_ctx filename =
+and render_file outer_ctx render_ctx filename =
   let filepath = Core.sprintf "liquid/%s.liquid" filename in
   let raw_text = File.read filepath in
   let ast =
@@ -162,13 +160,15 @@ and render_file render_ctx filename =
     |> Lexer.lex_text
     |> Parser.parse_block
   in
-
-  let (_, rendered) = interpret render_ctx "" ast in
+  let val_ctx = Values.unwrap_render_context ~outer_ctx ~render_ctx in
+  let (_, rendered) = interpret val_ctx "" ast in
+  (* Debug.print_variable_context val_ctx; *)
   rendered
 
 and interpret_render ctx str ~filename ~render_ctx ~body =
-  Debug.dump body;
-  let rendered_text = render_file render_ctx filename in
+  File.write "logs/body.txt" (Batteries.dump body);
+  let rendered_text = render_file ctx render_ctx filename in
+  Stdio.print_endline "dog";
   ctx, str ^ rendered_text
 
 
@@ -214,3 +214,4 @@ let test () =
   (* interpret_file "liquid/scope_test.liquid" *)
   (* interpret_file "liquid/forloop_vars.liquid" *)
   interpret_file "liquid/render_test.liquid"
+  (* interpret_file "liquid/number_to_text.liquid" *)

@@ -1,3 +1,4 @@
+{{ number }}
 {% case number %}
     {% when 1 %}
         One
@@ -6,6 +7,8 @@
     {% when 3 %}
         Three
     {% when 4 %}
+        Four
+    {% when 5 %}
         Five
     {% when 6 %}
         Six
@@ -18,5 +21,5 @@
     {% when 10 %}
         Ten
     {% else %}
-        Unknown Number!
+        Unknown Number: {{ number }}
 {% endcase %}

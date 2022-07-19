@@ -84,7 +84,11 @@ and unwrap_obj_from_id ctx = function
   )
   | _ -> None
 
-
+let unwrap_render_context ~outer_ctx ~render_ctx =
+  let seq = Syntax.Ctx.to_seq render_ctx in
+  let mapped = Caml.Seq.map (fun (id, _) -> id, find outer_ctx id) seq in
+  Debug.print_variable_context (Ctx.of_seq mapped);
+  Ctx.of_seq mapped
 
 let unwrap_float ctx v =
   match unwrap ctx v with
