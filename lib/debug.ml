@@ -205,11 +205,8 @@ let print_parse_result_with_rest pr = pr |> parse_result_with_rest_as_string |> 
 
 let remove_double_nl text =
   let exp = Re2.create_exn "\n\n" in
-  Re2.rewrite_exn exp ~template:"\n" text
+  Re2.rewrite_exn exp ~template:"" text
 
-
-
-(* Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br) *)
 
 let variable_context_as_string m =
   let seq = Syntax.Ctx.to_seq m in
@@ -218,8 +215,6 @@ let variable_context_as_string m =
   built
 
 let print_variable_context m = m |> variable_context_as_string |> Stdio.print_endline
-
-
 
 
 let print_rendered r =

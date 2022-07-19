@@ -18,6 +18,9 @@ let expression_from_tokens full_tokens =
       [Func (List.hd_exn id, [prefix] @ to_exp_values params)] @ aux tl in
 
     match tail with
+    | Pipe :: LexValue (LexId ["default"]) :: Colon :: LexValue p1 :: Comma :: LexValue (LexId ["allow_false"]) :: Colon :: LexValue (p2):: tl ->
+      (* special case for default because named arguments are allowed with it *)
+      make_func ["default"] [p1; p2] tl
     | [LexValue v] ->
       [Value (lex_value_to_value v)]
     | Pipe :: LexValue (LexId id) :: Colon :: LexValue p1 :: Comma :: LexValue p2 :: Comma :: LexValue p3 :: tl ->

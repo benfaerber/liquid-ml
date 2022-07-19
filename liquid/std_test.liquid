@@ -120,3 +120,16 @@ endfor
 %}
 
 {{ letters | slice: -3, 3 }}
+
+{% assign bad_value = false %}
+{% assign good_value = 5 %}
+
+{{ bad_value | default: "BADDDDDD" }}
+{{ bad_value | default: "BAD allow false", allow_false: true }}
+{{ good_value | default: "good"}}
+{{ good_value | default: "good allow false", allow_false: true}}
+
+{{ "Have you read 'James & the Giant Peach'?" | escape }}
+
+{{ "1 &lt; 2 &amp; 3" | escape_once }}
+{{ "Have you read 'James & the Giant Peach'?" | escape_once }}

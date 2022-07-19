@@ -26,11 +26,9 @@ let interpret_equation ctx = function
   | a, Ne, b -> Values.ne ctx a b
   | a, Contains, b -> Values.contains ctx a b
 
-let not b = if b then false else true
-
 let rec interpret_condition ctx = function
   | Always b -> b
-  | Not inner -> not (interpret_condition ctx inner)
+  | Not inner -> interpret_condition ctx inner |> not
   | Equation eq -> interpret_equation ctx eq
   | Combine (And, l, r) -> interpret_condition ctx l && interpret_condition ctx r
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
@@ -95,10 +93,12 @@ and interpret_test ctx str cond ~body ~else_body =
 
 and interpret_for ctx str alias packed_iterable params body else_body =
   let iterable = Values.unwrap ctx packed_iterable in
-
-  let loop (acc_ctx, acc_str) curr =
+  let _ = save_state ctx in
+  (* Debug.dump pre_state; *)
+  let loop (acc_ctx, acc_str) curr ~last =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
+    (* Debug.dump last; *)
     match body with
     | Block b -> (
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
@@ -117,7 +117,13 @@ and interpret_for ctx str alias packed_iterable params body else_body =
         let index = find_int "index" in
         let length = find_int "length" in
         let nacc = make_forloop_ctx acc_ctx index length in
-        Forward (nacc, r_str)
+(*
+        Debug.print_variable_context nacc;
+        Debug.print_line ();
+        Debug.print_variable_context (rewind nacc pre_state); *)
+
+        if last then Forward (nacc, r_str)
+        else Forward (nacc, r_str)
     )
     | _ -> Done (ctx, acc_str)
   in
@@ -149,6 +155,7 @@ and interpret_cycle ctx str _ values =
   ctx, str ^ curr
 
 let does_log = true
+let plog f v = if does_log then f v
 let interpret_file filename =
   let raw_text =
     filename
@@ -157,12 +164,12 @@ let interpret_file filename =
   in
 
   let tokens = raw_text |> Lexer.lex_text in
-  if does_log then Debug.print_lex_tokens_with_index tokens;
-  if does_log then Debug.print_line ();
+  plog Debug.print_lex_tokens_with_index tokens;
+  plog Debug.print_line ();
   let ast = tokens |> Parser.parse_block in
 
-  if does_log then Debug.print_ast ast;
-  if does_log then Debug.print_line();
+  plog Debug.print_ast ast;
+  plog Debug.print_line();
 
   let default_ctx =
     Ctx.empty
@@ -172,13 +179,13 @@ let interpret_file filename =
   let default_str = "" in
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in
-  if does_log then Debug.print_variable_context final_ctx;
-  if does_log then Stdio.print_endline "Render:";
-  if does_log then Debug.print_rendered final_str;
+  plog Debug.print_variable_context final_ctx;
+  plog Stdio.print_endline "Render:";
+  plog Debug.print_rendered final_str;
 
   ()
 
 let test () =
   (* interpret_file "liquid/interpreter_test.liquid"; *)
-  interpret_file "liquid/std_test.liquid"
+  interpret_file "liquid/scope_test.liquid"
   (* interpret_file "liquid/forloop_vars.liquid" *)

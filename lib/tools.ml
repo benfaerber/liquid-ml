@@ -63,7 +63,7 @@ type ('acc, 'curr) fold_until_notifier =
 let rec fold_until lst acc func =
   match lst with
   | hd :: tl -> (
-    match func acc hd with
+    match func acc hd ~last:(List.length tl = 0) with
     | Forward nacc -> fold_until tl nacc func
     | Done nacc -> nacc
   )
@@ -90,3 +90,5 @@ let contains lst item =
   List.mem lst item ~equal:(Caml.(=))
 
 let unwrap_or value fallback = match value with Some v -> v | None -> fallback
+
+let not v = if v then false else true

@@ -2,38 +2,8 @@ open Base
 open Syntax
 open Tools
 open Values
-
-let fi = Float.to_int
-let identity _ params = List.hd_exn params
-
-let err t = Failure ("Liquid Error: " ^ t)
-let errc t c = Failure (
-  Core.sprintf "Liquid Error: %s, Params: %s" t
-  (List.map c ~f:Debug.value_as_string |> join_by_comma)
-)
-
-type whitespace_remover = Beginning | End | Both
-let remove_whitespace remover text =
-  let exp = match remover with
-    | Beginning -> ~/"^\\s+"
-    | End -> ~/"\\s+$"
-    | Both -> ~/"^\\s+|\\s+$" in
-
-  Re2.rewrite_exn exp ~template:"" text
-
-let pick_at_by_op op ctx params =
-  match unwrap_all ctx params with
-  | Number a :: Number b :: _ -> Number (if op a b then a else b)
-  | other -> raise (errc "at_most/at_least accepts 2 numbers" other)
-
-
-(* NOTE: For incr, decr to work, it must tolerate nil value. Maybe create incr_op func? *)
-let apply_op op ctx params =
-  match unwrap_all ctx params with
-  | Nil :: Number b :: _ -> Number (op 0. b)
-  | Number a :: Number b :: _ ->
-    Number (op a b)
-  | other -> raise (errc "operator accepts 2 numbers" other)
+open Liquid_std_helpers
+open Liquid_std_encode
 
 let template ctx params =
   match unwrap_all ctx params with
@@ -88,8 +58,8 @@ let concat ctx params =
 
 let date ctx params =
   let do_date date_str fmat =
-    match date_str with
-    | "now" ->  String (Date.now_as_string fmat)
+  match date_str with
+  | "now" ->  String (Date.now_as_string fmat)
     | _ -> String (Date.format_date_string date_str fmat)
   in
 
@@ -100,12 +70,16 @@ let date ctx params =
   | [Date date] -> String (Date.date_as_string date "%m/%d/%Y")
   | other -> raise (errc "date accepts a string or a date and an optional format string" other)
 
-(* TODO: Add support for "default: true, allow_false: true" *)
 let default ctx params =
   match unwrap_all ctx params with
-  | a :: b :: _ -> (match a with Nil -> b | _ -> a)
-  | other -> raise (errc "Default accepts 2 values" other)
+  | a :: b :: Bool allow_false :: _ -> (
+    let comp = if allow_false then Values.is_not_nil else Values.is_truthy in
+    if comp ctx a then a else b
+  )
+  | a :: b :: _ -> if Values.is_truthy ctx a then a else b
+  | other -> raise (errc "Default accepts 2 values and an optional named argument allow_false" other)
 
+(* TODO: Look into liquid int/float distinction *)
 let divided_by ctx params =
   match unwrap_all ctx params with
   | Number _ :: Number 0. :: _ ->
@@ -119,16 +93,20 @@ let downcase ctx params =
   | String s :: _ -> String (s |> String.lowercase)
   | other -> raise (errc "downcase accepts a string" other)
 
-(* TODO: Escape *)
 let escape ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String ("NYI " ^ s)
-  | _ -> raise (Failure "Invalid use")
+  | String s :: _ -> String (encode_text s)
+  | other -> raise (errc "escape accepts a string" other)
 
-let escape_one ctx params =
+let escape_once ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String ("NYI " ^ s)
-  | _ -> raise (Failure "Invalid use")
+  | String s :: _ -> (
+    if has_encoded_text s |> not then
+      String (encode_text s)
+    else
+      String s
+  )
+  | other -> raise (errc "escape_once accepts a string" other)
 
 let first ctx params =
   match unwrap_all ctx params with
@@ -286,12 +264,12 @@ let strip_newlines ctx params =
 (* TODO: Implement negative indexs *)
 let slice ctx params =
   let do_slice slicer lengther lst fstart fstop =
-    let start = fi fstart and stop = fi fstop in
+    let start, stop = fi fstart, fi fstop in
     if start >= 0 then
       slicer lst ~pos:start ~len:(start + stop)
     else
       let cstart = lengther lst + start in
-      slicer lst ~pos:cstart ~len:(stop)
+      slicer lst ~pos:cstart ~len:stop
   in
 
   let do_slice_string = do_slice String.sub String.length in
@@ -311,7 +289,7 @@ let slice ctx params =
 let times = apply_op Float.( * )
 
 let truncate ctx params =
-  let trunc finisher s chars =
+  let do_truncate finisher s chars =
     if String.length s > chars then
       String ((String.sub s ~pos:0 ~len:chars) ^ finisher)
     else
@@ -319,12 +297,12 @@ let truncate ctx params =
   in
 
   match unwrap_all ctx params with
-  | String s :: Number fchars :: String finisher :: _ -> trunc finisher s (Float.to_int fchars)
-  | String s :: Number fchars :: _ -> trunc "..." s (Float.to_int fchars)
-  | _ -> raise (Failure "Invalid use")
+  | String s :: Number fchars :: String finisher :: _ -> do_truncate finisher s (Float.to_int fchars)
+  | String s :: Number fchars :: _ -> do_truncate "..." s (Float.to_int fchars)
+  | other -> raise (errc "truncate accepts a string, a number and an optional finisher value (string)" other)
 
 let truncatewords ctx params =
-  let trunc finisher s count =
+  let do_truncwords finisher s count =
     let words = String.split s ~on:' ' in
     if List.length words > count then
       let picked_words = List.sub words ~pos:0 ~len:count |> join_by_space in
@@ -334,16 +312,16 @@ let truncatewords ctx params =
   in
 
   match unwrap_all ctx params with
-  | String s :: Number fcount :: String finisher :: _ -> trunc finisher s (Float.to_int fcount)
-  | String s :: Number fcount :: _ -> trunc "..." s (Float.to_int fcount)
-  | _ -> raise (Failure "Invalid use")
+  | String s :: Number fcount :: String finisher :: _ -> do_truncwords finisher s (Float.to_int fcount)
+  | String s :: Number fcount :: _ -> do_truncwords "..." s (Float.to_int fcount)
+  | other -> raise (errc "truncatewords accepts a string, a number and an optional finisher value (string)" other)
 
 let split ctx params =
   match unwrap_all ctx params with
   | String s :: String delim :: _ ->
     let literal = Str.split (Str.regexp delim) s |> List.map ~f:(fun x -> String x) in
     List literal
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "split accepts a string and a delimiter (string)" other)
 
 let uniq ctx params =
   match unwrap_all ctx params with
@@ -351,59 +329,28 @@ let uniq ctx params =
     let folder acc curr = if Tools.contains acc curr then acc else acc @ [curr] in
     let rl = List.fold_left lst ~init:[] ~f:folder in
     List (rl)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "uniq accepts a list" other)
 
 let upcase ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (s |> String.capitalize)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "upcase accepts a string" other)
 
 
-type enc_type = Encode | Decode
-let encode_decode_url enc_type url =
-  let reps =
-    [ ("%", "%25")
-    ; (":", "%3A")
-    ; ("/", "%2F")
-    ; ("?", "%3F")
-    ; ("#", "%23")
-    ; ("[", "%5B")
-    ; ("]", "%5D")
-    ; ("@", "%40")
-    ; ("!", "%21")
-    ; ("$", "%24")
-    ; ("&", "%26")
-    ; ("\'", "%27")
-    ; ("(", "%28")
-    ; (")", "%29")
-    ; ("*", "%2A")
-    ; ("+", "%2B")
-    ; (",", "%2C")
-    ; (";", "%3B")
-    ; ("=", "%3D")
-    ; (" ", "+")
-    ]
-  in
-
-  let folder acc (d, e) =
-    let p, w = match enc_type with Encode -> (d, e) | Decode -> (e, d) in
-    String.substr_replace_all acc ~pattern:p ~with_:w
-  in
-  List.fold reps ~init:url ~f:folder
 let url_encode ctx params =
   match unwrap_all ctx params with
-  | String url :: _ -> String (encode_decode_url Encode url)
-  | _ -> raise (Failure "Invalid use")
+  | String url :: _ -> String (encode_url url)
+  | other -> raise (errc "url_encode accepts a string" other)
 
 let url_decode ctx params =
   match unwrap_all ctx params with
-  | String url :: _ -> String (encode_decode_url Decode url)
-  | _ -> raise (Failure "Invalid use")
+  | String url :: _ -> String (decode_url url)
+  | other -> raise (errc "url_decode accepts a string" other)
 
 
 let where ctx params =
   let do_where lst test_key check =
-    let fr = function
+    let filterer = function
       | Object obj -> (
         match Obj.find_opt test_key obj with
         | Some value -> check value
@@ -412,7 +359,7 @@ let where ctx params =
       | _ -> false
     in
 
-    let filtered_lst = List.filter lst ~f:fr in
+    let filtered_lst = List.filter lst ~f:filterer in
     List filtered_lst
   in
 
@@ -421,7 +368,7 @@ let where ctx params =
     do_where lst key (Values.eq ctx test_value)
   | List lst :: String key :: _ ->
     do_where lst key (Values.is_truthy ctx)
-  | _ -> raise (Failure "Invalid Use")
+  | other -> raise (errc "where accepts a list, a key (string) and an optional test value (any)" other)
 
 let function_from_id = function
   | "abs" -> abs
@@ -437,7 +384,7 @@ let function_from_id = function
   | "divided_by" -> divided_by
   | "downcase" -> downcase
   | "escape" -> escape
-  | "escape_one" -> escape_one
+  | "escape_once" -> escape_once
   | "first" -> first
   | "floor" -> floor
   | "join" -> join
@@ -462,6 +409,7 @@ let function_from_id = function
   | "strip_newlines" -> strip_newlines
   | "slice" -> slice
   | "split" -> split
+  | "times" -> times
   | "truncate" -> truncate
   | "truncatewords" -> truncatewords
   | "uniq" -> uniq
