@@ -29,6 +29,14 @@ let lex_combiner_as_string = function LexAnd -> "And" | LexOr -> "Or"
 let dump x =
   x |> Batteries.dump |> Stdio.print_endline
 
+let remove_nl text =
+  let exp = Re2.create_exn "\n" in
+  Re2.rewrite_exn exp ~template:"" text
+
+let add_br text =
+  let exp = Re2.create_exn "<br>" in
+  Re2.rewrite_exn exp ~template:"\n" text
+
 let newline_as_token = true
 let rec lex_token_as_string = function
   | If -> "If" | EndIf -> "EndIf"
@@ -93,10 +101,16 @@ let rec value_as_string = function
   | List l -> Core.sprintf "List(%s)" (List.map l ~f:value_as_string |> join_by_comma)
   | Date d -> Core.sprintf "Date(%s)" (Date.date_as_string d "%Y-%m-%d %H:%M")
   | Object obj -> (
-    Core.sprintf "Obj(%s)" (Batteries.dump obj)
+    Core.sprintf "\n  Obj(%s)" (object_as_string obj)
   )
   | Skip -> "Skip"
-
+and object_as_string obj =
+  let seq = Syntax.Obj.to_seq obj in
+  let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
+  let built = Caml.Seq.fold_left (fun acc curr -> acc ^ curr  ^ ", ") "" mapped in
+  if String.length built > 2 then
+    remove_suffix built ", "
+  else built
 
 let rec condition_as_string =
   let rec aux = function
@@ -193,23 +207,19 @@ let remove_double_nl text =
   let exp = Re2.create_exn "\n\n" in
   Re2.rewrite_exn exp ~template:"\n" text
 
-let remove_nl text =
-  let exp = Re2.create_exn "\n" in
-  Re2.rewrite_exn exp ~template:"" text
 
-let add_br text =
-  let exp = Re2.create_exn "<br>" in
-  Re2.rewrite_exn exp ~template:"\n" text
 
-(* let variable_context_as_string vc =
-  Seq.map (Ctx.to_seq vc) ~f:(fun (id, value) -> Core.sprintf "%s=%s" (id_as_string id) (value_as_string value |> remove_nl))
-  |> join_by_comma *)
+(* Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br) *)
 
-let print_variable_context m =
-  Syntax.Ctx.iter (fun id v ->
-    Stdio.printf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)
-  ) m;
-  print_line ()
+let variable_context_as_string m =
+  let seq = Syntax.Ctx.to_seq m in
+  let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
+  let built = Caml.Seq.fold_left (fun acc curr -> acc ^ ", " ^ curr) "" mapped in
+  built
+
+let print_variable_context m = m |> variable_context_as_string |> Stdio.print_endline
+
+
 
 
 let print_rendered r =

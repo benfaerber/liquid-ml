@@ -29,7 +29,6 @@ let pick_at_by_op op ctx params =
 
 (* NOTE: For incr, decr to work, it must tolerate nil value. Maybe create incr_op func? *)
 let apply_op op ctx params =
-  Debug.dump params;
   match unwrap_all ctx params with
   | Nil :: Number b :: _ -> Number (op 0. b)
   | Number a :: Number b :: _ ->
@@ -246,7 +245,7 @@ let replace_first ctx params =
 let reverse ctx params =
   match unwrap_all ctx params with
   | List lst :: _ -> List (List.rev lst)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "reverse accepts a list" other)
 
 let round ctx params =
   match unwrap_all ctx params with

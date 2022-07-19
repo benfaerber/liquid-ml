@@ -57,7 +57,7 @@ let parse_expression _ = function
 
 let parse_assignment _ tokens =
   let add_increment id modifier =
-    let inc_id = "increment_" ^ join id in
+    let inc_id = "*increment_" ^ join id in
     Block [
       Assignment (
         inc_id,

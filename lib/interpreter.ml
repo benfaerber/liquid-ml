@@ -2,7 +2,7 @@ open Base
 open Syntax
 open Tools
 
-let nlit t = "notifier_" ^ t
+let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
 (* CTX Funcname exps *)
