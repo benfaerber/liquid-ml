@@ -12,18 +12,7 @@ let find ctx v =
   | Some g -> g
   | _ -> Nil
 
-let rec string_from_value ctx = function
-  | Bool(b) -> (if b then "true" else "false")
-  | String(s) -> s
-  | Number(f) -> (
-    if Float.round_down f = f then
-      Core.sprintf "%d" (Float.to_int f)
-    else
-      Core.sprintf "%f" f)
-  | Var id -> string_from_value ctx (List.fold id ~init:Nil ~f:(fun _ chunk -> find ctx chunk))
-  | Nil -> "nil"
-  | List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
-  | _ -> "Unknown"
+
 
 
 
@@ -84,6 +73,19 @@ and unwrap_obj_from_id ctx = function
   )
   | _ -> None
 
+let rec string_from_value ctx = function
+| Bool(b) -> (if b then "true" else "false")
+| String(s) -> s
+| Number(f) -> (
+  if Float.round_down f = f then
+    Core.sprintf "%d" (Float.to_int f)
+  else
+    Core.sprintf "%f" f)
+| Var id -> string_from_value ctx (unwrap ctx (Var id))
+| Nil -> "nil"
+| List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
+| _ -> "Unknown"
+
 let unwrap_render_context ~outer_ctx ~render_ctx =
   let seq = Syntax.Ctx.to_seq render_ctx in
   let mapped = Caml.Seq.map (fun (id, v) -> id, unwrap outer_ctx v) seq in
@@ -112,7 +114,6 @@ let unwrap_object ctx v =
   | _ -> raise (Failure "Failed to get number")
 
 
-
 let is_truthy ctx v =
   match unwrap ctx v with
   | Bool false | Nil -> false
@@ -123,13 +124,9 @@ let is_nil ctx v =
   | Nil -> true
   | _ -> false
 
-let is_not_nil ctx v =
-  match unwrap ctx v with
-  | Nil -> false
-  | _ -> true
+let is_not_nil ctx v = is_nil ctx v |> not
 
 let unwrap_all ctx lst = List.map lst ~f:(unwrap ctx)
-
 
 let rec eq ctx va vb  =
   match (unwrap ctx va, unwrap ctx vb) with

@@ -36,6 +36,17 @@ let rec interpret_condition ctx = function
 
 let num_int n = (Number (n |> Int.to_float))
 
+let ast_from_file filename =
+  let filepath = Core.sprintf "liquid/%s.liquid" filename in
+  let raw_text = File.read filepath in
+  let ast =
+    raw_text
+    |> Preprocessor.preprocess
+    |> Lexer.lex_text
+    |> Parser.parse_block
+  in
+  ast
+
 let make_forloop_ctx ctx index length =
   let forloop_obj = make_obj
   [ p "index" (num_int (index + 1))
@@ -57,6 +68,7 @@ let rec interpret ctx str = function
   | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
   | Cycle (group, values) -> interpret_cycle ctx str group values
   | Render (filename, render_ctx, body) -> interpret_render ctx str ~filename ~render_ctx ~body
+  | Include filename -> interpret_include ctx str ~filename
   | Text t -> ctx, str ^ t
   | Expression exp -> (
     let value = interpret_expression ctx exp in
@@ -151,26 +163,20 @@ and interpret_cycle ctx str _ values =
   let curr = nth values vindex in
 
   ctx, str ^ curr
-and render_file outer_ctx render_ctx filename =
-  let filepath = Core.sprintf "liquid/%s.liquid" filename in
-  let raw_text = File.read filepath in
-  let ast =
-    raw_text
-    |> Preprocessor.preprocess
-    |> Lexer.lex_text
-    |> Parser.parse_block
-  in
-  let val_ctx = Values.unwrap_render_context ~outer_ctx ~render_ctx in
-  let (_, rendered) = interpret val_ctx "" ast in
-  rendered
+
+and interpret_include ctx str ~filename =
+  let ast = ast_from_file filename in
+  interpret ctx str ast
 
 and interpret_render ctx str ~filename ~render_ctx ~body =
   File.write "logs/body.txt" (Batteries.dump body);
-  let rendered_text = render_file ctx render_ctx filename in
+  let ast = ast_from_file filename in
+  let val_ctx = Values.unwrap_render_context ~outer_ctx:ctx ~render_ctx in
+  let (_, rendered_text) = interpret val_ctx "" ast in
   ctx, str ^ rendered_text
 
 
-let does_log = false
+let does_log = true
 let plog f v = if does_log then f v
 let pwrite fname text = File.write ("logs/" ^ fname) text
 

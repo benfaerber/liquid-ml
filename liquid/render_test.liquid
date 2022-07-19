@@ -22,3 +22,9 @@
 {% assign nnn = 3 %}
 
 {% render 'number_to_text' with number: nnn %}
+
+{% assign fruit = "apple" %}
+Fruit Before Include: {{ fruit }},
+{% include 'change_fruit' %},
+
+Fruit After Include: {{ fruit }}
