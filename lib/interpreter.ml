@@ -86,10 +86,13 @@ and interpret_else ctx str = function
   | None -> ctx, str
 
 and interpret_test ctx str cond ~body ~else_body =
+  let pre_state = save_state ctx in
   if interpret_condition ctx cond then
-    interpret ctx str body
+    let (rctx, rstr) = interpret ctx str body in
+    (rewind rctx pre_state, rstr)
   else
-    interpret_else ctx str else_body
+    let (rctx, rstr) = interpret_else ctx str else_body in
+    (rewind rctx pre_state, rstr)
 
 and interpret_for ctx str alias packed_iterable params body else_body =
   let iterable = Values.unwrap ctx packed_iterable in
@@ -139,8 +142,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
 
     let forlen = List.length r in
     let forloop_ctx = make_forloop_ctx ctx 0 forlen in
-    let (n_ctx, r_str) = fold_until r (forloop_ctx, str) loop in
-    n_ctx, r_str
+    fold_until r (forloop_ctx, str) loop
   )
   | _ -> interpret_else ctx str else_body
 and interpret_cycle ctx str _ values =
@@ -151,7 +153,7 @@ and interpret_cycle ctx str _ values =
 
   ctx, str ^ curr
 
-let does_log = false
+let does_log = true
 let plog f v = if does_log then f v
 let interpret_file filename =
   let raw_text =

@@ -1,6 +1,9 @@
 Interpreter
 -----------
   Implement cycle groups (are they stored globally?)
+  Case When Else breaks the parser...
+  Can I create a new lex token called CaseElse?
+  Can I rewrite the bounds seeker to take Unless For and Case into account?
 
 Parser
 ------
