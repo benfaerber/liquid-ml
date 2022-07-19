@@ -18,3 +18,7 @@
 {% assign numbers = (0..10) %}
 
 {% render 'number_to_text' for numbers as number %}
+
+{% assign nnn = 3 %}
+
+{% render 'number_to_text' with number: nnn %}
