@@ -134,3 +134,5 @@ let rewind ctx ostate =
   in
 
   List.fold cstate ~init:ctx ~f:folder
+
+let var_from t = Var (String.split ~on:'.' t)

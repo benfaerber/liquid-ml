@@ -62,13 +62,17 @@ let make_forloop_ctx ctx index length =
   |> Ctx.add "forloop" forloop_obj
 
 let rec interpret ctx str = function
-  | Block cmds -> interpret_while ctx str cmds
+  | Block cmds -> interpret_block ctx str cmds
   | Assignment (id, exp) -> ctx |> Ctx.add id (interpret_expression ctx exp), str
-  | Test (cond, body, else_body) -> interpret_test ctx str cond ~body ~else_body
-  | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
-  | Cycle (group, values) -> interpret_cycle ctx str group values
+  | Test (cond, body, else_body) -> interpret_test ctx str ~cond ~body ~else_body
+  | For (id, value, params, body, else_body) -> interpret_for ctx str ~alias:id ~iterable:value ~params ~body ~else_body
+  | Cycle (group, values) -> interpret_cycle ctx str ~group ~values
   | Render (filename, render_ctx, body) -> interpret_render ctx str ~filename ~render_ctx ~body
   | Include filename -> interpret_include ctx str ~filename
+  | Section section_name -> (
+    let section_path = "sections/" ^ section_name in
+    interpret_render ctx str ~filename:section_path ~render_ctx:Ctx.empty ~body:None
+  )
   | Text t -> ctx, str ^ t
   | Expression exp -> (
     let value = interpret_expression ctx exp in
@@ -80,9 +84,9 @@ let rec interpret ctx str = function
     let (_, rendered) = interpret ctx "" body in
     Ctx.add id (String rendered) ctx, str
   )
-  | _ -> ctx, str
+  | _ -> raise (Failure "NYI")
 
-and interpret_while ctx str = function
+and interpret_block ctx str = function
   | [cmd] -> interpret ctx str cmd
   | hd :: tl ->
     let (nctx, nstr) = interpret ctx str hd in
@@ -91,14 +95,14 @@ and interpret_while ctx str = function
     else if has_notifier "continue" nctx then
       notifier "continue" ctx, str
     else
-      interpret_while nctx nstr tl
+      interpret_block nctx nstr tl
   | _ -> ctx, str
 
 and interpret_else ctx str = function
   | Some eb -> interpret ctx str eb
   | None -> ctx, str
 
-and interpret_test ctx str cond ~body ~else_body =
+and interpret_test ctx str ~cond ~body ~else_body =
   let pre_state = save_state ctx in
   if interpret_condition ctx cond then
     let (rctx, rstr) = interpret ctx str body in
@@ -107,15 +111,15 @@ and interpret_test ctx str cond ~body ~else_body =
     let (rctx, rstr) = interpret_else ctx str else_body in
     (rewind rctx pre_state, rstr)
 
-and interpret_for ctx str alias packed_iterable params body else_body =
-  let iterable = Values.unwrap ctx packed_iterable in
+and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
+  let uiter = Values.unwrap ctx iterable in
   let pre_state = save_state ctx in
   let loop (acc_ctx, acc_str) curr ~last =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
     match body with
     | Block b -> (
-      let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
+      let (inner_ctx, rendered) = interpret_block loop_ctx "" b in
       let r_str = acc_str ^ rendered in
       if has_notifier "break" inner_ctx then
         Done (rewind inner_ctx pre_state, r_str)
@@ -139,7 +143,7 @@ and interpret_for ctx str alias packed_iterable params body else_body =
     | _ -> raise (Failure "A body must be a block")
   in
 
-  match iterable with
+  match uiter with
   | List l when List.length l != 0 -> (
     let len = List.length l in
     let trim_len =
@@ -156,13 +160,27 @@ and interpret_for ctx str alias packed_iterable params body else_body =
     fold_until r (forloop_ctx, str) loop
   )
   | _ -> interpret_else ctx str else_body
-and interpret_cycle ctx str _ values =
-  let index = Values.unwrap_int ctx (Var ["forloop"; "index"]) in
+and interpret_cycle ctx str ~group ~values =
+  (* TODO: Cycle is not based on forloop index, cycle is global based on group name *)
+  let gname = unwrap_or group "default" in
+  let var_id = Core.sprintf "_%s_%s" gname (join_by_arrow values) in
+  let cycle = Values.unwrap_object ctx (var_from "*cycle") in
+  let index =
+    (match cycle |> Obj.find_opt var_id with
+    | Some (Number n) -> n
+    | _ -> 0.)
+    |> Float.to_int in
+
   let vlen = List.length values in
   let vindex = index % vlen in
   let curr = nth values vindex in
+  let next_index = Number ((index + 1) |> Int.to_float) in
+  let ncycle = cycle |> Obj.add var_id next_index in
 
-  ctx, str ^ curr
+  let nctx = ctx |> Ctx.add "*cycle" (Object ncycle) in
+  Debug.print_variable_context nctx;
+
+  nctx, str ^ curr
 
 and interpret_include ctx str ~filename =
   let ast = ast_from_file filename in
@@ -200,6 +218,7 @@ let interpret_file filename =
   let default_ctx =
     Ctx.empty
     |> Ctx.add "rendered_at" (Date (Date.now ()))
+    |> Ctx.add "*cycle" (Object (Obj.empty))
     (* |> Ctx.add "collection" Test_data.test_collection *)
   in
   let default_str = "" in

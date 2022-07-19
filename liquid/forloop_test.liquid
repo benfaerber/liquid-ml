@@ -5,5 +5,6 @@
 
 {% assign fruits = "apple, pear, banana, peach" | split: ", " %}
 {% for fruit in fruits %}
+    {% cycle 'odd', 'even' %}
     I like {{ fruit }}s!!!
 {% endfor %}

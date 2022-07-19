@@ -1,3 +1,4 @@
+{% section 'header' %}
 {%- comment -%}
 {% render 'filename' with name: "apple", cheese as pork %}
 
@@ -27,4 +28,14 @@
 Fruit Before Include: {{ fruit }},
 {% include 'change_fruit' %},
 
-Fruit After Include: {{ fruit }}
+Fruit After Include: {{ fruit }},
+Secret Var After Include: {{ secret_var }}
+
+{% for i in (0..5) %}
+    {% cycle 'a', 'b', 'c', 'd' %}
+{% endfor %}
+
+{% for i in (0..5) %}
+    Alpha1: {% cycle 'a', 'b', 'c', 'd' %}
+    Alpha2: {% cycle 'alpha2': 'a', 'b', 'c', 'd' %}
+{% endfor %}

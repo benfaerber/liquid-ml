@@ -1,2 +1,6 @@
 {% assign fruit = "pear" %}
 Fruit was changed to {{ fruit }}.
+
+{% if fruit == "pear" %}
+    {% assign secret_var = "im a secret" %}
+{% endif %}
