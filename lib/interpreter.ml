@@ -93,7 +93,7 @@ and interpret_test ctx str cond ~body ~else_body =
 
 and interpret_for ctx str alias packed_iterable params body else_body =
   let iterable = Values.unwrap ctx packed_iterable in
-  let _ = save_state ctx in
+  let pre_state = save_state ctx in
   (* Debug.dump pre_state; *)
   let loop (acc_ctx, acc_str) curr ~last =
     (* TODO: Add forloop parent var *)
@@ -104,28 +104,25 @@ and interpret_for ctx str alias packed_iterable params body else_body =
       let (inner_ctx, rendered) = interpret_while loop_ctx "" b in
       let r_str = acc_str ^ rendered in
       if has_notifier "break" inner_ctx then
-        Done (ctx, r_str)
+        Done (rewind inner_ctx pre_state, r_str)
       else
         let find_int k =
           match Ctx.find "forloop" acc_ctx with
           | Object obj -> (
-            match Obj.find k obj with
-            | Number n -> Float.to_int n
-            | _ -> raise (Failure "You suck"))
-          | _ -> raise (Failure "you suck")
+            match Obj.find_opt k obj with
+            | Some (Number n )-> Float.to_int n
+            | _ -> raise (Failure "Failed to find int")
+          )
+          | _ -> raise (Failure "Failed to find forloop object")
         in
         let index = find_int "index" in
         let length = find_int "length" in
-        let nacc = make_forloop_ctx acc_ctx index length in
-(*
-        Debug.print_variable_context nacc;
-        Debug.print_line ();
-        Debug.print_variable_context (rewind nacc pre_state); *)
+        let nacc = make_forloop_ctx inner_ctx index length in
 
-        if last then Forward (nacc, r_str)
+        if last then Forward (rewind nacc pre_state, r_str)
         else Forward (nacc, r_str)
     )
-    | _ -> Done (ctx, acc_str)
+    | _ -> raise (Failure "A body must be a block")
   in
 
   match iterable with
@@ -142,8 +139,8 @@ and interpret_for ctx str alias packed_iterable params body else_body =
 
     let forlen = List.length r in
     let forloop_ctx = make_forloop_ctx ctx 0 forlen in
-    let (_, r_str) = fold_until r (forloop_ctx, str) loop in
-    ctx, r_str
+    let (n_ctx, r_str) = fold_until r (forloop_ctx, str) loop in
+    n_ctx, r_str
   )
   | _ -> interpret_else ctx str else_body
 and interpret_cycle ctx str _ values =
@@ -154,7 +151,7 @@ and interpret_cycle ctx str _ values =
 
   ctx, str ^ curr
 
-let does_log = true
+let does_log = false
 let plog f v = if does_log then f v
 let interpret_file filename =
   let raw_text =
@@ -174,7 +171,7 @@ let interpret_file filename =
   let default_ctx =
     Ctx.empty
     |> Ctx.add "rendered_at" (Date (Date.now ()))
-    |> Ctx.add "collection" Test_data.test_collection
+    (* |> Ctx.add "collection" Test_data.test_collection *)
   in
   let default_str = "" in
 
