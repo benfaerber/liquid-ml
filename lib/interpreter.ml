@@ -153,8 +153,10 @@ and interpret_cycle ctx str _ values =
 
   ctx, str ^ curr
 
-let does_log = true
+let does_log = false
 let plog f v = if does_log then f v
+let pwrite fname text = File.write ("logs/" ^ fname) text
+
 let interpret_file filename =
   let raw_text =
     filename
@@ -164,10 +166,12 @@ let interpret_file filename =
 
   let tokens = raw_text |> Lexer.lex_text in
   plog Debug.print_lex_tokens_with_index tokens;
+  pwrite "tokens.txt" (Debug.lex_tokens_as_string_with_index tokens);
   plog Debug.print_line ();
   let ast = tokens |> Parser.parse_block in
 
   plog Debug.print_ast ast;
+  pwrite "ast.txt" (Debug.ast_as_string ast);
   plog Debug.print_line();
 
   let default_ctx =
@@ -179,8 +183,10 @@ let interpret_file filename =
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in
   plog Debug.print_variable_context final_ctx;
+  pwrite "final_ctx.txt" (Debug.variable_context_as_string final_ctx);
   plog Stdio.print_endline "Render:";
   plog Debug.print_rendered final_str;
+  pwrite "render.txt" final_str;
 
   ()
 

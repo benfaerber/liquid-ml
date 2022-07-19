@@ -50,10 +50,7 @@ let bounds_from_opener = function
   | TableRow -> pair_to_bounds TableRow EndTableRow
   | _ -> None
 
-let has_else bounds =
-  match bounds.other with
-  | Some oth -> contains oth Else
-  | _ -> false
+
 
 let remove_last lst =
   match List.rev lst with

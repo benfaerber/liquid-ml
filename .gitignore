@@ -2,3 +2,4 @@ _build/*
 .vscode/settings.json
 .vscode
 _esy
+logs/*

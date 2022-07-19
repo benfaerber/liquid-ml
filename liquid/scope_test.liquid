@@ -1,7 +1,7 @@
 {% assign fruit = "apple" %}
 {% assign squared = 2 %}
 
-
+{%- comment -%}
 {% for i in (0..3) %}
     {% assign squared = squared | times: 2 %}
     {% assign local_var = i | plus: 10 %}
@@ -11,17 +11,30 @@
 Local Var Outside: {{ local_var }} -
 Squared Outside: {{ squared }} -
 Fruit: {{ fruit }}
+{%- endcomment -%}
+
+{% # assign fruit = "tomato" %}
+{% unless fruit == "tomato" %}
+    Sweet fruit
+{%else%}
+    No sweet fruit
+{% endunless %}
 
 
 {% if fruit == "apple" %}
     Apple Local Var: {{ local_var }}
-    {% assign internal = 2 %}
+    {% assign internal = 11 %}
     {% assign fruit = "honey crisp" %}
     {% case internal %}
         {% when 10 %}
             Is 10
         {% when 11, 22, 33, 44 %}
-            Is double
+            Double Digits!
+            {% unless internal == 11 %}
+                Greater than 21
+            {%else%}
+                Less than 21
+            {% endunless %}
         {% else %}
             Something else!
     {% endcase %}

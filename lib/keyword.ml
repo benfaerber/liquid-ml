@@ -123,17 +123,15 @@ let lex_keyword text =
     ; ("none", LexNone)
   ] in
 
-
-
   if starts_with text " " then
     (Some Space, remove_prefix text " ")
   else if starts_with text "\n" then
     (Some Newline, remove_prefix text "\n")
   else if text = " " || text = "\n" then
     (None, text)
-  else
-    let finder =
-      fun (check_literal, _) -> starts_with text (check_literal ^ " ") || starts_with text (check_literal ^ "\n") in
+  else (
+    let finder (check_literal, _) =
+      starts_with text (check_literal ^ " ") || starts_with text (check_literal ^ "\n") || text = check_literal ^ " " in
     let found_keyword =
       List.find keywords ~f:finder in
     match found_keyword with
@@ -141,7 +139,7 @@ let lex_keyword text =
       let trimmed = remove_prefix text literal in
       (Some token, trimmed))
     | None -> (None, text)
-
+  )
 
 let block_token_of_string =
   function
