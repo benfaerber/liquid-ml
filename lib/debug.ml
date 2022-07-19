@@ -113,6 +113,16 @@ and object_as_string obj =
     remove_suffix built ", "
   else built
 
+
+let variable_context_as_string m =
+  let seq = Syntax.Ctx.to_seq m in
+  let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
+  let built = Caml.Seq.fold_left (fun acc curr -> acc ^ ", " ^ curr) "" mapped in
+  built
+
+let print_variable_context m = m |> variable_context_as_string |> Stdio.print_endline
+
+
 let rec condition_as_string =
   let rec aux = function
   | Equation (a, op, b) -> (value_as_string a) ^ " " ^ (operator_as_string op) ^ " " ^ (value_as_string b)
@@ -133,8 +143,6 @@ let print_expression e = e |> expression_as_string |> Stdio.print_endline
 
 let tab l =
   List.map (range l) ~f:(fun _ -> "  ") |> join
-
-let variable_context_as_string vc = Core.sprintf "%s=%s" (value_as_string vc.variable) (value_as_string vc.value)
 
 
 let show_in_progress = false
@@ -179,8 +187,8 @@ let ast_as_string =
     | Include t -> "Include(" ^ t ^ ")"
     | Section t -> "Section(" ^ t ^ ")"
     | Paginate (id, num, body) -> Core.sprintf "Paginate(%s by %d) { %s }" (id_as_string id) num (aux (depth+1) body)
-    | Render (n, t, bl) ->
-      Core.sprintf "Render(%s: [%s])" n (join_by_comma (List.map t ~f:variable_context_as_string))
+    | Render (n, ctx, bl) ->
+      Core.sprintf "Render(%s: [%s])" n (variable_context_as_string ctx)
       ^ (match bl with Some b -> Core.sprintf "{%s}" (aux (depth+1) b) | _ -> "")
     | _ -> "Other" in
 
@@ -208,13 +216,6 @@ let remove_double_nl text =
   Re2.rewrite_exn exp ~template:"" text
 
 
-let variable_context_as_string m =
-  let seq = Syntax.Ctx.to_seq m in
-  let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
-  let built = Caml.Seq.fold_left (fun acc curr -> acc ^ ", " ^ curr) "" mapped in
-  built
-
-let print_variable_context m = m |> variable_context_as_string |> Stdio.print_endline
 
 
 let print_rendered r =

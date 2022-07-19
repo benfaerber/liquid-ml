@@ -12,19 +12,23 @@ let scan_until_eos tokens =
 
 let parse_variable_context tokens =
   let rec aux acc = function
-    | LexValue (LexId id) :: Colon :: LexValue (v) :: Comma :: tl
-    | LexValue (LexId id) :: LexAs :: LexValue (v) :: Comma :: tl ->
-      let var_cxt = [{ variable = Var id; value = lex_value_to_value v }] in
-      aux (acc @ var_cxt) tl
-    | LexValue (LexId id) :: Colon :: LexValue (v) :: tl
-    | LexValue (LexId id) :: LexAs :: LexValue (v) :: tl ->
-      let var_cxt = [{ variable = Var id; value = lex_value_to_value v }] in
-      acc @ var_cxt, tl
-    | _ -> [], []
+    | LexValue (LexId id) :: Colon :: LexValue (v) :: Comma :: tl ->
+      let render_ctx = acc |> Ctx.add (List.hd_exn id) (lex_value_to_value v) in
+      aux render_ctx tl
+    | LexValue (LexId id) :: LexAs :: LexValue (LexId alias) :: Comma :: tl ->
+      let render_ctx = acc |> Ctx.add (List.hd_exn alias) (Var id) in
+      aux render_ctx tl
+    | LexValue (LexId id) :: Colon :: LexValue (v) :: tl ->
+      let render_ctx = acc |> Ctx.add (List.hd_exn id) (lex_value_to_value v) in
+      render_ctx, tl
+    | LexValue (LexId id) :: LexAs :: LexValue (LexId alias) :: tl ->
+      let render_ctx = acc |> Ctx.add (List.hd_exn alias) (Var id) in
+      render_ctx, tl
+    | _ -> acc, []
   in
 
-  let (got, rest) = aux [] tokens in
-  if got = [] then None else Some (got, rest)
+  let (got, rest) = aux Ctx.empty tokens in
+  if Ctx.is_empty got then None else Some (got, rest)
 
 let parse_single_body tag all_tokens =
   let tokens = [tag] @ all_tokens in

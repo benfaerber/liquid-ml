@@ -13,6 +13,19 @@ module LiquidObject =
 
 module Obj = Caml.Map.Make(LiquidObject)
 
+module VariableContext =
+  struct
+    type t = string
+    let compare a b =
+      match (String.length a, String.length b) with
+      | (ta, tb) when ta > tb -> 1
+      | (ta, tb) when ta < tb -> -1
+      | _ -> if a = b then 0 else -1
+  end
+
+module Ctx = Caml.Map.Make(VariableContext)
+
+
 let idf id = String.split id ~on:'.'
 
 type id = string list
@@ -69,7 +82,7 @@ type ast =
   | Layout of string option
   | Include of string
   | Section of string
-  | Render of string * render_variable_context list * ast option
+  | Render of string * value Ctx.t * ast option
   | Paginate of id * int * ast
   | Nothing
 
@@ -97,21 +110,6 @@ let for_params_default =
   ; cols = 10
   ; is_tablerow = false
   }
-
-let context_var id =
-  { variable = Var id; value = Var id }
-
-module VariableContext =
-  struct
-    type t = string
-    let compare a b =
-      match (String.length a, String.length b) with
-      | (ta, tb) when ta > tb -> 1
-      | (ta, tb) when ta < tb -> -1
-      | _ -> if a = b then 0 else -1
-  end
-
-module Ctx = Caml.Map.Make(VariableContext)
 
 let make_obj pairs =
   Object (

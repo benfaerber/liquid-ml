@@ -8,9 +8,11 @@ let parse_render = function
   | LexValue (LexString filename) :: tokens -> (
     match tokens with
     | EOS :: tl ->
-      Some (Render (filename, [], None), tl)
+      Some (Render (filename, Ctx.empty, None), tl)
     | For :: LexValue (list) :: LexAs :: LexValue (LexId id) :: EOS :: tl ->
-      let render = Render (filename, [context_var id], None) in
+      (* context_var id *)
+      let render_ctx = Ctx.empty |> Ctx.add (List.hd_exn id) (Var id) in
+      let render = Render (filename, render_ctx, None) in
       let iter_list = lex_value_to_value list in
       let iter = For (join id, iter_list, for_params_default, Block [render], None) in
       Some (iter, tl)
@@ -37,13 +39,15 @@ let parse_form block_parser all_tokens =
     let formname = "form_" ^ filename in
     match tokens with
     | EOS :: _ ->
-      Some  (Render (formname, [], pbody), rest)
+      Some  (Render (formname, Ctx.empty, pbody), rest)
     | Comma :: LexValue (LexId id) :: EOS :: _ ->
-      Some  (Render (formname, [context_var id], pbody), rest)
+      let render_ctx = Ctx.empty |> Ctx.add (List.hd_exn id) (Var id) in
+      Some  (Render (formname, render_ctx, pbody), rest)
     | Comma :: LexValue (LexId id) :: Comma :: tl -> (
       match parse_variable_context tl with
       | Some (ctx, _) ->
-        Some (Render (formname, [context_var id] @ ctx, pbody), rest)
+        let render_ctx = ctx |> Ctx.add (List.hd_exn id) (Var id) in
+        Some (Render (formname, render_ctx, pbody), rest)
       | _ -> None
     )
     | Comma :: tl -> (
@@ -64,7 +68,7 @@ let parse_style block_parser = function
     let body = List.sub tl ~pos:0 ~len:stop_point in
     let rest = sub_list_suffix tokens stop_point in
 
-    let render = Render ("style_tag", [], Some (block_parser body)) in
+    let render = Render ("style_tag", Ctx.empty, Some (block_parser body)) in
     Some (render, rest)
   | _ -> None
 
