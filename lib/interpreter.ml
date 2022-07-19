@@ -162,17 +162,15 @@ and render_file outer_ctx render_ctx filename =
   in
   let val_ctx = Values.unwrap_render_context ~outer_ctx ~render_ctx in
   let (_, rendered) = interpret val_ctx "" ast in
-  (* Debug.print_variable_context val_ctx; *)
   rendered
 
 and interpret_render ctx str ~filename ~render_ctx ~body =
   File.write "logs/body.txt" (Batteries.dump body);
   let rendered_text = render_file ctx render_ctx filename in
-  Stdio.print_endline "dog";
   ctx, str ^ rendered_text
 
 
-let does_log = true
+let does_log = false
 let plog f v = if does_log then f v
 let pwrite fname text = File.write ("logs/" ^ fname) text
 
