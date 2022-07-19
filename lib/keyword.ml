@@ -43,7 +43,6 @@ type lex_token =
   | LexWith | LexAs
   | Assign | Increment | Decrement
   | Pipe | Colon | Equals | Comma
-  | DotDot
   | LexNone
   | Space | Newline
   | Operator of operator
@@ -115,7 +114,6 @@ let lex_keyword text =
     ; ("|", Pipe)
     ; ("=", Equals)
     ; (",", Comma)
-    ; ("..", DotDot)
     ; ("\n", Newline)
 
     ; ("nil", LexValue LexNil)
