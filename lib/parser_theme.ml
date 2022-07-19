@@ -10,12 +10,14 @@ let parse_render = function
     | EOS :: tl ->
       Some (Render (filename, Ctx.empty, None), tl)
     | For :: LexValue (list) :: LexAs :: LexValue (LexId id) :: EOS :: tl ->
-      (* context_var id *)
       let render_ctx = Ctx.empty |> Ctx.add (List.hd_exn id) (Var id) in
       let render = Render (filename, render_ctx, None) in
       let iter_list = lex_value_to_value list in
       let iter = For (join id, iter_list, for_params_default, Block [render], None) in
       Some (iter, tl)
+    | LexWith :: LexValue v :: EOS :: _ ->
+      let render_ctx = Ctx.empty |> Ctx.add filename (lex_value_to_value v) in
+      Some (Render (filename, render_ctx, None), [])
     | LexWith :: tl
     | Comma :: tl -> (
       match parse_variable_context tl with

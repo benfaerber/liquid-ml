@@ -1,5 +1,11 @@
+{%- comment -%}
 {% render 'filename' with name: "apple", cheese as pork %}
 
 {% render 'filename' for dog as cat %}
 
 {% render 'filename', horse: "radish", sauce: "apple" %}
+
+{% render 'filename' with dog %}
+{%- endcomment -%}
+
+{% render 'number_to_text' with number: 2 %}

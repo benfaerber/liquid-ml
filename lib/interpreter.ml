@@ -56,6 +56,7 @@ let rec interpret ctx str = function
   | Test (cond, body, else_body) -> interpret_test ctx str cond ~body ~else_body
   | For (id, value, params, body, else_body) -> interpret_for ctx str id value params body else_body
   | Cycle (group, values) -> interpret_cycle ctx str group values
+  | Render (filename, render_ctx, body) -> interpret_render ctx str ~filename ~render_ctx ~body
   | Text t -> ctx, str ^ t
   | Expression exp -> (
     let value = interpret_expression ctx exp in
@@ -152,8 +153,26 @@ and interpret_cycle ctx str _ values =
   let curr = nth values vindex in
 
   ctx, str ^ curr
+and render_file render_ctx filename =
+  let filepath = Core.sprintf "liquid/%s.liquid" filename in
+  let raw_text = File.read filepath in
+  let ast =
+    raw_text
+    |> Preprocessor.preprocess
+    |> Lexer.lex_text
+    |> Parser.parse_block
+  in
 
-let does_log = false
+  let (_, rendered) = interpret render_ctx "" ast in
+  rendered
+
+and interpret_render ctx str ~filename ~render_ctx ~body =
+  Debug.dump body;
+  let rendered_text = render_file render_ctx filename in
+  ctx, str ^ rendered_text
+
+
+let does_log = true
 let plog f v = if does_log then f v
 let pwrite fname text = File.write ("logs/" ^ fname) text
 
