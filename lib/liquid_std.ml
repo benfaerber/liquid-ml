@@ -254,12 +254,13 @@ let round ctx params =
     Number (Float.round_decimal a ~decimal_digits:places)
   )
   | Number a :: _ -> Number (Float.round_nearest a)
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "round accepts a number and an option number of decimal places" other)
 
 let size ctx params =
   match unwrap_all ctx params with
   | List lst :: _ -> Number (lst |> List.length |> Int.to_float)
-  | _ -> raise (Failure "Invalid use")
+  | String s :: _ -> Number (s |> String.length |> Int.to_float)
+  | other -> raise (errc "size accepts a list or a string" other)
 
 (* TODO: SOrt *)
 
@@ -270,7 +271,7 @@ let strip_html ctx params =
     let r = Re2.rewrite_exn exp ~template:"" s in
     String (r)
   )
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "string_html accepts a string" other)
 
 
 let strip_newlines ctx params =
@@ -280,19 +281,32 @@ let strip_newlines ctx params =
     let r = Re2.rewrite_exn exp ~template:"" s in
     String (r)
   )
-  | _ -> raise (Failure "Invalid use")
+  | other -> raise (errc "strip_newlines accepts a string" other)
 
+(* TODO: Implement negative indexs *)
 let slice ctx params =
+  let do_slice slicer lengther lst fstart fstop =
+    let start = fi fstart and stop = fi fstop in
+    if start >= 0 then
+      slicer lst ~pos:start ~len:(start + stop)
+    else
+      let cstart = lengther lst + start in
+      slicer lst ~pos:cstart ~len:(stop)
+  in
+
+  let do_slice_string = do_slice String.sub String.length in
+  let do_slice_list = do_slice List.sub List.length in
+
   match unwrap_all ctx params with
   | String s :: Number fstart :: Number fstop :: _ ->
-    let start = fi fstart and stop = fi fstop in
-    let ns = String.sub s ~pos:start ~len:(start + stop) in
-    String ns
+    String (do_slice_string s fstart fstop)
   | String s :: Number findex :: _ ->
-    let index = fi findex in
-    let ns = String.sub s ~pos:index ~len:1 in
-    String ns
-  | _ -> raise (Failure "Invalid use")
+    String (do_slice_string s findex 1.)
+  | List lst :: Number fstart :: Number fstop :: _ ->
+    List (do_slice_list lst fstart fstop)
+  | List lst :: Number findex :: _ ->
+    List (do_slice_list lst findex 1.)
+  | other -> raise (errc "slice accepts a string or list as well as a start index and optional stop index" other)
 
 let times = apply_op Float.( * )
 
