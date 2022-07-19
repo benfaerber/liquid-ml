@@ -51,7 +51,8 @@ let rec lex_token_as_string = function
   | By -> "By"
   | ElseIf -> "ElseIf"
   | When -> "When"
-  | Break -> "Break" | Continue -> "Continue"
+  | LexBreak -> "Break"
+  | LexContinue -> "Continue"
   | Cycle -> "Cycle"
   | In -> "In"
   | Assign -> "Assign" | Increment -> "Increment" | Decrement -> "Decrement"
@@ -162,7 +163,6 @@ let ast_as_string =
       | None ->
         Core.sprintf "%s(%s in %s %s)\n{  %s\n}\n" ft id (value_as_string value) vars (aux (depth+1) body)
     )
-    | InProgress tokens -> if show_in_progress then lex_tokens_as_string tokens else "InProgress"
     | Expression exp -> "Exp(" ^ expression_as_string exp ^ ")"
     | Assignment (id, exp) -> Core.sprintf "Assign(%s: %s)" id (expression_as_string exp)
     | Text t -> if String.strip t = "" then "" else Core.sprintf "t(%s)" t

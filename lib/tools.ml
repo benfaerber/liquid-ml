@@ -90,5 +90,3 @@ let contains lst item =
   List.mem lst item ~equal:(Caml.(=))
 
 let unwrap_or value fallback = match value with Some v -> v | None -> fallback
-
-let not v = if v then false else true

@@ -49,8 +49,8 @@ let parse_other _ = function
   | LexText t :: tl -> Some (Text t, tl)
   | Newline :: tl -> Some (Text "\n", tl)
   | EOS :: tl -> Some (Nothing, tl)
-  | Keyword.Break :: tl -> Some(Break, tl)
-  | Keyword.Continue :: tl -> Some(Continue, tl)
+  | LexBreak :: tl -> Some(Break, tl)
+  | LexContinue :: tl -> Some(Continue, tl)
   | _ -> None
 
 let parse_for = Parser_for.parse_for

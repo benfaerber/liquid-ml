@@ -64,7 +64,6 @@ type ast =
   | Expression of expression
   | Assignment of string * expression
   | Text of string
-  | InProgress of Keyword.lex_token list
   | Break
   | Continue
   | Layout of string option
@@ -83,12 +82,13 @@ let liq_list_of_range r = List (
 )
 
 let lex_value_to_value = function
-  | Keyword.LexId (id) -> Var (id)
-  | LexBool (b) -> Bool (b)
-  | LexString (s) -> String (s)
+  | Keyword.LexId id -> Var id
+  | LexBool b -> Bool b
+  | LexString s -> String s
   | LexNumber n -> Number n
   | LexRange (st, sp) -> liq_list_of_range (LexRange (st, sp))
-  | LexNil | LexBlank -> Nil
+  | LexNil -> Nil
+  | LexBlank -> String ""
 
 let for_params_default =
   { limit = 50
@@ -99,7 +99,7 @@ let for_params_default =
   }
 
 let context_var id =
-  {variable = Var id; value = Var id }
+  { variable = Var id; value = Var id }
 
 module VariableContext =
   struct

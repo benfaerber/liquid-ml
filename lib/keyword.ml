@@ -37,7 +37,7 @@ type lex_token =
   | When
   | LexForm | LexStyle | LexEndForm | LexEndStyle
   | LexInclude | LexRender | LexLayout | LexSection
-  | Break | Continue
+  | LexBreak | LexContinue
   | Cycle
   | In | By
   | LexWith | LexAs
@@ -77,8 +77,8 @@ let lex_keyword text =
     ; ("capture", Capture)
     ; ("endcapture", EndCapture)
 
-    ; ("break", Break)
-    ; ("continue", Continue)
+    ; ("break", LexBreak)
+    ; ("continue", LexContinue)
     ; ("cycle", Cycle)
     ; ("tablerow", TableRow)
     ; ("endtablerow", EndTableRow)
