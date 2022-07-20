@@ -92,7 +92,7 @@ let hmac_sha1 ctx params =
 let hmac_sha256 ctx params =
   match unwrap_all ctx params with
   | String message :: String hash :: _ ->
-    let enc = message ^ hash |> Sha1.string |> Sha1.to_hex in
+    let enc = message ^ hash |> Sha256.string |> Sha256.to_hex in
     String enc
   | other -> raise (errc "hmac_sha256 accepts a string and a hash (string)" other)
 
@@ -180,12 +180,32 @@ let replace ctx params =
 let replace_first ctx params =
   match unwrap_all ctx params with
   | String haystack :: String find_needle :: String replace_needle :: _ ->
-    let exp = Re2.create_exn find_needle in
-    let first_chunk = Re2.find_first_exn exp haystack in
-    let wo_first_chunk = remove_prefix haystack first_chunk in
-    let repped_first = Re2.rewrite_exn exp ~template:replace_needle first_chunk in
-    String (repped_first ^ wo_first_chunk)
+    let s = String.substr_replace_first haystack ~pattern:find_needle ~with_:replace_needle in
+    String s
   | other -> raise (errc "replace_first accepts 3 strings" other)
+
+let replace_last ctx params =
+  match unwrap_all ctx params with
+  | String haystack :: String find_needle :: String replace_needle :: _ ->
+    let r_hay, r_find, r_rep = String.rev haystack, String.rev find_needle, String.rev replace_needle in
+    let s = String.substr_replace_first r_hay ~pattern:r_find ~with_:r_rep in
+    String (String.rev s)
+  | other -> raise (errc "replace_last accepts 3 strings" other)
+
+let sha1 ctx params =
+  match unwrap_all ctx params with
+  | String message :: _ ->
+    let enc = message |> Sha1.string |> Sha1.to_hex in
+    String enc
+  | other -> raise (errc "sha1 accepts a string" other)
+
+let sha256 ctx params =
+  match unwrap_all ctx params with
+  | String message :: _ ->
+    let enc = message |> Sha256.string |> Sha256.to_hex in
+    String enc
+  | other -> raise (errc "sha256 accepts a string" other)
+
 
 let strip_html ctx params =
   match unwrap_all ctx params with
@@ -258,8 +278,15 @@ let url_decode ctx params =
   | String url :: _ -> String (decode_url url)
   | other -> raise (errc "url_decode accepts a string" other)
 
+let url_escape ctx params =
+  match unwrap_all ctx params with
+  | String url :: _ -> String (escape_url url)
+  | other -> raise (errc "url_escape accepts a string" other)
 
-
+let url_param_escape ctx params =
+  match unwrap_all ctx params with
+  | String url :: _ -> String (escape_param_url url)
+  | other -> raise (errc "url_param_escape accepts a string" other)
 
 let function_from_id = function
   | "append" -> Some append
@@ -284,15 +311,20 @@ let function_from_id = function
   | "remove_last" -> Some remove_last
   | "replace" -> Some replace
   | "replace_first" -> Some replace_first
+  | "replace_last" -> Some replace_last
   | "rstrip" -> Some rstrip
   | "strip" -> Some strip
   | "strip_html" -> Some strip_html
   | "strip_newlines" -> Some strip_newlines
   | "split" -> Some split
+  | "sha1" -> Some sha1
+  | "sha256" -> Some sha256
   | "md5" -> Some md5
   | "truncate" -> Some truncate
   | "truncatewords" -> Some truncatewords
   | "upcase" -> Some upcase
   | "url_decode" -> Some url_decode
   | "url_encode" -> Some url_encode
+  | "url_escape" -> Some url_escape
+  | "url_param_escape" -> Some url_param_escape
   | _ -> None

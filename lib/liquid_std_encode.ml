@@ -299,3 +299,12 @@ let encode_url = encode_decode_url url_reps Encode
 let decode_url = encode_decode_url url_reps Decode
 let encode_text = encode_decode_text text_reps Encode
 let decode_text = encode_decode_text text_reps Decode
+
+let escape_url url =
+  encode_url url
+  |> String.substr_replace_all ~pattern:"+" ~with_:"%20"
+  |> String.substr_replace_all ~pattern:"%26" ~with_:"&"
+
+let escape_param_url url =
+  encode_url url
+  |> String.substr_replace_all ~pattern:"+" ~with_:"%20"
