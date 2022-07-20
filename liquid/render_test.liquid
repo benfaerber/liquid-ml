@@ -44,3 +44,8 @@ Secret Var After Include: {{ secret_var }}
 Horse:
 {% increment horse %}
 {% decrement horse %}
+
+{% assign fruits = "apple,pear,banana" | split: "," %}
+
+{{ fruits[2] }}
+{{ fruits.last }}

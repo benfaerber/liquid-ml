@@ -115,15 +115,17 @@ let rec first_successful (text: string) =
 
 let (~/) = Re2.create_exn
 let lex_id text =
-  let id_exp = ~/"^[a-zA-Z_](?:(?:[a-zA-Z0-9_\\.]|((\\[(\"|\').+)(\"|\')\\]))+)?" in
+  let id_exp = ~/"^[a-zA-Z_](?:(?:[a-zA-Z0-9_\\-\\.]|((\\[(\"|\')?.+)(\"|\')?\\]))+)?" in
   if Re2.matches id_exp text then
     let literal = Re2.find_first_exn id_exp text in
-    let bracket_group_exp = ~/"\\[(?:\"|')(.+?)(?:\"|')\\]" in
+    let bracket_group_exp = ~/"\\[(?:\"|')?(.+?)(?:\"|')?\\]" in
     let wo_bg =
       match Re2.find_all bracket_group_exp text with
       | Ok mats ->
         List.fold mats ~init:literal ~f:(fun acc m -> (
-          let dot_notation = "." ^ String.sub m ~pos:2 ~len:(String.length m - 4) in
+          let is_string = starts_with m "[\"" || starts_with m "['" in
+          let pos = if is_string then 2 else 1 in
+          let dot_notation = "." ^ String.sub m ~pos:pos ~len:(String.length m - (pos * 2)) in
           String.substr_replace_first acc ~pattern:m ~with_:dot_notation
         ))
       | Error _ -> literal in

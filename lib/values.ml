@@ -19,23 +19,28 @@ let find ctx v =
 let without_last id =
   id |> List.rev |> List.tl_exn |> List.rev
 
+let is_index id =
+  match id |> List.rev |> List.hd with
+  | Some hd -> Re2.matches (Re2.create_exn "\\d+") hd
+  | _ -> false
+
 let rec unwrap ctx = function
   | Var id when is_calling ctx id "first" -> (
-    match unwrap_tail ctx id with
-    | List [] -> Nil
-    | List lst -> List.hd_exn lst
-    | _ -> raise (Failure "first can only be used on list")
+    let lst = unwrap_list ctx id in
+    unwrap_or (List.hd lst) Nil
   )
   | Var id when is_calling ctx id "last" -> (
-    match unwrap_tail ctx id with
-    | List [] -> Nil
-    | List lst -> lst |> List.rev |> List.hd_exn
-    | _ -> raise (Failure "last can only be used on list")
+    let lst = unwrap_list ctx id in
+    unwrap_or (lst |> List.last) Nil
   )
   | Var id when is_calling ctx id "size" -> (
-    match unwrap_tail ctx id with
-    | List lst -> Number (List.length lst |> Int.to_float)
-    | _ -> raise (Failure "first can only be used on list")
+    let lst = unwrap_list ctx id in
+    Number (List.length lst |> Int.to_float)
+  )
+  | Var id when is_index id -> (
+    let index = id |> List.last_exn |> Int.of_string in
+    let lst = unwrap_list ctx id in
+    unwrap_or (List.nth lst index) Nil
   )
   | Var id -> (
     match unwrap_obj_from_id ctx id with
@@ -44,9 +49,13 @@ let rec unwrap ctx = function
   )
   | other -> other
 and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
+and unwrap_list ctx id =
+  match unwrap_tail ctx id with
+  | List lst -> lst
+  | _ -> Failure ("This operator can only be used on list") |> raise
 
 and is_calling ctx id c =
-  match id |> List.rev |> List.hd with
+  match List.last id with
   | Some last -> (
     match unwrap_tail ctx id with
     | List _ when last = c -> true
