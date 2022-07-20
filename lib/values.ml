@@ -2,26 +2,18 @@ open Base
 open Tools
 open Syntax
 
-
-let as_id s = [s]
 let id_eq a b =
   List.equal (fun x y -> x = y) a b
 
 let find ctx v =
-  match Ctx.find_opt v ctx with
-  | Some g -> g
-  | _ -> Nil
-
-
-
-
+  unwrap_or (Ctx.find_opt v ctx) Nil
 
 let without_last id =
   id |> List.rev |> List.tl_exn |> List.rev
 
 let is_index id =
   match id |> List.rev |> List.hd with
-  | Some hd -> Re2.matches (Re2.create_exn "\\d+") hd
+  | Some hd -> Re2.matches (Re2.create_exn "^\\d+") hd
   | _ -> false
 
 let rec unwrap ctx = function
@@ -42,11 +34,10 @@ let rec unwrap ctx = function
     let lst = unwrap_list ctx id in
     unwrap_or (List.nth lst index) Nil
   )
-  | Var id -> (
-    match unwrap_obj_from_id ctx id with
-    | Some v -> v
-    | _ -> (match List.hd id with Some fid -> find ctx fid | _ -> Nil)
+  | Var [id] -> (
+    find ctx id
   )
+  | Var id -> unwrap_chain ctx id
   | other -> other
 and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
 and unwrap_list ctx id =
@@ -63,24 +54,23 @@ and is_calling ctx id c =
   )
   | _ -> false
 
+and unwrap_chain ctx id =
+  let folder (acc_val, acc_ctx) hd =
+    match acc_val with
+    | Nil -> Ctx.find hd acc_ctx, acc_ctx
+    | Object obj -> (
+      let nv = Obj.find hd obj in
+      nv, Ctx.empty |> Ctx.add hd nv
+    )
+    | v -> (
+      let nctx = Ctx.empty |> Ctx.add Global.next v in
+      let nv = unwrap nctx (Var [Global.next; hd]) in
+      nv, nctx
+    )
+  in
 
-and unwrap_obj_from_id ctx = function
-  | hd_id :: tl_id -> (
-    match Ctx.find_opt hd_id ctx with
-    | Some (Object init_obj) -> begin
-      let folder acc id =
-        match acc with
-        | Object (obj) -> Obj.find id obj
-        | other -> other
-      in
-
-      let leaf = List.fold tl_id ~init:(Object init_obj) ~f:folder in
-
-      Some leaf
-    end
-    | _ -> None
-  )
-  | _ -> None
+  let (v, _) = List.fold id ~init:(Nil, ctx) ~f:folder in
+  v
 
 let rec string_from_value ctx = function
 | Bool(b) -> (if b then "true" else "false")
@@ -93,6 +83,7 @@ let rec string_from_value ctx = function
 | Var id -> string_from_value ctx (unwrap ctx (Var id))
 | Nil -> "nil"
 | List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
+| Object obj -> Debug.object_as_string obj
 | _ -> "Unknown"
 
 let unwrap_render_context ~outer_ctx ~render_ctx =

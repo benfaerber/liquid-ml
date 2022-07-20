@@ -18,6 +18,7 @@
 {% assign numbers = (0..10) %}
 
 {% render 'number_to_text' for numbers as number %}
+{% render 'forloop_vars' with number: 2 %}
 
 {% assign nnn = 3 %}
 
@@ -30,6 +31,8 @@ Fruit Before Include: {{ fruit }},
 Fruit After Include: {{ fruit }},
 Secret Var After Include: {{ secret_var }}
 {%- endcomment -%}
+
+{%- comment -%}
 
 {% for i in (0..5) %}
     {% cycle 'a', 'b', 'c', 'd' %}
@@ -49,3 +52,10 @@ Horse:
 
 {{ fruits[2] }}
 {{ fruits.last }}
+{{ fruits["first"] }}
+{%- endcomment -%}
+
+{% assign prods = collection.products %}
+{{ collection.products[1] }}
+{{ collection.products.first.title }}
+{{ prods.first.title }}
