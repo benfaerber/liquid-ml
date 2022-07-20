@@ -80,7 +80,7 @@ let first lst = nth lst 0
 let join_by_space lst = String.concat ~sep:" " lst
 let join_by_comma lst = String.concat ~sep:", " lst
 let join_by_dot lst = String.concat ~sep:"." lst
-
+let join_by_underscore lst = String.concat ~sep:"_" lst
 let join_by_arrow lst = String.concat ~sep:"->" lst
 let join_by_nl lst = String.concat ~sep:"\n" lst
 

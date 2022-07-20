@@ -60,14 +60,11 @@ let parse_expression _ = function
 
 let parse_assignment _ tokens =
   let add_increment id modifier =
-    let inc_id = "*increment_" ^ join id in
-    Block [
-      Assignment (
-        inc_id,
-        Func (modifier, [Value (Var [inc_id]); Value (Number 1.)])
-      );
-      Expression (Value (Var [inc_id]))
-    ]
+    let inc_id = "*increment." ^ join id in
+    Assignment (
+      inc_id,
+      Value (String modifier)
+    )
   in
 
   match tokens with

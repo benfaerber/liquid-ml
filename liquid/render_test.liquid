@@ -36,6 +36,11 @@ Secret Var After Include: {{ secret_var }}
 {% endfor %}
 
 {% for i in (0..5) %}
+    {% increment horse %}
     Alpha1: {% cycle 'a', 'b', 'c', 'd' %}
     Alpha2: {% cycle 'alpha2': 'a', 'b', 'c', 'd' %}
 {% endfor %}
+
+Horse:
+{% increment horse %}
+{% decrement horse %}
