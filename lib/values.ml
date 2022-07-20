@@ -172,3 +172,5 @@ let contains ctx va vb =
 let lte ctx a b = lt ctx a b || eq ctx a b
 let gte ctx a b = gt ctx a b || eq ctx a b
 let ne ctx a b = if eq ctx a b then false else true
+
+let num_int n = (Number (n |> Int.to_float))

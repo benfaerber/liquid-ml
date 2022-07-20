@@ -34,8 +34,6 @@ let rec interpret_condition ctx = function
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
   | IsTruthy v -> Values.is_truthy ctx v
 
-let num_int n = (Number (n |> Int.to_float))
-
 let ast_from_file filename =
   let filepath = Core.sprintf "liquid/%s.liquid" filename in
   let raw_text = File.read filepath in
@@ -47,19 +45,6 @@ let ast_from_file filename =
   in
   ast
 
-let make_forloop_ctx ctx index length =
-  let forloop_obj = make_obj
-  [ p "index" (num_int (index + 1))
-  ; p "length" (num_int length)
-  ; p "first" (Bool (index = 0))
-  ; p "index0" (num_int index)
-  ; p "last" (Bool (index = length - 1))
-  ; p "rindex" (num_int (length - index))
-  ; p "rindex0" (num_int (length - index - 1))
-  ] in
-
-  ctx
-  |> Ctx.add Global.forloop forloop_obj
 
 let rec interpret ctx str = function
   | Block cmds -> interpret_block ctx str cmds
@@ -140,7 +125,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
         in
         let index = find_int "index" in
         let length = find_int "length" in
-        let nacc = make_forloop_ctx inner_ctx index length in
+        let nacc = Interpreter_objects.make_forloop_ctx inner_ctx index length in
 
         if last then Forward (rewind nacc pre_state, r_str)
         else Forward (nacc, r_str)
@@ -161,7 +146,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
     let r = if params.reved then List.rev limited else limited in
 
     let forlen = List.length r in
-    let forloop_ctx = make_forloop_ctx ctx 0 forlen in
+    let forloop_ctx = Interpreter_objects.make_forloop_ctx ctx 0 forlen in
     fold_until r (forloop_ctx, str) loop
   )
   | _ -> interpret_else ctx str else_body
@@ -174,7 +159,7 @@ and interpret_cycle ctx str ~group ~values =
     |> Values.unwrap_int ctx in
 
   let curr = nth values (index % List.length values) in
-  let nindex = num_int (index + 1) in
+  let nindex = Values.num_int (index + 1) in
   let ncycle = cycle |> Obj.add var_id nindex in
 
   let nctx = ctx |> Ctx.add Global.cycle (Object ncycle) in
@@ -192,7 +177,7 @@ and interpret_increment ctx str ~id ~exp =
       Values.unwrap_object_value_or incr var_id (Number def)
       |> Values.unwrap_int ctx in
 
-    let nval = num_int (ival + offset) in
+    let nval = Values.num_int (ival + offset) in
     let nincr = incr |> Obj.add var_id nval in
 
     let nctx = ctx |> Ctx.add Global.increment (Object nincr) in
@@ -240,6 +225,7 @@ let interpret_file filename =
     |> Ctx.add "rendered_at" (Date (Date.now ()))
     |> Ctx.add Global.cycle (Object Obj.empty)
     |> Ctx.add Global.increment (Object Obj.empty)
+    |> Ctx.add "request" (Interpreter_objects.request ())
     (* |> Ctx.add "collection" Test_data.test_collection *)
   in
   let default_str = "" in
