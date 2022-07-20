@@ -20,7 +20,13 @@ let format_date_string date_str fmat =
 let date_as_string date fmat =
   Printer.Calendar.sprint fmat date
 
+let date_as_iso_string date =
+  Printer.Calendar.sprint "%FT%T%:z" date
+
 (*
+ISO:
+2022-04-22T11:55:56-04:00
+
 FORMATTERS:
 - [%%]: a literal [%]
 - [%a]: short day name (by using a short version of [day_name])

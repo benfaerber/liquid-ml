@@ -86,12 +86,13 @@ and json_from_value ctx = function
     let olst = obj_as_list obj in
     let kv_pairs = List.map olst ~f:(fun (k, v) -> Core.sprintf "\"%s\": %s" k (json_from_value ctx v)) in
     let literal = String.concat ~sep:",\n" kv_pairs in
-    Core.sprintf "{\n%s\n}" literal
+    "{\n" ^ literal ^ "\n}"
 )
 | List lst ->
   let inner = List.map lst ~f:(json_from_value ctx) in
   "[" ^ join_by_comma inner ^ "]"
 | String s -> "\"" ^ s ^ "\""
+| Date d -> "\"" ^ Date.date_as_iso_string d ^ "\""
 | Nil -> "null"
 | other -> string_from_value ctx other
 
