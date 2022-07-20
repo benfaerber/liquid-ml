@@ -118,14 +118,6 @@ let unwrap_object_value_or obj id d =
   | Some v -> v
   | _ -> d
 
-let modify_object_value ctx name id ~init ~modifier =
-  let obj = var_from name |> Values.unwrap_object ctx in
-  let value =
-    Values.unwrap_object_value_or obj id init in
-  let nobj = obj |> Obj.add id (modifier value) in
-  Object nobj
-
-
 let is_truthy ctx v =
   match unwrap ctx v with
   | Bool false | Nil -> false

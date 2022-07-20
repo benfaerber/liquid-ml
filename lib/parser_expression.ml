@@ -60,7 +60,7 @@ let parse_expression _ = function
 
 let parse_assignment _ tokens =
   let add_increment id modifier =
-    let inc_id = "*increment." ^ join id in
+    let inc_id = Global.increment ^ "." ^ join id in
     Assignment (
       inc_id,
       Value (String modifier)

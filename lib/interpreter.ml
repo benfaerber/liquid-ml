@@ -59,12 +59,12 @@ let make_forloop_ctx ctx index length =
   ] in
 
   ctx
-  |> Ctx.add "forloop" forloop_obj
+  |> Ctx.add Global.forloop forloop_obj
 
 let rec interpret ctx str = function
   | Block cmds -> interpret_block ctx str cmds
   | Assignment (id, exp) -> (
-    if starts_with id "*increment" then
+    if starts_with id Global.increment then
       interpret_increment ctx str ~id ~exp
     else
       ctx |> Ctx.add id (interpret_expression ctx exp), str
@@ -130,7 +130,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
         Done (rewind inner_ctx pre_state, r_str)
       else
         let find_int k =
-          match Ctx.find "forloop" acc_ctx with
+          match Ctx.find Global.forloop acc_ctx with
           | Object obj -> (
             match Obj.find_opt k obj with
             | Some (Number n )-> Float.to_int n
@@ -168,7 +168,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
 and interpret_cycle ctx str ~group ~values =
   let gname = unwrap_or group "default" in
   let var_id = Core.sprintf "%s:%s" gname (join_by_underscore values) in
-  let cycle = var_from "*cycle" |> Values.unwrap_object ctx in
+  let cycle = var_from Global.cycle |> Values.unwrap_object ctx in
   let index =
     Values.unwrap_object_value_or cycle var_id (Number 0.)
     |> Values.unwrap_int ctx in
@@ -177,7 +177,7 @@ and interpret_cycle ctx str ~group ~values =
   let nindex = num_int (index + 1) in
   let ncycle = cycle |> Obj.add var_id nindex in
 
-  let nctx = ctx |> Ctx.add "*cycle" (Object ncycle) in
+  let nctx = ctx |> Ctx.add Global.cycle (Object ncycle) in
 
   nctx, str ^ curr
 
@@ -185,18 +185,19 @@ and interpret_increment ctx str ~id ~exp =
   match exp with
   | Value (String modifier) -> (
     let var_id = String.split ~on:'.' id |> List.tl_exn |> join_by_underscore in
-    let incr = var_from "*increment" |> Values.unwrap_object ctx in
+    let incr = var_from Global.increment |> Values.unwrap_object ctx in
+    let (def, offset) = if modifier = "plus" then (-1., 1) else (0., -1) in
+
     let ival =
-      Values.unwrap_object_value_or incr var_id (Number 0.)
+      Values.unwrap_object_value_or incr var_id (Number def)
       |> Values.unwrap_int ctx in
 
-    let offset = if modifier = "plus" then 1 else -1 in
     let nval = num_int (ival + offset) in
     let nincr = incr |> Obj.add var_id nval in
 
-    let nctx = ctx |> Ctx.add "*increment" (Object nincr) in
+    let nctx = ctx |> Ctx.add Global.increment (Object nincr) in
 
-    nctx, str ^ (Int.to_string ival)
+    nctx, str ^ (Values.string_from_value ctx nval)
   )
   | _ -> raise (Failure "invalid increment")
 
@@ -237,8 +238,8 @@ let interpret_file filename =
   let default_ctx =
     Ctx.empty
     |> Ctx.add "rendered_at" (Date (Date.now ()))
-    |> Ctx.add "*cycle" (Object Obj.empty)
-    |> Ctx.add "*increment" (Object Obj.empty)
+    |> Ctx.add Global.cycle (Object Obj.empty)
+    |> Ctx.add Global.increment (Object Obj.empty)
     (* |> Ctx.add "collection" Test_data.test_collection *)
   in
   let default_str = "" in
