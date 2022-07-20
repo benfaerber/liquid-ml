@@ -242,7 +242,7 @@ let interpret_file filename =
 let test () =
   (* interpret_file "liquid/interpreter_test.liquid"; *)
   (* interpret_file "liquid/forloop_vars.liquid"; *)
-  interpret_file "liquid/render_test.liquid";
+  (* interpret_file "liquid/render_test.liquid"; *)
   (* interpret_file "liquid/scope_test.liquid"; *)
   (* interpret_file "liquid/number_to_text.liquid"; *)
-  (* interpret_file "liquid/std_test.liquid"; *)
+  interpret_file "liquid/std_test.liquid";

@@ -11,12 +11,42 @@ let append ctx params =
     String (base ^ addition)
   | other -> raise (errc "append accepts 2 strings" other)
 
+let base64_decode ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> String (Base64.decode_exn s)
+  | other -> raise (errc "base64_decode accepts a string" other)
+
+let base64_encode ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> String (Base64.encode_exn s)
+  | other -> raise (errc "base64_encode accepts a string" other)
+
+let base64_url_safe_decode ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> String (Base64.decode_exn s |> decode_url)
+  | other -> raise (errc "base64_decode accepts a string" other)
+
+let base64_url_safe_encode ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> String (Base64.encode_exn s |> encode_url)
+  | other -> raise (errc "base64_encode accepts a string" other)
+
+(* The function is called camelcase but in the docs returns pascal case ??? Wierd *)
+(* TODO: does camelcase make a work that is uppercase lower? Ie my-URL -> myUrl *)
+let camelcase ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ -> (
+    let wsexp = ~/"\\s|-|_" in
+    let words = Re2.rewrite_exn wsexp ~template:" " s |> String.split ~on:' ' in
+    let cammed = List.map words ~f:capitalize_first_letter |> join in
+    String cammed
+  )
+  | other -> raise (errc "camelcase accepts a string" other)
+
 let capitalize ctx params =
   match unwrap_all ctx params with
   | String s :: _ ->
-    let capped = s |> first_letter |> String.capitalize in
-    let tl = String.sub s ~pos:1 ~len:(String.length s - 1) in
-    String (capped ^ tl)
+    String (capitalize_first_letter s)
   | other -> raise (errc "capitalize accepts a string" other)
 
 
@@ -40,6 +70,32 @@ let escape_once ctx params =
   )
   | other -> raise (errc "escape_once accepts a string" other)
 
+(* handlelize aka kebab-case *)
+let handleize ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ ->
+    let trimmed = remove_whitespace Both s in
+    let special_chars = ~/"[^a-zA-z0-9]+" in
+    let words = Re2.rewrite_exn special_chars ~template:" " trimmed |> String.split ~on:' ' in
+    let cleaned = List.filter words ~f:(fun t -> t != "") in
+    let kebab = List.map cleaned ~f:String.lowercase |> String.concat ~sep:"-" in
+    String kebab
+  | other -> raise (errc "handleize accepts a string" other)
+
+let hmac_sha1 ctx params =
+  match unwrap_all ctx params with
+  | String message :: String hash :: _ ->
+    let enc = message ^ hash |> Sha1.string |> Sha1.to_hex in
+    String enc
+  | other -> raise (errc "hmac_sha1 accepts a string and a hash (string)" other)
+
+let hmac_sha256 ctx params =
+  match unwrap_all ctx params with
+  | String message :: String hash :: _ ->
+    let enc = message ^ hash |> Sha1.string |> Sha1.to_hex in
+    String enc
+  | other -> raise (errc "hmac_sha256 accepts a string and a hash (string)" other)
+
 let lstrip ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (remove_whitespace Beginning s)
@@ -54,6 +110,14 @@ let strip ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> String (remove_whitespace Both s)
   | other -> raise (errc "strip accepts a string" other)
+
+
+let md5 ctx params =
+  match unwrap_all ctx params with
+  | String s :: _ ->
+    let enc = s |> Md5_lib.string |> Md5_lib.to_hex in
+    String enc
+  | other -> raise (errc "md5 accepts a string" other)
 
 
 let newline_to_br ctx params =
@@ -185,10 +249,18 @@ let url_decode ctx params =
 
 let function_from_id = function
   | "append" -> Some append
+  | "base64_decode" -> Some base64_decode
+  | "base64_encode" -> Some base64_encode
+  | "base64_url_safe_decode" -> Some base64_url_safe_decode
+  | "base64_url_safe_encode" -> Some base64_url_safe_encode
+  | "camelcase" -> Some camelcase
   | "capitalize" -> Some capitalize
   | "downcase" -> Some downcase
   | "escape" -> Some escape
   | "escape_once" -> Some escape_once
+  | "handleize" | "handle" -> Some handleize
+  | "hmac_sha1" -> Some hmac_sha1
+  | "hmac_sha256" -> Some hmac_sha256
   | "lstrip" -> Some lstrip
   | "newline_to_br" -> Some newline_to_br
   | "prepend" -> Some prepend
@@ -201,6 +273,7 @@ let function_from_id = function
   | "strip_html" -> Some strip_html
   | "strip_newlines" -> Some strip_newlines
   | "split" -> Some split
+  | "md5" -> Some md5
   | "truncate" -> Some truncate
   | "truncatewords" -> Some truncatewords
   | "upcase" -> Some upcase

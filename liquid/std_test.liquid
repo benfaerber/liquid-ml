@@ -133,3 +133,11 @@ endfor
 
 {{ "1 &lt; 2 &amp; 3" | escape_once }}
 {{ "Have you read 'James & the Giant Peach'?" | escape_once }}
+
+{{ "my super long-id" | camelcase}}
+
+{{ "Have you read 'James & the Giant Peach'?" | handleize }}
+
+{{ "encryt me pleas" | hmac_sha1: "this is a hash"}} -
+{{ "encryt me pleas" | hmac_sha256: "this is a hash"}} -
+{{ "encryt me pleas" | md5 }}

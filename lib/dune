@@ -1,4 +1,4 @@
 (library
  (public_name lib)
- (libraries base core stdio batteries re2 calendar)
+ (libraries base core stdio batteries re2 calendar base64 sha)
 )

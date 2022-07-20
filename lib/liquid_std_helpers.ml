@@ -58,3 +58,8 @@ let parse_weight_unit = function
   | "lb" | "lbs" | "pounds" | "pound" -> Pounds
   | "oz" | "ozs" | "ounces" | "ounce" -> Ounces
   | _ -> Pounds
+
+let capitalize_first_letter s =
+  let capped = s |> first_letter |> String.capitalize in
+  let tl = String.sub s ~pos:1 ~len:(String.length s - 1) in
+  capped ^ tl
