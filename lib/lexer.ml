@@ -179,7 +179,7 @@ let lex_line_tokens text =
   in
 
   let raw_list = unfold [] 0 folder in
-  let wo_spaces = List.filter raw_list ~f:(fun token -> Caml.(!=) Space token) in
+  let wo_spaces = List.filter raw_list ~f:(fun token -> token != Space) in
 
   wo_spaces
 

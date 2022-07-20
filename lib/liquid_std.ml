@@ -77,7 +77,7 @@ let default ctx params =
     if comp ctx a then a else b
   )
   | a :: b :: _ -> if Values.is_truthy ctx a then a else b
-  | other -> raise (errc "Default accepts 2 values and an optional named argument allow_false" other)
+  | other -> raise (errc "default accepts 2 values and an optional named argument allow_false" other)
 
 (* TODO: Look into liquid int/float distinction *)
 let divided_by ctx params =
@@ -120,11 +120,20 @@ let floor ctx params =
   | other -> raise (errc "floor accepts a number or a string containing a number" other)
 
 let join ctx params =
-  match unwrap_all ctx params with
-  | List lst :: String delim :: _ ->
+  let joiner lst delim =
     let vs = List.map (unwrap_all ctx lst) ~f:(string_from_value ctx) in
     String (String.concat ~sep:delim vs)
+  in
+
+  match unwrap_all ctx params with
+  | List lst :: String delim :: _ -> joiner lst delim
+  | List lst :: _ -> joiner lst " "
   | other -> raise (errc "join accepts a list and a delimiter (string)" other)
+
+let json ctx params =
+  match unwrap_all ctx params with
+  | v :: _ -> String (Values.json_from_value ctx v)
+  | other -> raise (errc "json conversion failed!" other)
 
 let last ctx params =
   match unwrap_all ctx params with
@@ -151,14 +160,8 @@ let strip ctx params =
 let map ctx params =
   match unwrap_all ctx params with
   | List lst :: String key :: _ ->
-    let get_key =
-      function
-      | Object obj -> (match Obj.find_opt key obj with Some x -> x | _ -> Nil)
-      | _ -> raise (err "map can only be used on a list of objects")
-    in
-
-    let mapped_lst = List.map lst ~f:get_key in
-    List mapped_lst
+    let mapped = extract_key_from_object_list lst key in
+    List mapped
   | other -> raise (errc "map accepts a list and a key (string)" other)
 
 
@@ -241,6 +244,39 @@ let size ctx params =
   | other -> raise (errc "size accepts a list or a string" other)
 
 (* TODO: SOrt *)
+
+let sort ctx params =
+  match unwrap_all ctx params with
+  | List lst :: String key :: _ ->
+    let mapped = extract_key_from_object_list lst key in
+    let sorted = List.sort mapped ~compare:Values.compare_value in
+    List sorted
+  | List lst :: _ ->
+    let sorted = List.sort lst ~compare:Values.compare_value in
+    List sorted
+  | other -> raise (errc "sort accepts a list an optional object key" other)
+
+let sort_natural ctx params =
+  let comp_key = function
+    | String t ->
+      let whitespace_exp = ~/"\\s|-|_" in
+      Re2.rewrite_exn whitespace_exp ~template:"" t
+      |> String.lowercase
+    | v -> Values.string_from_value ctx v
+  in
+
+  let compare a b = String.compare (comp_key a) (comp_key b) in
+
+  match unwrap_all ctx params with
+  | List lst :: String key :: _ ->
+    let mapped = extract_key_from_object_list lst key in
+    let sorted = List.sort mapped ~compare in
+    List sorted
+  | List lst :: _ ->
+    let sorted = List.sort lst ~compare in
+    List sorted
+  | other -> raise (errc "sort_natural accepts a list an optional object key" other)
+
 
 let strip_html ctx params =
   match unwrap_all ctx params with
@@ -388,6 +424,7 @@ let function_from_id = function
   | "first" -> first
   | "floor" -> floor
   | "join" -> join
+  | "json" -> json
   | "last" -> last
   | "lstrip" -> lstrip
   | "map" -> map
@@ -409,6 +446,8 @@ let function_from_id = function
   | "strip_newlines" -> strip_newlines
   | "slice" -> slice
   | "split" -> split
+  | "sort" -> sort
+  | "sort_natural" -> sort_natural
   | "times" -> times
   | "truncate" -> truncate
   | "truncatewords" -> truncatewords

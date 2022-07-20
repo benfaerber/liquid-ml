@@ -55,7 +55,7 @@ let rec interpret ctx str = function
       ctx |> Ctx.add id (interpret_expression ctx exp), str
   )
   | Test (cond, body, else_body) -> interpret_test ctx str ~cond ~body ~else_body
-  | For (id, value, params, body, else_body) -> interpret_for ctx str ~alias:id ~iterable:value ~params ~body ~else_body
+  | For (alias, iterable, params, body, else_body) -> interpret_for ctx str ~alias ~iterable ~params ~body ~else_body
   | Cycle (group, values) -> interpret_cycle ctx str ~group ~values
   | Render (filename, render_ctx, body) -> interpret_render ctx str ~filename ~render_ctx ~body
   | Include filename -> interpret_include ctx str ~filename
@@ -199,7 +199,7 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
   ctx, str ^ rendered_text
 
 
-let does_log = false
+let does_log = true
 let plog f v = if does_log then f v
 let pwrite fname text = File.write ("logs/" ^ fname) text
 

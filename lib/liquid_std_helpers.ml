@@ -34,3 +34,13 @@ let apply_op op ctx params =
   | Number a :: Number b :: _ ->
     Number (op a b)
   | other -> raise (errc "operator accepts 2 numbers" other)
+
+
+let extract_key_from_object_list lst key =
+  let lookup_key =
+    function
+    | Object obj -> (match Obj.find_opt key obj with Some x -> x | _ -> Nil)
+    | _ -> raise (err "map can only be used on a list of objects")
+  in
+
+  List.map lst ~f:lookup_key

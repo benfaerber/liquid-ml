@@ -13,6 +13,11 @@ module LiquidObject =
 
 module Obj = Caml.Map.Make(LiquidObject)
 
+let obj_as_list obj =
+  Obj.to_seq obj
+  |> Caml.Seq.fold_left (fun acc curr -> acc @ [curr]) []
+
+
 module VariableContext =
   struct
     type t = string

@@ -56,6 +56,41 @@ Horse:
 {%- endcomment -%}
 
 {% assign prods = collection.products %}
+
+
+{%- comment -%}
 {{ collection.products[1] }}
 {{ collection.products.first.title }}
 {{ prods.last.title }}
+
+Look into:
+{% assign titles = collections.products | map: "title" %}
+{%- endcomment -%}
+-
+{% assign titles = collection.products | map: "title" %}
+{{ titles | join }}
+-
+
+{% assign animals = "dog,cat,sheep,bat,horse,animal" | split: "," %}
+
+{{ animals | sort }}
+
+-
+
+{% capture test_product_titles %}
+extra-potent
+| extracts
+| fresh
+| healing
+| Burning
+| dried
+| ingredients
+| Salty
+| supplies
+| music
+| plant
+{% endcapture %}
+{% assign test_product_titles = test_product_titles | remove: "\n" | split: "|" %}
+{{ test_product_titles | sort_natural }}
+
+{{ collection.products | json }}

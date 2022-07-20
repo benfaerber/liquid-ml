@@ -69,9 +69,9 @@ and unwrap_chain ctx id =
   v
 
 let rec string_from_value ctx = function
-| Bool(b) -> (if b then "true" else "false")
-| String(s) -> s
-| Number(f) -> (
+| Bool b -> (if b then "true" else "false")
+| String s -> s
+| Number f -> (
   if Float.round_down f = f then
     Core.sprintf "%d" (Float.to_int f)
   else
@@ -79,8 +79,32 @@ let rec string_from_value ctx = function
 | Var id -> string_from_value ctx (unwrap ctx (Var id))
 | Nil -> "nil"
 | List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
-| Object obj -> Debug.object_as_string obj
-| _ -> "Unknown"
+| Object obj -> json_from_value ctx (Object obj)
+| Date d -> Date.date_as_string d "%Y-%m-%d %H:%M"
+and json_from_value ctx = function
+| Object obj -> (
+    let olst = obj_as_list obj in
+    let kv_pairs = List.map olst ~f:(fun (k, v) -> Core.sprintf "\"%s\": %s" k (json_from_value ctx v)) in
+    let literal = String.concat ~sep:",\n" kv_pairs in
+    Core.sprintf "{\n%s\n}" literal
+)
+| List lst ->
+  let inner = List.map lst ~f:(json_from_value ctx) in
+  "[" ^ join_by_comma inner ^ "]"
+| String s -> "\"" ^ s ^ "\""
+| Nil -> "null"
+| other -> string_from_value ctx other
+
+let compare_value pa pb =
+  match (pa, pb) with
+  | Bool a, Bool b -> Bool.compare a b
+  | Number a, Number b -> Float.compare a b
+  | String a, String b -> String.compare a b
+  | List a, List b -> Int.compare (List.length a) (List.length b)
+  | Object _, Object _ -> 0
+  | _, Nil -> -1
+  | Nil, _ -> 1
+  | _ -> 0
 
 let unwrap_render_context ~outer_ctx ~render_ctx =
   let seq = Syntax.Ctx.to_seq render_ctx in
