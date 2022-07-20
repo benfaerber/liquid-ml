@@ -39,7 +39,6 @@ type value =
   | Date of Date.t
   | Object of value Obj.t
   | Nil
-  | Skip
 
 type expression =
   | Value of value
@@ -61,11 +60,6 @@ type for_params =
   ; reved: bool
   ; cols: int
   ; is_tablerow: bool
-  }
-
-type render_variable_context =
-  { variable: value
-  ; value: value
   }
 
 type ast =

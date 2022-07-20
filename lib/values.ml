@@ -12,31 +12,27 @@ let without_last id =
   id |> List.rev |> List.tl_exn |> List.rev
 
 let is_index id =
-  match id |> List.rev |> List.hd with
-  | Some hd -> Re2.matches (Re2.create_exn "^\\d+") hd
+  match List.last id with
+  | Some hd ->
+    let digit = Re2.create_exn "^\\d+" in
+    Re2.matches digit hd
   | _ -> false
 
 let rec unwrap ctx = function
-  | Var id when is_calling ctx id "first" -> (
+  | Var id when is_calling ctx id "first" ->
     let lst = unwrap_list ctx id in
     unwrap_or (List.hd lst) Nil
-  )
-  | Var id when is_calling ctx id "last" -> (
+  | Var id when is_calling ctx id "last" ->
     let lst = unwrap_list ctx id in
     unwrap_or (List.last lst) Nil
-  )
-  | Var id when is_calling ctx id "size" -> (
+  | Var id when is_calling ctx id "size" ->
     let lst = unwrap_list ctx id in
     Number (List.length lst |> Int.to_float)
-  )
-  | Var id when is_index id -> (
+  | Var id when is_index id ->
     let index = id |> List.last_exn |> Int.of_string in
     let lst = unwrap_list ctx id in
     unwrap_or (List.nth lst index) Nil
-  )
-  | Var [id] -> (
-    find ctx id
-  )
+  | Var [id] -> find ctx id
   | Var id -> unwrap_chain ctx id
   | other -> other
 and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx

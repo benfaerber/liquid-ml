@@ -104,7 +104,6 @@ let rec value_as_string = function
   | Object obj -> (
     Core.sprintf "\n  Obj(%s)" (object_as_string obj)
   )
-  | Skip -> "Skip"
 and object_as_string obj =
   let seq = Syntax.Obj.to_seq obj in
   let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
