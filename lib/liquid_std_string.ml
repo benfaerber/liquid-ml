@@ -130,6 +130,14 @@ let newline_to_br ctx params =
   | other -> raise (errc "newline_to_br accepts a string" other)
 
 
+let pluralize ctx params =
+  match unwrap_all ctx params with
+  | Number n :: String singular :: String plural :: _ ->
+    let l = if n = 1. then singular else plural in
+    String l
+  | other -> raise (errc "pluralize accepts a number, a singular string and a plural string" other)
+
+
 let prepend ctx params =
   match unwrap_all ctx params with
   | String base :: String addition :: _ ->
@@ -147,11 +155,17 @@ let remove ctx params =
 let remove_first ctx params =
   match unwrap_all ctx params with
   | String haystack :: String needle :: _ ->
-    let exp = Re2.create_exn needle in
-    let first_chunk = Re2.find_first_exn exp haystack in
-    let wo_first_chunk = remove_prefix haystack first_chunk in
-    let repped_first = Re2.rewrite_exn exp ~template:"" first_chunk in
-    String (repped_first ^ wo_first_chunk)
+    let s = String.substr_replace_first haystack ~pattern:needle ~with_:"" in
+    String s
+  | other -> raise (errc "remove_fist accepts 2 strings" other)
+
+
+let remove_last ctx params =
+  match unwrap_all ctx params with
+  | String haystack :: String needle :: _ ->
+    let rhaystack, rneedle = String.rev haystack, String.rev needle in
+    let s = String.substr_replace_first rhaystack ~pattern:rneedle ~with_:"" in
+    String (String.rev s)
   | other -> raise (errc "remove_fist accepts 2 strings" other)
 
 
@@ -264,8 +278,10 @@ let function_from_id = function
   | "lstrip" -> Some lstrip
   | "newline_to_br" -> Some newline_to_br
   | "prepend" -> Some prepend
+  | "pluralize" -> Some pluralize
   | "remove" -> Some remove
   | "remove_first" -> Some remove_first
+  | "remove_last" -> Some remove_last
   | "replace" -> Some replace
   | "replace_first" -> Some replace_first
   | "rstrip" -> Some rstrip

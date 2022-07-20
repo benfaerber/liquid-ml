@@ -141,3 +141,10 @@ endfor
 {{ "encryt me pleas" | hmac_sha1: "this is a hash"}} -
 {{ "encryt me pleas" | hmac_sha256: "this is a hash"}} -
 {{ "encryt me pleas" | md5 }}
+
+{{ 1 | pluralize: 'pea', 'peas'}}
+{{ 2 | pluralize: 'horse', 'horses'}}
+
+{{ "my dog went to the doghouse" | remove: "dog"}} -
+{{ "my dog went to the doghouse" | remove_first: "dog"}} -
+{{ "my dog went to the doghouse" | remove_last: "dog"}} -
