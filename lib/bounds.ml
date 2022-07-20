@@ -51,16 +51,10 @@ let bounds_from_opener = function
   | _ -> None
 
 
-
 let remove_last lst =
   match List.rev lst with
   | _ :: hds -> List.rev hds
   | [] -> []
-
-let is_opener token =
-  match bounds_from_opener token with
-  | Some _ -> true
-  | None -> false
 
 let pair_up_bounds bounds =
   let rec aux acc =

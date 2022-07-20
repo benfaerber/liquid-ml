@@ -23,7 +23,7 @@ let rec unwrap ctx = function
   )
   | Var id when is_calling ctx id "last" -> (
     let lst = unwrap_list ctx id in
-    unwrap_or (lst |> List.last) Nil
+    unwrap_or (List.last lst) Nil
   )
   | Var id when is_calling ctx id "size" -> (
     let lst = unwrap_list ctx id in
