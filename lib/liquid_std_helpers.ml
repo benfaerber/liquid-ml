@@ -44,3 +44,17 @@ let extract_key_from_object_list lst key =
   in
 
   List.map lst ~f:lookup_key
+
+type weight_units = Grams | Kilograms | Pounds | Ounces
+let weight_unit_as_string = function
+  | Grams -> "g"
+  | Kilograms -> "kg"
+  | Pounds -> "lbs"
+  | Ounces -> "ozs"
+
+let parse_weight_unit = function
+  | "g" | "gs" | "grams" | "gram" -> Grams
+  | "kg" | "kgs" | "kilograms" | "kilogram" -> Kilograms
+  | "lb" | "lbs" | "pounds" | "pound" -> Pounds
+  | "oz" | "ozs" | "ounces" | "ounce" -> Ounces
+  | _ -> Pounds

@@ -4,6 +4,7 @@ let mountain_time = Time_Zone.UTC_Plus 6
 let () = Time_Zone.change mountain_time
 
 type t = Calendar.t
+let iso_format = "%FT%T%:z"
 
 let now = Calendar.now
 
@@ -21,7 +22,7 @@ let date_as_string date fmat =
   Printer.Calendar.sprint fmat date
 
 let date_as_iso_string date =
-  Printer.Calendar.sprint "%FT%T%:z" date
+  Printer.Calendar.sprint iso_format date
 
 (*
 ISO:

@@ -406,6 +406,14 @@ let where ctx params =
     do_where lst key (Values.is_truthy ctx)
   | other -> raise (errc "where accepts a list, a key (string) and an optional test value (any)" other)
 
+let weight_with_unit ctx params =
+  match unwrap_all ctx params with
+  | Number n :: String u :: _ ->
+    let weight_unit = parse_weight_unit u |> weight_unit_as_string in
+    let literal = Values.string_from_value ctx (Number n) ^ " " ^ weight_unit in
+    String literal
+  | other -> raise (errc "weight_with_unit accepts a number and an optional unit name" other)
+
 let function_from_id = function
   | "abs" -> abs
   | "append" -> append
@@ -456,4 +464,5 @@ let function_from_id = function
   | "url_decode" -> url_decode
   | "url_encode" -> url_encode
   | "where" -> where
+  | "weight_with_unit" -> weight_with_unit
   | other -> Failure (Core.sprintf "Unknown function %s!" other) |> raise
