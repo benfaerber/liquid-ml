@@ -1,3 +1,3 @@
 let test () =
-  Interpreter.test ();
+  Liquid.test ();
   Stdio.print_endline "";

@@ -219,13 +219,7 @@ let lex_all_tokens (block_tokens: block_token list) =
   base_lex |> echo_to_expression
 
 
-let lex_text text =
+let lex text =
   text
   |> lex_block_tokens
   |> lex_all_tokens
-
-let lex_file fname =
-  fname
-  |> File.read
-  |> Preprocessor.preprocess
-  |> lex_text

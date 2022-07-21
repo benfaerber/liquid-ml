@@ -5,12 +5,43 @@ open Tools
 let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
+let value_from_error_policy = function
+  | Global.Strict -> String "strict"
+  | Warn -> String "warn"
+  | Silent -> String "silent"
+
+let error_policy_from_value = function
+  | String "strict" -> Global.Strict
+  | String "warn" -> Warn
+  | String "silent" -> Silent
+  | _ -> Global.Strict
+
+let error_policy ctx =
+  Values.unwrap ctx (Var [Global.error_policy_key])
+  |> error_policy_from_value
+
+let ast_from_file filename =
+  let filepath = Core.sprintf "liquid/%s.liquid" filename in
+  let raw_text = File.read filepath in
+  let ast =
+    raw_text
+    |> Preprocessor.preprocess
+    |> Lexer.lex
+    |> Parser.parse
+  in
+  ast
+
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
   let std_lib_func = Liquid_std.function_from_id name in
   match std_lib_func ctx params with
   | Ok res -> res
-  | Error err -> raise (Failure err)
+  | Error err -> (
+    match error_policy ctx with
+    | Global.Strict -> Invalid_argument err |> raise
+    | Warn -> Stdio.print_endline err; Nil
+    | Silent -> Nil
+  )
 
 let rec interpret_expression ctx = function
   | Value v -> Values.unwrap ctx v
@@ -36,16 +67,6 @@ let rec interpret_condition ctx = function
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
   | IsTruthy v -> Values.is_truthy ctx v
 
-let ast_from_file filename =
-  let filepath = Core.sprintf "liquid/%s.liquid" filename in
-  let raw_text = File.read filepath in
-  let ast =
-    raw_text
-    |> Preprocessor.preprocess
-    |> Lexer.lex_text
-    |> Parser.parse_block
-  in
-  ast
 
 
 let rec interpret ctx str = function
@@ -202,55 +223,15 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
   let (_, rendered_text) = interpret val_ctx "" ast in
   ctx, str ^ rendered_text
 
-let default_ctx =
+let make_ctx (settings: Global.interpreter_settings) =
   Ctx.empty
-  |> Ctx.add "rendered_at" (Date (Date.now ()))
   |> Ctx.add Global.cycle (Object Obj.empty)
   |> Ctx.add Global.increment (Object Obj.empty)
   |> Ctx.add "request" (Interpreter_objects.request ())
   |> Ctx.add "collection" Test_data.test_collection
+  |> Ctx.add Global.error_policy_key (value_from_error_policy settings.error_policy)
 
-let does_log = false
-let plog f v = if does_log then f v
-let pwrite fname text = File.write ("logs/" ^ fname) text
-
-let interpret_from_file filename =
-  let (_, text) = filename |> ast_from_file |> interpret default_ctx "" in
+let start settings ast =
+  let ctx = make_ctx settings in
+  let (_, text) = interpret ctx "" ast in
   text
-
-let interpret_file filename =
-  let raw_text =
-    filename
-    |> File.read
-    |> Preprocessor.preprocess
-  in
-
-  let tokens = raw_text |> Lexer.lex_text in
-  plog Debug.print_lex_tokens_with_index tokens;
-  pwrite "tokens.txt" (Debug.lex_tokens_as_string_with_index tokens);
-  plog Debug.print_line ();
-  let ast = tokens |> Parser.parse_block in
-
-  plog Debug.print_ast ast;
-  pwrite "ast.txt" (Debug.ast_as_string ast);
-  plog Debug.print_line();
-
-
-  let default_str = "" in
-
-  let (final_ctx, final_str) = interpret default_ctx default_str ast in
-  plog Debug.print_variable_context final_ctx;
-  pwrite "final_ctx.txt" (Debug.variable_context_as_string final_ctx);
-  plog Stdio.print_endline "Render:";
-  plog Debug.print_rendered final_str;
-  pwrite "render.txt" final_str;
-
-  ()
-
-let test () =
-  (* interpret_file "liquid/interpreter_test.liquid"; *)
-  (* interpret_file "liquid/forloop_vars.liquid"; *)
-  (* interpret_file "liquid/render_test.liquid"; *)
-  (* interpret_file "liquid/scope_test.liquid"; *)
-  (* interpret_file "liquid/number_to_text.liquid"; *)
-  interpret_file "liquid/std_test.liquid";

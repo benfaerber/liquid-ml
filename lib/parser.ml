@@ -70,7 +70,7 @@ let rec first_successful block_parser tokens =
   | _ -> None
 
 
-let rec parse_block init_tokens =
+let rec parse init_tokens =
   let folder block tokens =
     match parse_one tokens with
     | Some (got, rest) ->
@@ -93,31 +93,4 @@ and parse_one tokens =
     ; parse_expression
     ; parse_other ] in
 
-  first_successful parse_block tokens parsers
-
-
-let log_tokens = true
-let should_log = true
-let log r = if should_log then Stdio.print_endline r else ()
-
-let test_liquid_block liq =
-  if should_log then Debug.print_line ();
-  log (liq |> Preprocessor.preprocess);
-  if should_log then Debug.print_line ();
-  let tokens = liq |> Preprocessor.preprocess |> Lexer.lex_text in
-  if should_log then Stdio.print_endline "Tokens:";
-  if should_log then Debug.print_lex_tokens_with_index tokens;
-  if should_log then Debug.print_line ();
-  let res = parse_block tokens in
-  log "Parse Result:";
-  if should_log then  Debug.print_ast res;
-;;
-
-let test_liquid_file filename =
-  filename |> File.read |> test_liquid_block
-
-let test () =
-  (* test_liquid_block "{% assign animal = \"horse\" | capitilize %}";
-  test_liquid_block "hello there"; *)
-  (* test_liquid_file "liquid/if_else_test.liquid"; *)
-    test_liquid_file "liquid/case_test.liquid";
+  first_successful parse tokens parsers

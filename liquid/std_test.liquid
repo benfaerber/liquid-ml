@@ -154,3 +154,5 @@ endfor
 {{ 100.2 | money_with_currency }} -
 {{ 2322 | money_without_currency }} -
 {{ 2.252 | money_without_trailing_zeros }}
+
+{{ "incorrect use" | plus: 909 | slice: "ss"}}
