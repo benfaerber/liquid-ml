@@ -6,18 +6,15 @@ open Tools
 open Values
 open Helpers
 
-let compact ctx params =
-  match params with
+let compact ctx = function
   | List lst :: _ -> List.filter lst ~f:(Values.is_not_nil ctx) |> ok_list
   | other -> errc "compact accepts a list" other
 
-let concat _ params =
-  match params with
+let concat _ = function
   | List a :: List b :: _ -> a @ b |> ok_list
   | other -> errc "concat accepts 2 lists" other
 
-let first _ params =
-  match params with
+let first _ = function
   | List (hd :: _) :: _ -> hd |> ok
   | other -> errc "first accepts a list" other
 
@@ -34,34 +31,29 @@ let join ctx params =
   | other -> errc "join accepts a list and a delimiter (string)" other
 
 
-let last _ params =
-  match params with
+let last _ = function
   | List [] :: _ -> Nil |> ok
   | List lst :: _ -> lst |> List.rev |> List.hd_exn |> ok
   | other -> errc "last accepts a list" other
 
-let map _ params =
-  match params with
+let map _ = function
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     mapped |> ok_list
   | other -> errc "map accepts a list and a key (string)" other
 
 
-let reverse _ params =
-  match params with
+let reverse _ = function
   | List lst :: _ -> List.rev lst |> ok_list
   | other -> errc "reverse accepts a list" other
 
 
-let size _ params =
-  match params with
+let size _  = function
   | List lst :: _ -> lst |> List.length |> Int.to_float |> ok_num
   | String s :: _ -> s |> String.length |> Int.to_float |> ok_num
   | other -> errc "size accepts a list or a string" other
 
-let sort _ params =
-  match params with
+let sort _ = function
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     let sorted = List.sort mapped ~compare:Values.compare_value in
@@ -119,8 +111,7 @@ let slice _ params =
   | other -> errc "slice accepts a string or list as well as a start index and optional stop index" other
 
 
-let uniq _ params =
-  match params with
+let uniq _ = function
   | List lst :: _ ->
     let folder acc curr = if Tools.contains acc curr then acc else acc @ [curr] in
     let rl = List.fold_left lst ~init:[] ~f:folder in

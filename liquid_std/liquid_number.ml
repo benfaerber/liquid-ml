@@ -13,14 +13,12 @@ let abs _ params =
 let at_least = pick_at_by_op Float.(<)
 let at_most = pick_at_by_op Float.(>)
 
-let ceil _ params =
-  match params with
+let ceil _ = function
   | Number n :: _ -> Float.round_up n |> ok_num
   | String s :: _ -> s |> Float.of_string |> Float.round_up |> ok_num
   | other -> errc "ceil takes a number" other
 
-let divided_by _ params =
-  match params with
+let divided_by _ = function
   | Number _ :: Number 0. :: _ ->
     err "Cannot divide by zero!"
   | Number a :: Number b :: _ ->
@@ -28,8 +26,7 @@ let divided_by _ params =
   | other -> errc "divided_by accepts 2 numbers" other
 
 
-let floor _ params =
-  match params with
+let floor _ = function
   | Number n :: _ -> Float.round_down n |> ok_num
   | String s :: _ -> s |> Float.of_string |> Float.round_down |> ok_num
   | other -> errc "floor accepts a number or a string containing a number" other
@@ -40,8 +37,7 @@ let modulo = apply_op Float.(%)
 let plus = apply_op Float.(+)
 let times = apply_op Float.( * )
 
-let round _ params =
-  match params with
+let round _ = function
   | Number a :: Number fplaces :: _ -> (
     let places = Float.to_int fplaces in
     Float.round_decimal a ~decimal_digits:places |> ok_num
@@ -49,8 +45,7 @@ let round _ params =
   | Number a :: _ -> Float.round_nearest a |> ok_num
   | other -> errc "round accepts a number and an option number of decimal places" other
 
-let weight_with_unit ctx params =
-  match params with
+let weight_with_unit ctx = function
   | Number n :: String u :: _ ->
     let weight_unit = parse_weight_unit u |> weight_unit_as_string in
     let literal = Values.string_from_value ctx (Number n) ^ " " ^ weight_unit in
@@ -58,27 +53,26 @@ let weight_with_unit ctx params =
   | other -> errc "weight_with_unit accepts a number and an optional unit name" other
 
 
-let money ctx params =
-  let info = Settings_ctx.preferred_currency_info ctx in
-  match params with
-  | Number n :: _ -> format_money_symbol info n |> ok_str
+let money ctx = function
+  | Number n :: _ ->
+    let info = Settings_ctx.preferred_currency_info ctx in
+    format_money_symbol info n |> ok_str
   | other -> errc "money accepts a number" other
 
-let money_with_currency ctx params =
-  let info = Settings_ctx.preferred_currency_info ctx in
-  match params with
-  | Number n :: _ -> format_money_currency info n |> ok_str
+let money_with_currency ctx = function
+  | Number n :: _ ->
+    let info = Settings_ctx.preferred_currency_info ctx in
+    format_money_currency info n |> ok_str
   | other -> errc "money_with_currency accepts a number" other
 
-let money_without_currency _ params =
-  match params with
+let money_without_currency _ = function
   | Number n :: _ -> format_money_number n |> ok_str
   | other -> errc "money_without_currency accepts a number" other
 
-let money_without_trailing_zeros ctx params =
-  let info = Settings_ctx.preferred_currency_info ctx in
-  match params with
-  | Number n :: _ -> format_money_symbol_no_zeros info n |> ok_str
+let money_without_trailing_zeros ctx = function
+  | Number n :: _ ->
+    let info = Settings_ctx.preferred_currency_info ctx in
+    format_money_symbol_no_zeros info n |> ok_str
   | other -> errc "money_without_trailing_zeros accepts a number" other
 
 
