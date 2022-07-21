@@ -200,10 +200,21 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
   let (_, rendered_text) = interpret val_ctx "" ast in
   ctx, str ^ rendered_text
 
+let default_ctx =
+  Ctx.empty
+  |> Ctx.add "rendered_at" (Date (Date.now ()))
+  |> Ctx.add Global.cycle (Object Obj.empty)
+  |> Ctx.add Global.increment (Object Obj.empty)
+  |> Ctx.add "request" (Interpreter_objects.request ())
+  |> Ctx.add "collection" Test_data.test_collection
 
 let does_log = false
 let plog f v = if does_log then f v
 let pwrite fname text = File.write ("logs/" ^ fname) text
+
+let interpret_from_file filename =
+  let (_, text) = filename |> ast_from_file |> interpret default_ctx "" in
+  text
 
 let interpret_file filename =
   let raw_text =
@@ -222,14 +233,7 @@ let interpret_file filename =
   pwrite "ast.txt" (Debug.ast_as_string ast);
   plog Debug.print_line();
 
-  let default_ctx =
-    Ctx.empty
-    |> Ctx.add "rendered_at" (Date (Date.now ()))
-    |> Ctx.add Global.cycle (Object Obj.empty)
-    |> Ctx.add Global.increment (Object Obj.empty)
-    |> Ctx.add "request" (Interpreter_objects.request ())
-    |> Ctx.add "collection" Test_data.test_collection
-  in
+
   let default_str = "" in
 
   let (final_ctx, final_str) = interpret default_ctx default_str ast in
