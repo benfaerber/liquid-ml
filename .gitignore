@@ -3,3 +3,4 @@ _build/*
 .vscode
 _esy
 logs/*
+.DS_Store
