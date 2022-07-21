@@ -1,3 +1,3 @@
-open Liquidml
+open Liquid_ml
 
 let () = Liquid.test()

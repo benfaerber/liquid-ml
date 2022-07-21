@@ -1,4 +1,4 @@
 (library
- (public_name liquidml)
+ (public_name liquid_ml)
  (libraries base core stdio liquid_syntax liquid_parser liquid_interpreter)
 )
