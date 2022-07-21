@@ -7,17 +7,17 @@ open Values
 open Helpers
 
 let compact ctx params =
-  match unwrap_all ctx params with
+  match params with
   | List lst :: _ -> List.filter lst ~f:(Values.is_not_nil ctx) |> ok_list
   | other -> errc "compact accepts a list" other
 
-let concat ctx params =
-  match unwrap_all ctx params with
+let concat _ params =
+  match params with
   | List a :: List b :: _ -> a @ b |> ok_list
   | other -> errc "concat accepts 2 lists" other
 
-let first ctx params =
-  match unwrap_all ctx params with
+let first _ params =
+  match params with
   | List (hd :: _) :: _ -> hd |> ok
   | other -> errc "first accepts a list" other
 
@@ -28,40 +28,40 @@ let join ctx params =
     String.concat ~sep:delim vs |> ok_str
   in
 
-  match unwrap_all ctx params with
+  match params with
   | List lst :: String delim :: _ -> joiner lst delim
   | List lst :: _ -> joiner lst " "
   | other -> errc "join accepts a list and a delimiter (string)" other
 
 
-let last ctx params =
-  match unwrap_all ctx params with
+let last _ params =
+  match params with
   | List [] :: _ -> Nil |> ok
   | List lst :: _ -> lst |> List.rev |> List.hd_exn |> ok
   | other -> errc "last accepts a list" other
 
-let map ctx params =
-  match unwrap_all ctx params with
+let map _ params =
+  match params with
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     mapped |> ok_list
   | other -> errc "map accepts a list and a key (string)" other
 
 
-let reverse ctx params =
-  match unwrap_all ctx params with
+let reverse _ params =
+  match params with
   | List lst :: _ -> List.rev lst |> ok_list
   | other -> errc "reverse accepts a list" other
 
 
-let size ctx params =
-  match unwrap_all ctx params with
+let size _ params =
+  match params with
   | List lst :: _ -> lst |> List.length |> Int.to_float |> ok_num
   | String s :: _ -> s |> String.length |> Int.to_float |> ok_num
   | other -> errc "size accepts a list or a string" other
 
-let sort ctx params =
-  match unwrap_all ctx params with
+let sort _ params =
+  match params with
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     let sorted = List.sort mapped ~compare:Values.compare_value in
@@ -82,7 +82,7 @@ let sort_natural ctx params =
 
   let compare a b = String.compare (comp_key a) (comp_key b) in
 
-  match unwrap_all ctx params with
+  match params with
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     let sorted = List.sort mapped ~compare in
@@ -94,7 +94,7 @@ let sort_natural ctx params =
 
 
 (* TODO: Implement negative indexs *)
-let slice ctx params =
+let slice _ params =
   let do_slice slicer lengther lst fstart fstop =
     let start, stop = fi fstart, fi fstop in
     if start >= 0 then
@@ -107,7 +107,7 @@ let slice ctx params =
   let do_slice_string = do_slice String.sub String.length in
   let do_slice_list = do_slice List.sub List.length in
 
-  match unwrap_all ctx params with
+  match params with
   | String s :: Number fstart :: Number fstop :: _ ->
     do_slice_string s fstart fstop |> ok_str
   | String s :: Number findex :: _ ->
@@ -119,8 +119,8 @@ let slice ctx params =
   | other -> errc "slice accepts a string or list as well as a start index and optional stop index" other
 
 
-let uniq ctx params =
-  match unwrap_all ctx params with
+let uniq _ params =
+  match params with
   | List lst :: _ ->
     let folder acc curr = if Tools.contains acc curr then acc else acc @ [curr] in
     let rl = List.fold_left lst ~init:[] ~f:folder in
@@ -142,7 +142,7 @@ let where ctx params =
     filtered_lst |> ok_list
   in
 
-  match unwrap_all ctx params with
+  match params with
   | List lst :: String key :: test_value :: _ ->
     do_where lst key (Values.eq ctx test_value)
   | List lst :: String key :: _ ->

@@ -45,6 +45,7 @@ let ast_from_file filename =
 
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
+  let unwrapped_params = Values.unwrap_all ctx params in
   let func =
     match Std.function_from_id name with
     | Some func -> func
@@ -56,7 +57,7 @@ let interpret_function ctx name params =
     )
   in
 
-  match func ctx params with
+  match func ctx unwrapped_params with
   | Ok res -> res
   | Error err -> (
     match Settings_ctx.error_policy ctx with

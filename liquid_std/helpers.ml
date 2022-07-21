@@ -2,7 +2,6 @@ open Base
 open Liquid_syntax
 open Syntax
 open Tools
-open Values
 
 let fi = Float.to_int
 let identity _ params = List.hd_exn params
@@ -27,15 +26,15 @@ let remove_whitespace remover text =
 
   Re2.rewrite_exn exp ~template:"" text
 
-let pick_at_by_op op ctx params =
-  match unwrap_all ctx params with
+let pick_at_by_op op _ params =
+  match params with
   | Number a :: Number b :: _ -> Number (if op a b then a else b) |> ok
   | other -> errc "at_most/at_least accepts 2 numbers" other
 
 
 (* NOTE: For incr, decr to work, it must tolerate nil value. Maybe create incr_op func? *)
-let apply_op op ctx params =
-  match unwrap_all ctx params with
+let apply_op op _ params =
+  match params with
   | Nil :: Number b :: _ -> Number (op 0. b) |> ok
   | Number a :: Number b :: _ ->
     Number (op a b) |> ok
