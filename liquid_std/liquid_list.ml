@@ -4,7 +4,7 @@ open Liquid_syntax
 open Syntax
 open Tools
 open Values
-open Liquid_std_helpers
+open Helpers
 
 let compact ctx params =
   match unwrap_all ctx params with

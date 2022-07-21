@@ -110,13 +110,6 @@ let for_params_default =
   ; is_tablerow = false
   }
 
-let make_obj pairs =
-  Object (
-    List.fold pairs ~init:Obj.empty ~f:(fun acc (k, v) -> acc |> Obj.add k v)
-  )
-
-let p a b = a, b
-
 let save_state ctx =
   let seq = Ctx.to_seq ctx in
   let mapped = Caml.Seq.map (fun (id, _) -> id) seq in

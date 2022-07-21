@@ -3,8 +3,8 @@ open Liquid_syntax
 open Syntax
 open Tools
 open Values
-open Liquid_std_helpers
-open Liquid_std_encode
+open Helpers
+open Encoder
 
 let append ctx params =
   match unwrap_all ctx params with

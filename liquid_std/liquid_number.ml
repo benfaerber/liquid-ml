@@ -2,7 +2,7 @@ open Base
 open Liquid_syntax
 open Syntax
 open Values
-open Liquid_std_helpers
+open Helpers
 
 let abs ctx params =
   let do_abs n = (if Float.(<) n 0. then n *. -1. else n) |> ok_num in
@@ -58,14 +58,15 @@ let weight_with_unit ctx params =
     literal |> ok_str
   | other -> errc "weight_with_unit accepts a number and an optional unit name" other
 
+
 let money ctx params =
   match unwrap_all ctx params with
-  | Number n :: _ -> format_money_symbol (Settings_ctx.preferred_currency_info ctx) n |> ok_str
+  | Number n :: _ -> format_money_symbol (preferred_currency_info ctx) n |> ok_str
   | other -> errc "money accepts a number" other
 
 let money_with_currency ctx params =
   match unwrap_all ctx params with
-  | Number n :: _ -> format_money_currency (Settings_ctx.preferred_currency_info ctx) n |> ok_str
+  | Number n :: _ -> format_money_currency (preferred_currency_info ctx) n |> ok_str
   | other -> errc "money_with_currency accepts a number" other
 
 let money_without_currency ctx params =
@@ -75,7 +76,7 @@ let money_without_currency ctx params =
 
 let money_without_trailing_zeros ctx params =
   match unwrap_all ctx params with
-  | Number n :: _ -> format_money_symbol_no_zeros (Settings_ctx.preferred_currency_info ctx) n |> ok_str
+  | Number n :: _ -> format_money_symbol_no_zeros (preferred_currency_info ctx) n |> ok_str
   | other -> errc "money_without_trailing_zeros accepts a number" other
 
 

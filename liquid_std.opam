@@ -1,6 +1,6 @@
 opam-version: "2.0"
 version: "1.0"
-maintainer: "benfaerber@yada.yada"
+maintainer: "faerberbendev@protonmail.com"
 authors: ["Ben Faerber"]
 homepage: "https://github.com/benfaerber/liquid-ml"
 bug-reports: "https://github.com/benfaerber/liquid-ml/issues"

@@ -1,6 +1,7 @@
 open Base
 open Liquid_syntax
 open Liquid_parser
+open Liquid_std
 open Syntax
 open Tools
 
@@ -22,7 +23,7 @@ let ast_from_file filename =
 
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
-  let std_lib_func = Liquid_std.function_from_id name in
+  let std_lib_func = Std.function_from_id name in
   match std_lib_func ctx params with
   | Ok res -> res
   | Error err -> (

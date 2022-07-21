@@ -2,7 +2,7 @@ open Base
 open Liquid_syntax
 open Syntax
 open Values
-open Liquid_std_helpers
+open Helpers
 
 
 (* TODO: Date, Compare Ocaml date handling with Ruby date handling  *)
@@ -56,9 +56,9 @@ let rec first_successful name =
 
 let function_from_id name =
   let sources =
-    [ Liquid_std_number.function_from_id
-    ; Liquid_std_string.function_from_id
-    ; Liquid_std_list.function_from_id
+    [ Liquid_number.function_from_id
+    ; Liquid_string.function_from_id
+    ; Liquid_list.function_from_id
     ; base_function_from_id ]
   in
 

@@ -116,3 +116,25 @@ let format_money_currency (currency_info: Settings.currency_info) num =
 
 let format_money_symbol_no_zeros (currency_info: Settings.currency_info) num =
   currency_info.symbol ^ (Float.to_int num |> format_thousands_int)
+
+let value_from_currency = function
+  | Settings.Usd -> String "USD"
+  | Eur -> String "EUR"
+  | Cad -> String "CAD"
+  | Aud -> String "AUD"
+  | Gbp -> String "GBP"
+
+let currency_from_value = function
+  | String "USD" -> Settings.Usd
+  | String "EUR" -> Eur
+  | String "CAD" -> Cad
+  | String "AUD" -> Aud
+  | String "GBP" -> Gbp
+  | _ -> Usd
+
+let preferred_currency ctx =
+  Values.unwrap ctx (Var [Settings.preferred_currency_key])
+  |> currency_from_value
+
+let preferred_currency_info ctx =
+  preferred_currency ctx |> Settings.currency_info_from_currency
