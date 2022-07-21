@@ -1,4 +1,4 @@
 (library
  (public_name liquid_interpreter)
- (libraries base core stdio batteries re2 calendar base64 sha liquid_syntax liquid_parser liquid_std)
+ (libraries base core stdio re2 liquid_syntax liquid_parser liquid_std)
 )

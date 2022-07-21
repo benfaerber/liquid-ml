@@ -109,22 +109,3 @@ let for_params_default =
   ; cols = 10
   ; is_tablerow = false
   }
-
-let save_state ctx =
-  let seq = Ctx.to_seq ctx in
-  let mapped = Caml.Seq.map (fun (id, _) -> id) seq in
-  let built = Caml.Seq.fold_left (fun acc curr -> acc @ [curr]) [] mapped in
-  built
-
-let rewind ctx ostate =
-  let cstate = save_state ctx in
-
-  let folder c_ctx key =
-    if contains ostate key then
-      c_ctx
-    else Ctx.remove key c_ctx
-  in
-
-  List.fold cstate ~init:ctx ~f:folder
-
-let var_from t = Var (String.split ~on:'.' t)
