@@ -7,8 +7,10 @@ let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
-  let func = Liquid_std.function_from_id name in
-  func ctx params
+  let std_lib_func = Liquid_std.function_from_id name in
+  match std_lib_func ctx params with
+  | Ok res -> res
+  | Error err -> raise (Failure err)
 
 let rec interpret_expression ctx = function
   | Value v -> Values.unwrap ctx v
@@ -246,9 +248,9 @@ let interpret_file filename =
   ()
 
 let test () =
-  interpret_file "liquid/interpreter_test.liquid";
+  (* interpret_file "liquid/interpreter_test.liquid"; *)
   (* interpret_file "liquid/forloop_vars.liquid"; *)
   (* interpret_file "liquid/render_test.liquid"; *)
   (* interpret_file "liquid/scope_test.liquid"; *)
   (* interpret_file "liquid/number_to_text.liquid"; *)
-  (* interpret_file "liquid/std_test.liquid"; *)
+  interpret_file "liquid/std_test.liquid";

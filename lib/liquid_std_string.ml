@@ -8,28 +8,28 @@ open Liquid_std_encode
 let append ctx params =
   match unwrap_all ctx params with
   | String base :: String addition :: _ ->
-    String (base ^ addition)
-  | other -> raise (errc "append accepts 2 strings" other)
+    String (base ^ addition) |> ok
+  | other -> errc "append accepts 2 strings" other
 
 let base64_decode ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (Base64.decode_exn s)
-  | other -> raise (errc "base64_decode accepts a string" other)
+  | String s :: _ -> Base64.decode_exn s |> ok_str
+  | other -> errc "base64_decode accepts a string" other
 
 let base64_encode ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (Base64.encode_exn s)
-  | other -> raise (errc "base64_encode accepts a string" other)
+  | String s :: _ -> Base64.encode_exn s |> ok_str
+  | other -> errc "base64_encode accepts a string" other
 
 let base64_url_safe_decode ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (Base64.decode_exn s |> decode_url)
-  | other -> raise (errc "base64_decode accepts a string" other)
+  | String s :: _ -> Base64.decode_exn s |> decode_url |> ok_str
+  | other -> errc "base64_decode accepts a string" other
 
 let base64_url_safe_encode ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (Base64.encode_exn s |> encode_url)
-  | other -> raise (errc "base64_encode accepts a string" other)
+  | String s :: _ -> Base64.encode_exn s |> encode_url |> ok_str
+  | other -> errc "base64_encode accepts a string" other
 
 (* The function is called camelcase but in the docs returns pascal case ??? Wierd *)
 (* TODO: does camelcase make a work that is uppercase lower? Ie my-URL -> myUrl *)
@@ -39,36 +39,36 @@ let camelcase ctx params =
     let wsexp = ~/"\\s|-|_" in
     let words = Re2.rewrite_exn wsexp ~template:" " s |> String.split ~on:' ' in
     let cammed = List.map words ~f:capitalize_first_letter |> join in
-    String cammed
+    cammed |> ok_str
   )
-  | other -> raise (errc "camelcase accepts a string" other)
+  | other -> errc "camelcase accepts a string" other
 
 let capitalize ctx params =
   match unwrap_all ctx params with
   | String s :: _ ->
-    String (capitalize_first_letter s)
-  | other -> raise (errc "capitalize accepts a string" other)
+    capitalize_first_letter s |> ok_str
+  | other -> errc "capitalize accepts a string" other
 
 
 let downcase ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (s |> String.lowercase)
-  | other -> raise (errc "downcase accepts a string" other)
+  | String s :: _ -> s |> String.lowercase |> ok_str
+  | other -> errc "downcase accepts a string" other
 
 let escape ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (encode_text s)
-  | other -> raise (errc "escape accepts a string" other)
+  | String s :: _ -> encode_text s |> ok_str
+  | other -> errc "escape accepts a string" other
 
 let escape_once ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> (
     if has_encoded_text s |> not then
-      String (encode_text s)
+      encode_text s
     else
-      String s
-  )
-  | other -> raise (errc "escape_once accepts a string" other)
+      s
+  ) |> ok_str
+  | other -> errc "escape_once accepts a string" other
 
 (* handlelize aka kebab-case *)
 let handleize ctx params =
@@ -79,45 +79,45 @@ let handleize ctx params =
     let words = Re2.rewrite_exn special_chars ~template:" " trimmed |> String.split ~on:' ' in
     let cleaned = List.filter words ~f:(fun t -> t != "") in
     let kebab = List.map cleaned ~f:String.lowercase |> String.concat ~sep:"-" in
-    String kebab
-  | other -> raise (errc "handleize accepts a string" other)
+    kebab |> ok_str
+  | other -> errc "handleize accepts a string" other
 
 let hmac_sha1 ctx params =
   match unwrap_all ctx params with
   | String message :: String hash :: _ ->
     let enc = message ^ hash |> Sha1.string |> Sha1.to_hex in
-    String enc
-  | other -> raise (errc "hmac_sha1 accepts a string and a hash (string)" other)
+    enc |> ok_str
+  | other -> errc "hmac_sha1 accepts a string and a hash (string)" other
 
 let hmac_sha256 ctx params =
   match unwrap_all ctx params with
   | String message :: String hash :: _ ->
     let enc = message ^ hash |> Sha256.string |> Sha256.to_hex in
-    String enc
-  | other -> raise (errc "hmac_sha256 accepts a string and a hash (string)" other)
+    enc |> ok_str
+  | other -> errc "hmac_sha256 accepts a string and a hash (string)" other
 
 let lstrip ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (remove_whitespace Beginning s)
-  | other -> raise (errc "lstrip accepts a string" other)
+  | String s :: _ -> remove_whitespace Beginning s |> ok_str
+  | other -> errc "lstrip accepts a string" other
 
 let rstrip ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (remove_whitespace End s)
-  | other -> raise (errc "rstrip accepts a string" other)
+  | String s :: _ -> remove_whitespace End s |> ok_str
+  | other -> errc "rstrip accepts a string" other
 
 let strip ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (remove_whitespace Both s)
-  | other -> raise (errc "strip accepts a string" other)
+  | String s :: _ -> remove_whitespace Both s |> ok_str
+  | other -> errc "strip accepts a string" other
 
 
 let md5 ctx params =
   match unwrap_all ctx params with
   | String s :: _ ->
     let enc = s |> Md5_lib.string |> Md5_lib.to_hex in
-    String enc
-  | other -> raise (errc "md5 accepts a string" other)
+    enc |> ok_str
+  | other -> errc "md5 accepts a string" other
 
 
 let newline_to_br ctx params =
@@ -125,39 +125,39 @@ let newline_to_br ctx params =
   | String s :: _ -> (
     let nl = ~/"\n" in
     let r = Re2.rewrite_exn nl ~template:"<br />\n" s in
-    String r
+    r |> ok_str
   )
-  | other -> raise (errc "newline_to_br accepts a string" other)
+  | other -> errc "newline_to_br accepts a string" other
 
 
 let pluralize ctx params =
   match unwrap_all ctx params with
   | Number n :: String singular :: String plural :: _ ->
     let l = if n = 1. then singular else plural in
-    String l
-  | other -> raise (errc "pluralize accepts a number, a singular string and a plural string" other)
+    l |> ok_str
+  | other -> errc "pluralize accepts a number, a singular string and a plural string" other
 
 
 let prepend ctx params =
   match unwrap_all ctx params with
   | String base :: String addition :: _ ->
-    String (addition ^ base)
-  | other -> raise (errc "prepend accepts 2 strings" other)
+    addition ^ base |> ok_str
+  | other -> errc "prepend accepts 2 strings" other
 
 let remove ctx params =
   match unwrap_all ctx params with
   | String haystack :: String needle :: _ ->
     let exp = ~/needle in
     let res = Re2.rewrite_exn exp haystack ~template:"" in
-    String res
-  | other -> raise (errc "remove accepts 2 strings" other)
+    res |> ok_str
+  | other -> errc "remove accepts 2 strings" other
 
 let remove_first ctx params =
   match unwrap_all ctx params with
   | String haystack :: String needle :: _ ->
     let s = String.substr_replace_first haystack ~pattern:needle ~with_:"" in
-    String s
-  | other -> raise (errc "remove_fist accepts 2 strings" other)
+    s |> ok_str
+  | other -> errc "remove_fist accepts 2 strings" other
 
 
 let remove_last ctx params =
@@ -165,8 +165,8 @@ let remove_last ctx params =
   | String haystack :: String needle :: _ ->
     let rhaystack, rneedle = String.rev haystack, String.rev needle in
     let s = String.substr_replace_first rhaystack ~pattern:rneedle ~with_:"" in
-    String (String.rev s)
-  | other -> raise (errc "remove_fist accepts 2 strings" other)
+    String.rev s |> ok_str
+  | other -> errc "remove_fist accepts 2 strings" other
 
 
 let replace ctx params =
@@ -174,37 +174,37 @@ let replace ctx params =
   | String haystack :: String find_needle :: String replace_needle :: _ ->
     let exp = ~/find_needle in
     let res = Re2.rewrite_exn exp haystack ~template:replace_needle in
-    String res
-  | other -> raise (errc "replace accepts 3 strings" other)
+    res |> ok_str
+  | other -> errc "replace accepts 3 strings" other
 
 let replace_first ctx params =
   match unwrap_all ctx params with
   | String haystack :: String find_needle :: String replace_needle :: _ ->
     let s = String.substr_replace_first haystack ~pattern:find_needle ~with_:replace_needle in
-    String s
-  | other -> raise (errc "replace_first accepts 3 strings" other)
+    s |> ok_str
+  | other -> errc "replace_first accepts 3 strings" other
 
 let replace_last ctx params =
   match unwrap_all ctx params with
   | String haystack :: String find_needle :: String replace_needle :: _ ->
     let r_hay, r_find, r_rep = String.rev haystack, String.rev find_needle, String.rev replace_needle in
     let s = String.substr_replace_first r_hay ~pattern:r_find ~with_:r_rep in
-    String (String.rev s)
-  | other -> raise (errc "replace_last accepts 3 strings" other)
+    String.rev s |> ok_str
+  | other -> errc "replace_last accepts 3 strings" other
 
 let sha1 ctx params =
   match unwrap_all ctx params with
   | String message :: _ ->
     let enc = message |> Sha1.string |> Sha1.to_hex in
-    String enc
-  | other -> raise (errc "sha1 accepts a string" other)
+    enc |> ok_str
+  | other -> errc "sha1 accepts a string" other
 
 let sha256 ctx params =
   match unwrap_all ctx params with
   | String message :: _ ->
     let enc = message |> Sha256.string |> Sha256.to_hex in
-    String enc
-  | other -> raise (errc "sha256 accepts a string" other)
+    enc |> ok_str
+  | other -> errc "sha256 accepts a string" other
 
 
 let strip_html ctx params =
@@ -212,81 +212,83 @@ let strip_html ctx params =
   | String s :: _ -> (
     let exp = ~/"<.+?/?>" in
     let r = Re2.rewrite_exn exp ~template:"" s in
-    String (r)
+    r |> ok_str
   )
-  | other -> raise (errc "string_html accepts a string" other)
+  | other -> errc "string_html accepts a string" other
 
 let strip_newlines ctx params =
   match unwrap_all ctx params with
   | String s :: _ -> (
     let exp = ~/"\n" in
     let r = Re2.rewrite_exn exp ~template:"" s in
-    String (r)
+    r |> ok_str
   )
-  | other -> raise (errc "strip_newlines accepts a string" other)
+  | other -> errc "strip_newlines accepts a string" other
 
 
 let truncate ctx params =
   let do_truncate finisher s chars =
-    if String.length s > chars then
-      String ((String.sub s ~pos:0 ~len:chars) ^ finisher)
+    (if String.length s > chars then
+      (String.sub s ~pos:0 ~len:chars) ^ finisher
     else
-      String (s)
+      s
+    ) |> ok_str
   in
 
   match unwrap_all ctx params with
   | String s :: Number fchars :: String finisher :: _ -> do_truncate finisher s (Float.to_int fchars)
   | String s :: Number fchars :: _ -> do_truncate "..." s (Float.to_int fchars)
-  | other -> raise (errc "truncate accepts a string, a number and an optional finisher value (string)" other)
+  | other -> errc "truncate accepts a string, a number and an optional finisher value (string)" other
 
 let truncatewords ctx params =
   let do_truncwords finisher s count =
     let words = String.split s ~on:' ' in
-    if List.length words > count then
+    (if List.length words > count then
       let picked_words = List.sub words ~pos:0 ~len:count |> join_by_space in
-      String (picked_words ^ finisher)
+      picked_words ^ finisher
     else
-      String (s)
+      s
+    ) |> ok_str
   in
 
   match unwrap_all ctx params with
   | String s :: Number fcount :: String finisher :: _ -> do_truncwords finisher s (Float.to_int fcount)
   | String s :: Number fcount :: _ -> do_truncwords "..." s (Float.to_int fcount)
-  | other -> raise (errc "truncatewords accepts a string, a number and an optional finisher value (string)" other)
+  | other -> errc "truncatewords accepts a string, a number and an optional finisher value (string)" other
 
 let split ctx params =
   match unwrap_all ctx params with
   | String s :: String delim :: _ ->
     let literal = Str.split (Str.regexp delim) s |> List.map ~f:(fun x -> String x) in
-    List literal
-  | other -> raise (errc "split accepts a string and a delimiter (string)" other)
+    literal |> ok_list
+  | other -> errc "split accepts a string and a delimiter (string)" other
 
 
 let upcase ctx params =
   match unwrap_all ctx params with
-  | String s :: _ -> String (s |> String.capitalize)
-  | other -> raise (errc "upcase accepts a string" other)
+  | String s :: _ -> s |> String.capitalize |> ok_str
+  | other -> errc "upcase accepts a string" other
 
 
 let url_encode ctx params =
   match unwrap_all ctx params with
-  | String url :: _ -> String (encode_url url)
-  | other -> raise (errc "url_encode accepts a string" other)
+  | String url :: _ -> encode_url url |> ok_str
+  | other -> errc "url_encode accepts a string" other
 
 let url_decode ctx params =
   match unwrap_all ctx params with
-  | String url :: _ -> String (decode_url url)
-  | other -> raise (errc "url_decode accepts a string" other)
+  | String url :: _ -> decode_url url |> ok_str
+  | other -> errc "url_decode accepts a string" other
 
 let url_escape ctx params =
   match unwrap_all ctx params with
-  | String url :: _ -> String (escape_url url)
-  | other -> raise (errc "url_escape accepts a string" other)
+  | String url :: _ -> escape_url url |> ok_str
+  | other -> errc "url_escape accepts a string" other
 
 let url_param_escape ctx params =
   match unwrap_all ctx params with
-  | String url :: _ -> String (escape_param_url url)
-  | other -> raise (errc "url_param_escape accepts a string" other)
+  | String url :: _ -> escape_param_url url |> ok_str
+  | other -> errc "url_param_escape accepts a string" other
 
 let function_from_id = function
   | "append" -> Some append

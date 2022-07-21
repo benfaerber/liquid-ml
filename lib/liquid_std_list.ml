@@ -6,68 +6,68 @@ open Liquid_std_helpers
 
 let compact ctx params =
   match unwrap_all ctx params with
-  | List lst :: _ -> List (List.filter lst ~f:(Values.is_not_nil ctx))
-  | other -> raise (errc "compact accepts a list" other)
+  | List lst :: _ -> List.filter lst ~f:(Values.is_not_nil ctx) |> ok_list
+  | other -> errc "compact accepts a list" other
 
 let concat ctx params =
   match unwrap_all ctx params with
-  | List a :: List b :: _ -> List (a @ b)
-  | other -> raise (errc "concat accepts 2 lists" other)
+  | List a :: List b :: _ -> a @ b |> ok_list
+  | other -> errc "concat accepts 2 lists" other
 
 let first ctx params =
   match unwrap_all ctx params with
-  | List (hd :: _) :: _ -> hd
-  | other -> raise (errc "first accepts a list" other)
+  | List (hd :: _) :: _ -> hd |> ok
+  | other -> errc "first accepts a list" other
 
 
 let join ctx params =
   let joiner lst delim =
     let vs = List.map (unwrap_all ctx lst) ~f:(string_from_value ctx) in
-    String (String.concat ~sep:delim vs)
+    String.concat ~sep:delim vs |> ok_str
   in
 
   match unwrap_all ctx params with
   | List lst :: String delim :: _ -> joiner lst delim
   | List lst :: _ -> joiner lst " "
-  | other -> raise (errc "join accepts a list and a delimiter (string)" other)
+  | other -> errc "join accepts a list and a delimiter (string)" other
 
 
 let last ctx params =
   match unwrap_all ctx params with
-  | List [] :: _ -> Nil
-  | List lst :: _ -> lst |> List.rev |> List.hd_exn
-  | other -> raise (errc "last accepts a list" other)
+  | List [] :: _ -> Nil |> ok
+  | List lst :: _ -> lst |> List.rev |> List.hd_exn |> ok
+  | other -> errc "last accepts a list" other
 
 let map ctx params =
   match unwrap_all ctx params with
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
-    List mapped
-  | other -> raise (errc "map accepts a list and a key (string)" other)
+    mapped |> ok_list
+  | other -> errc "map accepts a list and a key (string)" other
 
 
 let reverse ctx params =
   match unwrap_all ctx params with
-  | List lst :: _ -> List (List.rev lst)
-  | other -> raise (errc "reverse accepts a list" other)
+  | List lst :: _ -> List.rev lst |> ok_list
+  | other -> errc "reverse accepts a list" other
 
 
 let size ctx params =
   match unwrap_all ctx params with
-  | List lst :: _ -> Number (lst |> List.length |> Int.to_float)
-  | String s :: _ -> Number (s |> String.length |> Int.to_float)
-  | other -> raise (errc "size accepts a list or a string" other)
+  | List lst :: _ -> lst |> List.length |> Int.to_float |> ok_num
+  | String s :: _ -> s |> String.length |> Int.to_float |> ok_num
+  | other -> errc "size accepts a list or a string" other
 
 let sort ctx params =
   match unwrap_all ctx params with
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     let sorted = List.sort mapped ~compare:Values.compare_value in
-    List sorted
+    sorted |> ok_list
   | List lst :: _ ->
     let sorted = List.sort lst ~compare:Values.compare_value in
-    List sorted
-  | other -> raise (errc "sort accepts a list an optional object key" other)
+    sorted |> ok_list
+  | other -> errc "sort accepts a list an optional object key" other
 
 let sort_natural ctx params =
   let comp_key = function
@@ -84,11 +84,11 @@ let sort_natural ctx params =
   | List lst :: String key :: _ ->
     let mapped = extract_key_from_object_list lst key in
     let sorted = List.sort mapped ~compare in
-    List sorted
+    sorted |> ok_list
   | List lst :: _ ->
     let sorted = List.sort lst ~compare in
-    List sorted
-  | other -> raise (errc "sort_natural accepts a list an optional object key" other)
+    sorted |> ok_list
+  | other -> errc "sort_natural accepts a list an optional object key" other
 
 
 (* TODO: Implement negative indexs *)
@@ -107,14 +107,14 @@ let slice ctx params =
 
   match unwrap_all ctx params with
   | String s :: Number fstart :: Number fstop :: _ ->
-    String (do_slice_string s fstart fstop)
+    do_slice_string s fstart fstop |> ok_str
   | String s :: Number findex :: _ ->
-    String (do_slice_string s findex 1.)
+    do_slice_string s findex 1. |> ok_str
   | List lst :: Number fstart :: Number fstop :: _ ->
-    List (do_slice_list lst fstart fstop)
+    do_slice_list lst fstart fstop |> ok_list
   | List lst :: Number findex :: _ ->
-    List (do_slice_list lst findex 1.)
-  | other -> raise (errc "slice accepts a string or list as well as a start index and optional stop index" other)
+    do_slice_list lst findex 1. |> ok_list
+  | other -> errc "slice accepts a string or list as well as a start index and optional stop index" other
 
 
 let uniq ctx params =
@@ -122,8 +122,8 @@ let uniq ctx params =
   | List lst :: _ ->
     let folder acc curr = if Tools.contains acc curr then acc else acc @ [curr] in
     let rl = List.fold_left lst ~init:[] ~f:folder in
-    List (rl)
-  | other -> raise (errc "uniq accepts a list" other)
+    rl |> ok_list
+  | other -> errc "uniq accepts a list" other
 
 let where ctx params =
   let do_where lst test_key check =
@@ -137,7 +137,7 @@ let where ctx params =
     in
 
     let filtered_lst = List.filter lst ~f:filterer in
-    List filtered_lst
+    filtered_lst |> ok_list
   in
 
   match unwrap_all ctx params with
@@ -145,7 +145,7 @@ let where ctx params =
     do_where lst key (Values.eq ctx test_value)
   | List lst :: String key :: _ ->
     do_where lst key (Values.is_truthy ctx)
-  | other -> raise (errc "where accepts a list, a key (string) and an optional test value (any)" other)
+  | other -> errc "where accepts a list, a key (string) and an optional test value (any)" other
 
 
 let function_from_id = function
