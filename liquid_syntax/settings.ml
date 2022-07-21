@@ -1,3 +1,5 @@
+open Syntax
+
 let increment = "*increment"
 let cycle = "*cycle"
 
@@ -46,15 +48,20 @@ type t = {
   log_policy: log_policy;
   error_policy: error_policy;
   preferred_currency: currency;
+  filters: liquid_filter_lookup;
 }
+
+let default_filter_lookup _ = None
 
 let make
   ?(log_policy = Verbose)
   ?(error_policy = Strict)
   ?(preferred_currency = Usd)
+  ?(filters = default_filter_lookup)
   ()
 =
   { log_policy
   ; error_policy
   ; preferred_currency
+  ; filters
   }

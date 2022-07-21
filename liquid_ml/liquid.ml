@@ -1,6 +1,8 @@
 open Liquid_syntax
 open Liquid_parser
 open Liquid_interpreter
+open Syntax
+open Values
 
 let vflog policy func arg =
   match policy with
@@ -25,11 +27,7 @@ let vgroup p title fname func arg =
   vflog p Debug.print_line ();
   ()
 
-let default_settings =
-  { Settings.error_policy = Settings.Warn
-  ; log_policy = Settings.Never
-  ; preferred_currency = Settings.Usd
-  }
+let default_settings = Settings.make ()
 
 let render_file filename ?(settings = default_settings) () =
   let s x = x in
@@ -49,12 +47,25 @@ let render_file filename ?(settings = default_settings) () =
   rendered_text
 
 let test () =
-  let settings = Settings.make ~error_policy:Warn () in
+  let greet ctx params =
+    match unwrap_all ctx params with
+    | String person :: _ ->
+      Ok (String ("Hello " ^ person ^ "!"))
+    | _ -> Error "greet accepts a string"
+  in
+
+  let custom_filters = function
+    | "greet" -> Some greet
+    | _ -> None
+  in
+
+  let settings = Settings.make ~error_policy:Warn ~filters:custom_filters () in
+  render_file "liquid_templates/std_test.liquid" ~settings () |> ignore;
+
   (* render_file "liquid_templates/interpreter_test.liquid" |> ignore; *)
   (* render_file "liquid_templates/forloop_vars.liquid" |> ignore; *)
   (* render_file "liquid_templates/render_test.liquid" |> ignore; *)
   (* render_file "liquid_templates/scope_test.liquid" |> ignore; *)
   (* render_file "liquid_templates/number_to_text.liquid" |> ignore; *)
   (* render_file "liquid_templates/std_test.liquid" () |> ignore; *)
-  render_file "liquid_templates/std_test.liquid" ~settings () |> ignore;
   ()

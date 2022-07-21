@@ -109,3 +109,6 @@ let for_params_default =
   ; cols = 10
   ; is_tablerow = false
   }
+
+type liquid_filter = value Ctx.t -> value list -> (value, string) Result.t
+type liquid_filter_lookup = string -> liquid_filter option

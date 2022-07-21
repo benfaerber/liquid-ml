@@ -42,15 +42,21 @@ let ast_from_file filename =
 
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
-  let std_lib_func = Std.function_from_id name in
-  match std_lib_func ctx params with
-  | Ok res -> res
-  | Error err -> (
-    match Settings_ctx.error_policy ctx with
-    | Settings.Strict -> Invalid_argument err |> raise
-    | Warn -> Stdio.print_endline err; Nil
-    | Silent -> Nil
+  let func_lookup = Std.function_from_id name in
+  match func_lookup with
+  | Some func -> (
+    match func ctx params with
+    | Ok res -> res
+    | Error err -> (
+      match Settings_ctx.error_policy ctx with
+      | Settings.Strict -> Invalid_argument err |> raise
+      | Warn -> Stdio.print_endline err; Nil
+      | Silent -> Nil
+    )
   )
+  | None -> Failure "Function not found!" |> raise
+
+
 
 let rec interpret_expression ctx = function
   | Value v -> Values.unwrap ctx v

@@ -62,6 +62,4 @@ let function_from_id name =
     ; base_function_from_id ]
   in
 
-  match first_successful name sources with
-  | Some func -> func
-  | _ -> Failure (Core.sprintf "Unknown function %s!" name) |> raise
+  first_successful name sources
