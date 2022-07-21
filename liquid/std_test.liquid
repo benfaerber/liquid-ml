@@ -148,3 +148,9 @@ endfor
 {{ "my dog went to the doghouse" | remove: "dog"}} -
 {{ "my dog went to the doghouse" | remove_first: "dog"}} -
 {{ "my dog went to the doghouse" | remove_last: "dog"}} -
+
+
+{{ 10.234 | money }} -
+{{ 100.2 | money_with_currency }} -
+{{ 2322 | money_without_currency }} -
+{{ 2.252 | money_without_trailing_zeros }}

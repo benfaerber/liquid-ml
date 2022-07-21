@@ -199,7 +199,7 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
   ctx, str ^ rendered_text
 
 
-let does_log = true
+let does_log = false
 let plog f v = if does_log then f v
 let pwrite fname text = File.write ("logs/" ^ fname) text
 

@@ -63,3 +63,67 @@ let capitalize_first_letter s =
   let capped = s |> first_letter |> String.capitalize in
   let tl = String.sub s ~pos:1 ~len:(String.length s - 1) in
   capped ^ tl
+
+(* TODO: Add more currency *)
+
+type currency_info =
+  { symbol: string
+  ; abbr: string
+  ; name: string
+  }
+
+let currency_info_from_currency = function
+  | Global.Usd -> { symbol = "$"; abbr = "USD"; name = "US Dollar" }
+  | Eur -> { symbol = "€"; abbr = "EUR"; name = "Euro" }
+  | Cad -> { symbol = "$"; abbr = "CAD"; name = "Canadian Dollar" }
+  | Aud -> { symbol = "$"; abbr = "AUD"; name = "Australian Dollar" }
+  | Gbp -> { symbol = "£"; abbr = "GBP"; name = "Pound Sterling" }
+
+let format_thousands_int n =
+  let i = n |> Int.to_string |> String.rev in
+  let r = List.init (String.length i) ~f:(String.get i) in
+
+  let ts = Char.to_string in
+  let rec aux = function
+    | a :: b :: c :: tl -> [ts c ^ ts b ^ ts a] @ aux tl
+    | a :: b :: tl -> [ts b ^ ts a] @ aux tl
+    | a :: tl -> [ts a] @ aux tl
+    | _ -> []
+  in
+
+  aux r
+  |> List.rev
+  |> String.concat ~sep:","
+
+let format_thousands_float n =
+  let dec =
+    match nth (n |> Float.to_string |> String.split ~on:'.') 1 with
+    | "" -> "0"
+    | other -> other
+  in
+  format_thousands_int (n |> Float.to_int)  ^ "." ^ dec
+
+let format_money_number n =
+  let pieces =
+    Float.round_decimal n ~decimal_digits:2
+    |> Float.to_string
+    |> String.split ~on:'.'
+  in
+
+  let fs = n |> Float.to_int |> format_thousands_int in
+  let sd = nth pieces 1 in
+
+  let clean_sd = match String.length sd with 0 -> "00" | 1 -> sd ^ "0" | _ -> sd in
+  fs ^ "." ^ clean_sd
+
+let format_money_symbol currency num =
+  let info = currency_info_from_currency currency in
+  info.symbol ^ format_money_number num
+
+let format_money_currency currency num =
+  let info = currency_info_from_currency currency in
+  info.symbol ^ format_money_number num ^ " " ^ info.abbr
+
+let format_money_symbol_no_zeros currency num =
+  let info = currency_info_from_currency currency in
+  info.symbol ^ (Float.to_int num |> format_thousands_int)

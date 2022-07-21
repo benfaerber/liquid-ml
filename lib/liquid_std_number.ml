@@ -60,6 +60,26 @@ let weight_with_unit ctx params =
     String literal
   | other -> raise (errc "weight_with_unit accepts a number and an optional unit name" other)
 
+let money ctx params =
+  match unwrap_all ctx params with
+  | Number n :: _ -> String (format_money_symbol Global.preferred_currency n)
+  | other -> raise (errc "money accepts a number" other)
+
+let money_with_currency ctx params =
+  match unwrap_all ctx params with
+  | Number n :: _ -> String (format_money_currency Global.preferred_currency n)
+  | other -> raise (errc "money_with_currency accepts a number" other)
+
+let money_without_currency ctx params =
+  match unwrap_all ctx params with
+  | Number n :: _ -> String (format_money_number n)
+  | other -> raise (errc "money_without_currency accepts a number" other)
+
+let money_without_trailing_zeros ctx params =
+  match unwrap_all ctx params with
+  | Number n :: _ -> String (format_money_symbol_no_zeros Global.preferred_currency n)
+  | other -> raise (errc "money_without_trailing_zeros accepts a number" other)
+
 
 let function_from_id = function
   | "abs" -> Some abs
@@ -74,4 +94,8 @@ let function_from_id = function
   | "round" -> Some round
   | "times" -> Some times
   | "weight_with_unit" -> Some weight_with_unit
+  | "money" -> Some money
+  | "money_with_currency" -> Some money_with_currency
+  | "money_without_currency" -> Some money_without_currency
+  | "money_without_trailing_zeros" -> Some money_without_trailing_zeros
   | _ -> None
