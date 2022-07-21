@@ -94,12 +94,14 @@ and interpret_else ctx str = function
 
 and interpret_test ctx str ~cond ~body ~else_body =
   let pre_state = save_state ctx in
-  if interpret_condition ctx cond then
-    let (rctx, rstr) = interpret ctx str body in
-    (rewind rctx pre_state, rstr)
-  else
-    let (rctx, rstr) = interpret_else ctx str else_body in
-    (rewind rctx pre_state, rstr)
+  let (rctx, rstr) =
+    if interpret_condition ctx cond then
+      interpret ctx str body
+    else
+      interpret_else ctx str else_body
+    in
+
+  (rewind rctx pre_state, rstr)
 
 and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
   let uiter = Values.unwrap ctx iterable in
@@ -118,7 +120,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
           match Ctx.find Global.forloop acc_ctx with
           | Object obj -> (
             match Obj.find_opt k obj with
-            | Some (Number n )-> Float.to_int n
+            | Some (Number n) -> Float.to_int n
             | _ -> raise (Failure "Failed to find int")
           )
           | _ -> raise (Failure "Failed to find forloop object")

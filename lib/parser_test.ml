@@ -11,8 +11,8 @@ let combine_condition p1 p2 c =
   let combiner = match c with LexAnd -> And | LexOr -> Or in
 
   match (p1, p2) with
-  | Always true, pp2 -> pp2
-  | pp1, Always true -> pp1
+  | Always true, b2 -> b2
+  | b1, Always true -> b1
   | _ -> Combine (combiner, p1, p2)
 
 let build_condition tokens =
