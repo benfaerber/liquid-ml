@@ -1,0 +1,4 @@
+(library
+ (public_name liquid_parser)
+ (libraries base core stdio batteries re2 liquid_syntax)
+)

@@ -1,4 +1,5 @@
 open Base
+open Liquid_syntax
 open Tools
 
 let has_encoded_text text =

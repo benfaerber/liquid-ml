@@ -1,4 +1,5 @@
 open Base
+open Liquid_syntax
 open Keyword
 open Tools
 open Syntax
@@ -18,7 +19,7 @@ let parse_test block_parser = function
     let chunks = bounds |> Bounds.bounds_to_chunks tokens in
     let stop_point = Bounds.stop_point_from_bounds bounds in
     let rest = sub_list_suffix tokens stop_point in
-    Some (Parser_test.parse_test_chain block_parser chunks, rest)
+    Some (Test.parse_test_chain block_parser chunks, rest)
   | _ -> None
 
 let parse_capture block_parser = function
@@ -53,12 +54,12 @@ let parse_other _ = function
   | LexContinue :: tl -> Some(Continue, tl)
   | _ -> None
 
-let parse_for = Parser_for.parse_for
-let parse_tablerow = Parser_for.parse_tablerow
-let parse_paginate = Parser_for.parse_paginate
-let parse_theme = Parser_theme.parse_theme
-let parse_expression = Parser_expression.parse_expression
-let parse_assignment = Parser_expression.parse_assignment
+let parse_for = For.parse_for
+let parse_tablerow = For.parse_tablerow
+let parse_paginate = For.parse_paginate
+let parse_theme = Theme.parse_theme
+let parse_expression = Expression.parse_expression
+let parse_assignment = Expression.parse_assignment
 
 let rec first_successful block_parser tokens =
   function

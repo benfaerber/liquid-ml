@@ -1,4 +1,5 @@
 open Base
+open Liquid_syntax
 open Syntax
 open Values
 open Liquid_std_helpers

@@ -1,3 +1,7 @@
+open Liquid_syntax
+open Liquid_parser
+open Liquid_interpreter
+
 let vflog policy func arg =
   match policy with
   | Settings.Verbose -> func arg
@@ -46,11 +50,11 @@ let render_file filename ?(settings = default_settings) () =
 
 let test () =
   let settings = Settings.make ~error_policy:Warn () in
-  (* render_file "liquid/interpreter_test.liquid" |> ignore; *)
-  (* render_file "liquid/forloop_vars.liquid" |> ignore; *)
-  (* render_file "liquid/render_test.liquid" |> ignore; *)
-  (* render_file "liquid/scope_test.liquid" |> ignore; *)
-  (* render_file "liquid/number_to_text.liquid" |> ignore; *)
-  (* render_file "liquid/std_test.liquid" () |> ignore; *)
-  render_file "liquid/std_test.liquid" ~settings () |> ignore;
+  (* render_file "liquid_templates/interpreter_test.liquid" |> ignore; *)
+  (* render_file "liquid_templates/forloop_vars.liquid" |> ignore; *)
+  (* render_file "liquid_templates/render_test.liquid" |> ignore; *)
+  (* render_file "liquid_templates/scope_test.liquid" |> ignore; *)
+  (* render_file "liquid_templates/number_to_text.liquid" |> ignore; *)
+  (* render_file "liquid_templates/std_test.liquid" () |> ignore; *)
+  render_file "liquid_templates/std_test.liquid" ~settings () |> ignore;
   ()

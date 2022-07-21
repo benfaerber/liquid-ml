@@ -1,4 +1,6 @@
 open Base
+open Liquid_syntax
+
 open Syntax
 open Tools
 open Values

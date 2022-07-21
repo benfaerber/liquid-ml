@@ -1,4 +1,6 @@
 open Base
+open Liquid_syntax
+open Liquid_parser
 open Syntax
 open Tools
 
@@ -8,7 +10,7 @@ let has_notifier t = Ctx.mem (nlit t)
 
 
 let ast_from_file filename =
-  let filepath = Core.sprintf "liquid/%s.liquid" filename in
+  let filepath = Core.sprintf "liquid_templates/%s.liquid" filename in
   let raw_text = File.read filepath in
   let ast =
     raw_text

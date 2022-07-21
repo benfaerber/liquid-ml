@@ -1,3 +1,3 @@
-open Lib
+open Liquidml
 
-let () = Test.test()
+let () = Liquid.test()

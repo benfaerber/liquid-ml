@@ -1,0 +1,4 @@
+(library
+ (public_name liquid_syntax)
+ (libraries base core stdio batteries re2 calendar)
+)

@@ -1,3 +1,4 @@
+open Liquid_syntax
 open Syntax
 open Settings
 
