@@ -7,9 +7,13 @@ open Parser_tools
 let lex_to_equation a op b =
   Equation (lex_value_to_value a, op, lex_value_to_value b)
 
-let combine_condition p1 p2 = function
-  | LexAnd -> Combine (And, p1, p2)
-  | LexOr -> Combine (Or, p1, p2)
+let combine_condition p1 p2 c =
+  let combiner = match c with LexAnd -> And | LexOr -> Or in
+
+  match (p1, p2) with
+  | Always true, pp2 -> pp2
+  | pp1, Always true -> pp1
+  | _ -> Combine (combiner, p1, p2)
 
 let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
@@ -33,7 +37,7 @@ let build_condition tokens =
         let compound = combine_condition acc part_1 c in
         aux compound tl
       | [] -> acc
-      | _ -> raise (Failure ("Invalid condition"))
+      | _ -> Failure ("Invalid condition") |> raise
     in
     let res = aux (Always true) statement in
     if is_unless then Not res else res
