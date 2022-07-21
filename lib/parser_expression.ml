@@ -12,7 +12,7 @@ let expression_from_tokens full_tokens =
     let (prefix, tail) =
       match tokens with
       | LexValue v :: tl -> (to_exp_value v), tl
-      | _ -> Value (String Global.skip), tokens in
+      | _ -> Value (String Settings.skip), tokens in
 
     let make_func id params tl =
       [Func (List.hd_exn id, [prefix] @ to_exp_values params)] @ aux tl in
@@ -40,15 +40,15 @@ let expression_from_tokens full_tokens =
     let func_list = aux full_tokens in
 
     let remove_skip = function
-      | Value (String s) when s = Global.skip -> []
+      | Value (String s) when s = Settings.skip -> []
       | e -> [e] in
 
     let rec unfold_into_func = function
-      | Func (id, (Value (String s) :: other_params)) :: tl when s = Global.skip ->
+      | Func (id, (Value (String s) :: other_params)) :: tl when s = Settings.skip ->
         Func (id, (tl |> unfold_into_func |> remove_skip) @ other_params)
       | Func (id, params) :: tl ->
         Func (id, (tl |> unfold_into_func |> remove_skip) @ params)
-      | _ -> Value (String Global.skip)
+      | _ -> Value (String Settings.skip)
     in
 
     unfold_into_func (List.rev func_list)
@@ -60,7 +60,7 @@ let parse_expression _ = function
 
 let parse_assignment _ tokens =
   let add_increment id modifier =
-    let inc_id = Global.increment ^ "." ^ join id in
+    let inc_id = Settings.increment ^ "." ^ join id in
     Assignment (
       inc_id,
       Value (String modifier)

@@ -1,13 +1,11 @@
-(* This is gonna eventually have settings such as preferred currency, error handling etc *)
-
 let vflog policy func arg =
   match policy with
-  | Global.Verbose -> func arg
+  | Settings.Verbose -> func arg
   | _ -> ()
 
 let mflog policy func arg =
   match policy with
-  | Global.Verbose | Global.Minimal -> func arg
+  | Settings.Verbose | Settings.Minimal -> func arg
   | _ -> ()
 
 let pwrite fname text = File.write ("logs/" ^ fname) text
@@ -23,15 +21,15 @@ let vgroup p title fname func arg =
   vflog p Debug.print_line ();
   ()
 
+let default_settings =
+  { Settings.error_policy = Settings.Warn
+  ; log_policy = Settings.Never
+  ; preferred_currency = Settings.Usd
+  }
 
-let render_file filename =
-  let interpreter_settings =
-    { Global.error_policy = Global.Warn
-    ; log_policy = Global.None
-    } in
-
+let render_file filename ?(settings = default_settings) () =
   let s x = x in
-  let p = interpreter_settings.log_policy in
+  let p = settings.log_policy in
   let raw_text = filename |> File.read |> Preprocessor.preprocess in
   vgroup p "Raw Text:" "raw_text.txt" s raw_text;
 
@@ -41,16 +39,18 @@ let render_file filename =
   let ast = Parser.parse lex_tokens in
   vgroup p "Abstract Syntax Tree:" "ast.txt" Debug.ast_as_string ast;
 
-  let rendered_text = Interpreter.start interpreter_settings ast in
+  let rendered_text = Interpreter.start settings ast in
   vgroup p "Render:" "render.txt" s rendered_text;
 
   rendered_text
 
 let test () =
+  let settings = Settings.make ~error_policy:Warn () in
   (* render_file "liquid/interpreter_test.liquid" |> ignore; *)
   (* render_file "liquid/forloop_vars.liquid" |> ignore; *)
   (* render_file "liquid/render_test.liquid" |> ignore; *)
   (* render_file "liquid/scope_test.liquid" |> ignore; *)
   (* render_file "liquid/number_to_text.liquid" |> ignore; *)
-  render_file "liquid/std_test.liquid" |> ignore;
+  (* render_file "liquid/std_test.liquid" () |> ignore; *)
+  render_file "liquid/std_test.liquid" ~settings () |> ignore;
   ()

@@ -1,7 +1,8 @@
 open Base
+open Tools
 
 let has_encoded_text text =
-  let exp = Re2.create_exn "&#?[a-zA-Z0-9]{2,10};" in
+  let exp = ~/"&#?[a-zA-Z0-9]{2,10};" in
   Re2.matches exp text
 
 type encode_decode = Encode | Decode

@@ -42,8 +42,7 @@ let apply_op op ctx params =
 
 
 let extract_key_from_object_list lst key =
-  let lookup_key =
-    function
+  let lookup_key = function
     | Object obj -> (match Obj.find_opt key obj with Some x -> x | _ -> Nil)
     | _ -> Nil
   in
@@ -70,19 +69,6 @@ let capitalize_first_letter s =
   capped ^ tl
 
 (* TODO: Add more currency *)
-
-type currency_info =
-  { symbol: string
-  ; abbr: string
-  ; name: string
-  }
-
-let currency_info_from_currency = function
-  | Global.Usd -> { symbol = "$"; abbr = "USD"; name = "US Dollar" }
-  | Eur -> { symbol = "€"; abbr = "EUR"; name = "Euro" }
-  | Cad -> { symbol = "$"; abbr = "CAD"; name = "Canadian Dollar" }
-  | Aud -> { symbol = "$"; abbr = "AUD"; name = "Australian Dollar" }
-  | Gbp -> { symbol = "£"; abbr = "GBP"; name = "Pound Sterling" }
 
 let format_thousands_int n =
   let i = n |> Int.to_string |> String.rev in
@@ -121,14 +107,11 @@ let format_money_number n =
   let clean_sd = match String.length sd with 0 -> "00" | 1 -> sd ^ "0" | _ -> sd in
   fs ^ "." ^ clean_sd
 
-let format_money_symbol currency num =
-  let info = currency_info_from_currency currency in
-  info.symbol ^ format_money_number num
+let format_money_symbol (currency_info: Settings.currency_info) num =
+  currency_info.symbol ^ format_money_number num
 
-let format_money_currency currency num =
-  let info = currency_info_from_currency currency in
-  info.symbol ^ format_money_number num ^ " " ^ info.abbr
+let format_money_currency (currency_info: Settings.currency_info) num =
+  currency_info.symbol ^ format_money_number num ^ " " ^ currency_info.abbr
 
-let format_money_symbol_no_zeros currency num =
-  let info = currency_info_from_currency currency in
-  info.symbol ^ (Float.to_int num |> format_thousands_int)
+let format_money_symbol_no_zeros (currency_info: Settings.currency_info) num =
+  currency_info.symbol ^ (Float.to_int num |> format_thousands_int)

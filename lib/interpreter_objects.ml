@@ -14,7 +14,7 @@ let make_forloop_ctx ctx index length =
   ] in
 
   ctx
-  |> Ctx.add Global.forloop forloop_obj
+  |> Ctx.add Settings.forloop forloop_obj
 
 
 let request () =

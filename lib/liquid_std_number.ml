@@ -59,12 +59,12 @@ let weight_with_unit ctx params =
 
 let money ctx params =
   match unwrap_all ctx params with
-  | Number n :: _ -> format_money_symbol Global.preferred_currency n |> ok_str
+  | Number n :: _ -> format_money_symbol (Settings_ctx.preferred_currency_info ctx) n |> ok_str
   | other -> errc "money accepts a number" other
 
 let money_with_currency ctx params =
   match unwrap_all ctx params with
-  | Number n :: _ -> format_money_currency Global.preferred_currency n |> ok_str
+  | Number n :: _ -> format_money_currency (Settings_ctx.preferred_currency_info ctx) n |> ok_str
   | other -> errc "money_with_currency accepts a number" other
 
 let money_without_currency ctx params =
@@ -74,7 +74,7 @@ let money_without_currency ctx params =
 
 let money_without_trailing_zeros ctx params =
   match unwrap_all ctx params with
-  | Number n :: _ -> format_money_symbol_no_zeros Global.preferred_currency n |> ok_str
+  | Number n :: _ -> format_money_symbol_no_zeros (Settings_ctx.preferred_currency_info ctx) n |> ok_str
   | other -> errc "money_without_trailing_zeros accepts a number" other
 
 

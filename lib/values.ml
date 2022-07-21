@@ -59,8 +59,8 @@ and unwrap_chain ctx id =
       nv, Ctx.empty |> Ctx.add hd nv
     )
     | v -> (
-      let nctx = Ctx.empty |> Ctx.add Global.next v in
-      let nv = unwrap nctx (Var [Global.next; hd]) in
+      let nctx = Ctx.empty |> Ctx.add Settings.next v in
+      let nv = unwrap nctx (Var [Settings.next; hd]) in
       nv, nctx
     )
   in

@@ -5,20 +5,7 @@ open Tools
 let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
-let value_from_error_policy = function
-  | Global.Strict -> String "strict"
-  | Warn -> String "warn"
-  | Silent -> String "silent"
 
-let error_policy_from_value = function
-  | String "strict" -> Global.Strict
-  | String "warn" -> Warn
-  | String "silent" -> Silent
-  | _ -> Global.Strict
-
-let error_policy ctx =
-  Values.unwrap ctx (Var [Global.error_policy_key])
-  |> error_policy_from_value
 
 let ast_from_file filename =
   let filepath = Core.sprintf "liquid/%s.liquid" filename in
@@ -37,8 +24,8 @@ let interpret_function ctx name params =
   match std_lib_func ctx params with
   | Ok res -> res
   | Error err -> (
-    match error_policy ctx with
-    | Global.Strict -> Invalid_argument err |> raise
+    match Settings_ctx.error_policy ctx with
+    | Settings.Strict -> Invalid_argument err |> raise
     | Warn -> Stdio.print_endline err; Nil
     | Silent -> Nil
   )
@@ -72,7 +59,7 @@ let rec interpret_condition ctx = function
 let rec interpret ctx str = function
   | Block cmds -> interpret_block ctx str cmds
   | Assignment (id, exp) -> (
-    if starts_with id Global.increment then
+    if starts_with id Settings.increment then
       interpret_increment ctx str ~id ~exp
     else
       ctx |> Ctx.add id (interpret_expression ctx exp), str
@@ -140,7 +127,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
         Done (rewind inner_ctx pre_state, r_str)
       else
         let find_int k =
-          match Ctx.find Global.forloop acc_ctx with
+          match Ctx.find Settings.forloop acc_ctx with
           | Object obj -> (
             match Obj.find_opt k obj with
             | Some (Number n) -> Float.to_int n
@@ -178,7 +165,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
 and interpret_cycle ctx str ~group ~values =
   let gname = unwrap_or group "default" in
   let var_id = Core.sprintf "%s:%s" gname (join_by_underscore values) in
-  let cycle = var_from Global.cycle |> Values.unwrap_object ctx in
+  let cycle = var_from Settings.cycle |> Values.unwrap_object ctx in
   let index =
     Values.unwrap_object_value_or cycle var_id (Number 0.)
     |> Values.unwrap_int ctx in
@@ -187,7 +174,7 @@ and interpret_cycle ctx str ~group ~values =
   let nindex = Values.num_int (index + 1) in
   let ncycle = cycle |> Obj.add var_id nindex in
 
-  let nctx = ctx |> Ctx.add Global.cycle (Object ncycle) in
+  let nctx = ctx |> Ctx.add Settings.cycle (Object ncycle) in
 
   nctx, str ^ curr
 
@@ -195,7 +182,7 @@ and interpret_increment ctx str ~id ~exp =
   match exp with
   | Value (String modifier) -> (
     let var_id = String.split ~on:'.' id |> List.tl_exn |> join_by_underscore in
-    let incr = var_from Global.increment |> Values.unwrap_object ctx in
+    let incr = var_from Settings.increment |> Values.unwrap_object ctx in
     let (def, offset) = if modifier = "plus" then (-1., 1) else (0., -1) in
 
     let ival =
@@ -205,7 +192,7 @@ and interpret_increment ctx str ~id ~exp =
     let nval = Values.num_int (ival + offset) in
     let nincr = incr |> Obj.add var_id nval in
 
-    let nctx = ctx |> Ctx.add Global.increment (Object nincr) in
+    let nctx = ctx |> Ctx.add Settings.increment (Object nincr) in
 
     nctx, str ^ (Values.string_from_value ctx nval)
   )
@@ -223,13 +210,12 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
   let (_, rendered_text) = interpret val_ctx "" ast in
   ctx, str ^ rendered_text
 
-let make_ctx (settings: Global.interpreter_settings) =
+let make_ctx (settings: Settings.t) =
   Ctx.empty
-  |> Ctx.add Global.cycle (Object Obj.empty)
-  |> Ctx.add Global.increment (Object Obj.empty)
-  |> Ctx.add "request" (Interpreter_objects.request ())
+  |> Ctx.add Settings.cycle (Object Obj.empty)
+  |> Ctx.add Settings.increment (Object Obj.empty)
   |> Ctx.add "collection" Test_data.test_collection
-  |> Ctx.add Global.error_policy_key (value_from_error_policy settings.error_policy)
+  |> Settings_ctx.add settings
 
 let start settings ast =
   let ctx = make_ctx settings in
