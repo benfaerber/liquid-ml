@@ -5,6 +5,9 @@ open Liquid_std
 open Syntax
 open Tools
 
+type app_state = { settings: Settings.t ref };;
+let state = { settings = ref (Settings.make ()) };;
+
 let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
@@ -42,21 +45,25 @@ let ast_from_file filename =
 
 (* CTX Funcname exps *)
 let interpret_function ctx name params =
-  let func_lookup = Std.function_from_id name in
-  match func_lookup with
-  | Some func -> (
-    match func ctx params with
-    | Ok res -> res
-    | Error err -> (
-      match Settings_ctx.error_policy ctx with
-      | Settings.Strict -> Invalid_argument err |> raise
-      | Warn -> Stdio.print_endline err; Nil
-      | Silent -> Nil
+  let func =
+    match Std.function_from_id name with
+    | Some func -> func
+    | None -> (
+      let custom_lookup = !(state.settings).filters in
+      match custom_lookup name with
+      | Some func -> func
+      | _ -> Failure "No func found" |> raise
     )
+  in
+
+  match func ctx params with
+  | Ok res -> res
+  | Error err -> (
+    match Settings_ctx.error_policy ctx with
+    | Settings.Strict -> Invalid_argument err |> raise
+    | Warn -> Stdio.print_endline err; Nil
+    | Silent -> Nil
   )
-  | None -> Failure "Function not found!" |> raise
-
-
 
 let rec interpret_expression ctx = function
   | Value v -> Values.unwrap ctx v
@@ -246,6 +253,7 @@ let make_ctx (settings: Settings.t) =
   |> Settings_ctx.add settings
 
 let start settings ast =
+  state.settings := settings;
   let ctx = make_ctx settings in
   let (_, text) = interpret ctx "" ast in
   text
