@@ -147,17 +147,19 @@ let lex_token text =
   first_successful text lexers
 
 
-let lex_block_token_chunk chunk acc index =
-  if is_block_token_string chunk then
-    Next (acc @ [block_token_of_string chunk], index+(String.length chunk))
+let lex_block_token_chunk (chunk2, chunk3) acc index =
+  if is_block_token_whitespace_string chunk3 then
+    Next (acc @ [block_token_of_string chunk3], index+(String.length chunk3))
+  else if is_block_token_string chunk2 then
+    Next (acc @ [block_token_of_string chunk2], index+(String.length chunk2))
   else
     match List.rev acc with
-    | (RawText "liquid") :: StatementStart :: hds ->
+    | (RawText "liquid") :: StatementStart _ :: hds ->
       Next (List.rev hds @ [LiquidStart], index+1)
     | (RawText tl) :: hds ->
-      Next (List.rev hds @ [RawText (tl ^ first_letter chunk)], index+1)
+      Next (List.rev hds @ [RawText (tl ^ first_letter chunk2)], index+1)
     | _ ->
-      Next (acc @ [RawText (first_letter chunk)], index+1)
+      Next (acc @ [RawText (first_letter chunk2)], index+1)
 
 let lex_block_tokens text =
   let folder acc index =
@@ -166,9 +168,10 @@ let lex_block_tokens text =
       let raw_text = Preprocessor.until_end_raw curr in
       let raw_body = Preprocessor.trim_raw_tags raw_text in
       Next (acc @ [RawText raw_body], index+(String.length raw_text))
-    else if index + 2 < (String.length text) then
-      let chunk = String.sub text ~pos:index ~len:2 in
-      lex_block_token_chunk chunk acc index
+    else if index + 3 < (String.length text) then
+      let chunk2 = String.sub text ~pos:index ~len:2 in
+      let chunk3 = String.sub text ~pos:index ~len:3 in
+      lex_block_token_chunk (chunk2, chunk3) acc index
     else
       Stop acc
   in
@@ -210,11 +213,11 @@ let lex_all_tokens (block_tokens: block_token list) =
     else begin
       let sub = List.sub block_tokens ~pos:index ~len:(max - index) in
       match sub with
-      | StatementStart :: RawText(body) :: StatementEnd :: _ ->
+      | StatementStart _ :: RawText(body) :: StatementEnd _ :: _ ->
         Next (acc @ lex_line_tokens body @ [EOS], index+3)
-      | ExpressionStart :: RawText(body) :: ExpressionEnd :: _ ->
+      | ExpressionStart _ :: RawText(body) :: ExpressionEnd _ :: _ ->
         Next (acc @ [LexExpression (lex_line_tokens body)], index+3)
-      | LiquidStart :: RawText(body) :: StatementEnd :: _ ->
+      | LiquidStart :: RawText(body) :: StatementEnd _ :: _ ->
         let liq = body
           |> Preprocessor.remove_liquid_comments
           |> lex_line_tokens in

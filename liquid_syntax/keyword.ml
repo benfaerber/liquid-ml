@@ -1,11 +1,12 @@
 open Base
 open Tools
 
+type whitespace_control = Trim | White
 type block_token =
-  | StatementStart
-  | StatementEnd
-  | ExpressionStart
-  | ExpressionEnd
+  | StatementStart of whitespace_control
+  | StatementEnd of whitespace_control
+  | ExpressionStart of whitespace_control
+  | ExpressionEnd of whitespace_control
   | LiquidStart
   | RawText of string
 
@@ -147,13 +148,20 @@ let lex_keyword text =
   end
 
 let block_token_of_string = function
-  | "{%" -> StatementStart
-  | "%}" -> StatementEnd
-  | "{{" -> ExpressionStart
-  | "}}" -> ExpressionEnd
+  | "{%" -> StatementStart White
+  | "%}" -> StatementEnd White
+  | "{{" -> ExpressionStart White
+  | "}}" -> ExpressionEnd White
+  | "{%-" -> StatementStart Trim
+  | "-%}" -> StatementEnd Trim
+  | "{{-" -> ExpressionStart Trim
+  | "-}}" -> ExpressionEnd Trim
   | other -> RawText other
 
-let is_block_token_string x =
-  match block_token_of_string x with
-  | StatementStart | StatementEnd | ExpressionStart | ExpressionEnd -> true
+let is_block_token_string t =
+  match block_token_of_string t with
+  | StatementStart _ | StatementEnd _ | ExpressionStart _ | ExpressionEnd _ -> true
   | _ -> false
+
+let is_block_token_whitespace_string t =
+  String.is_substring t ~substring:"-" && is_block_token_string t

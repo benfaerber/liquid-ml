@@ -16,7 +16,7 @@ let remove_liquid_comments inp =
   remove tag_comment inp
   |> remove hash_comment
 
-let add_eof text = text ^ "  "
+let add_eof text = text ^ "   "
 
 let preprocess text = text |> remove_comments |> add_eof
 

@@ -4,11 +4,12 @@ open Keyword
 open Syntax
 open Tools
 
+let ws_control_as_string = function White -> "White" | Trim -> "Trim"
 let block_token_as_string = function
-  | StatementStart -> "StatementStart"
-  | StatementEnd -> "StatementEnd"
-  | ExpressionStart -> "ExpressionStart"
-  | ExpressionEnd -> "ExpressionEnd"
+  | StatementStart ws -> "StatementStart " ^ ws_control_as_string ws
+  | StatementEnd ws -> "StatementEnd " ^ ws_control_as_string ws
+  | ExpressionStart ws -> "ExpressionStart " ^ ws_control_as_string ws
+  | ExpressionEnd ws -> "ExpressionEnd " ^ ws_control_as_string ws
   | LiquidStart -> "LiquidStart"
   | RawText(oth) -> oth
 
