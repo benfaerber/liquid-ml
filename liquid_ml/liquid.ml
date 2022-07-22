@@ -88,6 +88,7 @@ let test () =
     Ctx.empty
     |> Ctx.add "favorite_animal" (String "horse")
     |> Ctx.add "enviroment" (Object enviroment)
+    |> Ctx.add "collection" Test_data.test_collection
   in
 
   let settings = Settings.make

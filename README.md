@@ -106,7 +106,7 @@ type value =
 | Var of string list
 | List of value list
 | Date of Date.t
-| Object of value Obj.t
+| Object of liquid_object
 | Nil
 ```
 

@@ -3,8 +3,7 @@ open Base
 module LiquidObject =
   struct
     type t = string
-    let compare a b =
-      String.compare a b
+    let compare = String.compare
   end
 
 module Obj = Caml.Map.Make(LiquidObject)
@@ -17,12 +16,10 @@ let obj_as_list obj =
 module VariableContext =
   struct
     type t = string
-    let compare a b =
-      String.compare a b
+    let compare = String.compare
   end
 
 module Ctx = Caml.Map.Make(VariableContext)
-
 
 let idf id = String.split id ~on:'.'
 
@@ -35,8 +32,11 @@ type value =
   | Var of string list
   | List of value list
   | Date of Date.t
-  | Object of value Obj.t
+  | Object of liquid_object
   | Nil
+and liquid_object = value Obj.t
+
+type variable_context = value Ctx.t
 
 type expression =
   | Value of value
@@ -74,7 +74,7 @@ type ast =
   | Layout of string option
   | Include of string
   | Section of string
-  | Render of string * value Ctx.t * ast option
+  | Render of string * variable_context * ast option
   | Paginate of id * int * ast
   | Nothing
 
@@ -103,5 +103,5 @@ let for_params_default =
   ; is_tablerow = false
   }
 
-type liquid_filter = value Ctx.t -> value list -> (value, string) Result.t
+type liquid_filter = variable_context -> value list -> (value, string) Result.t
 type liquid_filter_lookup = string -> liquid_filter option

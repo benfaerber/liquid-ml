@@ -1,12 +1,9 @@
 open Syntax
 
+let forloop = "forloop"
 let increment = "*increment"
 let cycle = "*cycle"
-
-let forloop = "forloop"
-
 let next = "*next"
-
 let skip = "*skip"
 
 type currency =
@@ -29,8 +26,6 @@ let currency_info_from_currency = function
   | Aud -> { symbol = "$"; abbr = "AUD"; name = "Australian Dollar" }
   | Gbp -> { symbol = "£"; abbr = "GBP"; name = "Pound Sterling" }
 
-let error_policy_key = "*error_policy"
-
 type error_policy =
   | Strict
   | Warn
@@ -49,17 +44,18 @@ type t = {
   error_policy: error_policy;
   preferred_currency: currency;
   filters: liquid_filter_lookup;
-  context: value Ctx.t;
+  context: variable_context;
 }
 
 let default_filter_lookup _ = None
+let default_custom_ctx = Ctx.empty
 
 let make
   ?(log_policy = Verbose)
   ?(error_policy = Strict)
   ?(preferred_currency = Usd)
   ?(filters = default_filter_lookup)
-  ?(context = Ctx.empty)
+  ?(context = default_custom_ctx)
   ()
 =
   { log_policy

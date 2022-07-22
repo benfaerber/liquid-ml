@@ -47,8 +47,9 @@ let ast_from_file filename =
   in
   ast
 
-let process_error ctx err =
-  match Settings_ctx.error_policy ctx with
+let process_error err =
+  let policy = !(state.settings).error_policy in
+  match policy with
   | Settings.Strict -> Invalid_argument err |> raise
   | Warn -> Stdio.print_endline err; Nil
   | Silent -> Nil
@@ -70,7 +71,7 @@ let interpret_function ctx name params =
   let uparams = Values.unwrap_all ctx params in
   match func ctx uparams with
   | Ok res -> res
-  | Error err -> process_error ctx err
+  | Error err -> process_error err
 
 let rec interpret_expression ctx = function
   | Value v -> Values.unwrap ctx v
@@ -256,7 +257,6 @@ let make_ctx (settings: Settings.t) =
   settings.context
   |> Ctx.add Settings.cycle (Object Obj.empty)
   |> Ctx.add Settings.increment (Object Obj.empty)
-  |> Ctx.add "collection" Test_data.test_collection
   |> Settings_ctx.add settings
 
 let start settings ast =
