@@ -49,6 +49,7 @@ type t = {
   error_policy: error_policy;
   preferred_currency: currency;
   filters: liquid_filter_lookup;
+  context: value Ctx.t;
 }
 
 let default_filter_lookup _ = None
@@ -58,10 +59,12 @@ let make
   ?(error_policy = Strict)
   ?(preferred_currency = Usd)
   ?(filters = default_filter_lookup)
+  ?(context = Ctx.empty)
   ()
 =
   { log_policy
   ; error_policy
   ; preferred_currency
   ; filters
+  ; context
   }

@@ -29,6 +29,10 @@ let rewind ctx ostate =
 
   List.fold cstate ~init:ctx ~f:folder
 
+let list_from_ctx ctx =
+  Ctx.to_seq ctx
+  |> Caml.Seq.fold_left (fun acc curr -> acc @ [curr]) []
+
 let var_from t = Var (String.split ~on:'.' t)
 
 
@@ -43,9 +47,15 @@ let ast_from_file filename =
   in
   ast
 
-(* CTX Funcname exps *)
+let process_error ctx err =
+  match Settings_ctx.error_policy ctx with
+  | Settings.Strict -> Invalid_argument err |> raise
+  | Warn -> Stdio.print_endline err; Nil
+  | Silent -> Nil
+
 let interpret_function ctx name params =
-  let unwrapped_params = Values.unwrap_all ctx params in
+  let invalid_function_name _ _ = Error "Invalid function name!" in
+
   let func =
     match Std.function_from_id name with
     | Some func -> func
@@ -53,18 +63,14 @@ let interpret_function ctx name params =
       let custom_lookup = !(state.settings).filters in
       match custom_lookup name with
       | Some func -> func
-      | _ -> Failure "No func found" |> raise
+      | None -> invalid_function_name
     )
   in
 
-  match func ctx unwrapped_params with
+  let uparams = Values.unwrap_all ctx params in
+  match func ctx uparams with
   | Ok res -> res
-  | Error err -> (
-    match Settings_ctx.error_policy ctx with
-    | Settings.Strict -> Invalid_argument err |> raise
-    | Warn -> Stdio.print_endline err; Nil
-    | Silent -> Nil
-  )
+  | Error err -> process_error ctx err
 
 let rec interpret_expression ctx = function
   | Value v -> Values.unwrap ctx v
@@ -247,7 +253,7 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
   ctx, str ^ rendered_text
 
 let make_ctx (settings: Settings.t) =
-  Ctx.empty
+  settings.context
   |> Ctx.add Settings.cycle (Object Obj.empty)
   |> Ctx.add Settings.increment (Object Obj.empty)
   |> Ctx.add "collection" Test_data.test_collection

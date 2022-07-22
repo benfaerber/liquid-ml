@@ -122,17 +122,17 @@ let unwrap_int ctx value = value |> unwrap_float ctx |> Float.to_int
 let unwrap_bool ctx v =
   match unwrap ctx v with
   | Bool b -> b
-  | _ -> raise (Failure "Failed to get number")
+  | _ -> raise (Failure "Failed to get bool")
 
 let unwrap_string ctx v =
   match unwrap ctx v with
   | String s -> s
-  | _ -> raise (Failure "Failed to get number")
+  | _ -> raise (Failure "Failed to get string")
 
 let unwrap_object ctx v =
   match unwrap ctx v with
   | Object obj -> obj
-  | _ -> raise (Failure "Failed to get number")
+  | _ -> raise (Failure "Failed to get object")
 
 let unwrap_object_value_or obj id d =
   match obj |> Obj.find_opt id with

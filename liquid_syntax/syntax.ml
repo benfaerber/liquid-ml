@@ -1,14 +1,10 @@
 open Base
-open Tools
 
 module LiquidObject =
   struct
     type t = string
     let compare a b =
-      match (String.length a, String.length b) with
-      | (ta, tb) when ta > tb -> 1
-      | (ta, tb) when ta < tb -> -1
-      | _ -> if a = b then 0 else -1
+      String.compare a b
   end
 
 module Obj = Caml.Map.Make(LiquidObject)
@@ -22,10 +18,7 @@ module VariableContext =
   struct
     type t = string
     let compare a b =
-      match (String.length a, String.length b) with
-      | (ta, tb) when ta > tb -> 1
-      | (ta, tb) when ta < tb -> -1
-      | _ -> if a = b then 0 else -1
+      String.compare a b
   end
 
 module Ctx = Caml.Map.Make(VariableContext)

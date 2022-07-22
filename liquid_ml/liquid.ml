@@ -51,7 +51,6 @@ let test () =
     | String person :: _ ->
       Ok (String ("Hello " ^ person ^ "!"))
     | List people :: _ ->
-      Stdio.print_endline "G";
       let greet_person = function
         | String person -> String ("Hello " ^ person ^ "!")
         | _ -> Nil
@@ -79,7 +78,25 @@ let test () =
     | _ -> None
   in
 
-  let settings = Settings.make ~error_policy:Warn ~log_policy:Never ~filters:custom_filters () in
+  let enviroment =
+    Obj.empty
+    |> Obj.add "language" (String "OCaml")
+    |> Obj.add "version" (String "4.14.0")
+  in
+
+  let context =
+    Ctx.empty
+    |> Ctx.add "favorite_animal" (String "horse")
+    |> Ctx.add "enviroment" (Object enviroment)
+  in
+
+  let settings = Settings.make
+    ~error_policy:Warn
+    ~log_policy:Minimal
+    ~filters:custom_filters
+    ~context
+    ()
+  in
   render "liquid_templates/std_test.liquid" ~settings () |> ignore;
 
   (* render_file "liquid_templates/interpreter_test.liquid" |> ignore; *)

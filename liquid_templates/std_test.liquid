@@ -76,8 +76,6 @@ Size: {{ beatles.size }}
 {{ "now" | date: "%Y-%m-%d %H:%M" }}
 Default Format: {{ "now" | date }}
 
-Rendered at: {{ rendered_at | date: "%Y-%m-%d %H:%M" }}
-
 {{ collection.products.size }}
 
 {% for p in collection.products %}
@@ -162,3 +160,7 @@ endfor
 
 {{ 2 | is_even }}
 {{ 3 | is_even }}
+
+{{ favorite_animal | greet }}
+
+{{ enviroment }}
