@@ -164,3 +164,11 @@ endfor
 {{ favorite_animal | greet }}
 
 {{ enviroment }}
+
+{%liquid
+echo enviroment
+for i in (0..3)
+    assign ev = i | is_even
+    echo ev
+endfor
+%}
