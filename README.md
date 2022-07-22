@@ -2,6 +2,10 @@
 
 [Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml!
 
+## !!!! NOTICE !!!!
+This is a work in progress. You are welcome to use it but the port is only ~70% complete so I can not guarantee that the API / Interpreter rules will remain consistant.
+
+
 ### Getting Started
 This basic example renders a Liquid file with the default settings. The render is returned as a string.
 
