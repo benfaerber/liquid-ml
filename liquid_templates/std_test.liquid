@@ -155,14 +155,12 @@ endfor
 
 {{ "Johnny" | greet }}
 
-{% assign people = "Jimmy,Jerry,Johnny" | split: ","  %}
+{% assign people = "Jimmy,Jerry,Johnny" | split:","  %}
 {{ people | greet }}
 
 {{ 2 | is_even }}
 {{ 3 | is_even }}
 
 {{ favorite_animal | greet }}
-
-{{ "i am using this incorrectly" | plus: false }}
 
 {{ enviroment }}

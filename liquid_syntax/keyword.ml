@@ -52,6 +52,11 @@ type lex_token =
   | LexExpression of lex_token list
   | EOS
 
+
+let is_operator = function
+  | "==" | ">=" | ">" | "<=" | "<" | "!=" | "<>" -> true
+  | _ -> false
+
 let lex_keyword text =
   let keywords =
     [ ("elsif", ElseIf)
@@ -114,6 +119,7 @@ let lex_keyword text =
     ; ("|", Pipe)
     ; ("=", Equals)
     ; (",", Comma)
+    ; (" ", Space)
     ; ("\n", Newline)
 
     ; ("nil", LexValue LexNil)
@@ -121,33 +127,33 @@ let lex_keyword text =
     ; ("none", LexNone)
   ] in
 
-  if starts_with text " " then
-    Some (Space, remove_prefix text " ")
-  else if starts_with text "\n" then
-    Some (Newline, remove_prefix text "\n")
-  else if text = " " || text = "\n" then
+  if text = " " || text = "\n" then
     None
-  else (
+  else begin
+    (* words need a space, newline or eos (example: aspen != Keyword(As) Id(Pen)) *)
     let finder (check_literal, _) =
-      starts_with text (check_literal ^ " ") || starts_with text (check_literal ^ "\n") || text = check_literal ^ " " in
-    let found_keyword =
-      List.find keywords ~f:finder in
-    match found_keyword with
-    | Some (literal, token) -> (
-      let trimmed = remove_prefix text literal in
-      Some (token, trimmed))
-    | None -> None
-  )
+      if String.length check_literal = 1 || is_operator check_literal then
+        starts_with text check_literal
+      else
+        starts_with text (check_literal ^ " ") || starts_with text (check_literal ^ "\n") || text = check_literal ^ " "
+    in
 
-let block_token_of_string =
-  function
+    let found_keyword = List.find keywords ~f:finder in
+    match found_keyword with
+    | Some (literal, token) ->
+      let trimmed = remove_prefix text literal in
+      Some (token, trimmed)
+    | None -> None
+  end
+
+let block_token_of_string = function
   | "{%" -> StatementStart
   | "%}" -> StatementEnd
   | "{{" -> ExpressionStart
   | "}}" -> ExpressionEnd
-  | other -> RawText(other)
+  | other -> RawText other
 
-let is_block_token_string = fun x ->
+let is_block_token_string x =
   match block_token_of_string x with
   | StatementStart | StatementEnd | ExpressionStart | ExpressionEnd -> true
   | _ -> false

@@ -12,18 +12,19 @@ let scan_until_eos tokens =
   in aux [] tokens
 
 let parse_variable_context tokens =
+  let add acc id v = acc |> Ctx.add (List.hd_exn id) v in
   let rec aux acc = function
     | LexValue (LexId id) :: Colon :: LexValue (v) :: Comma :: tl ->
-      let render_ctx = acc |> Ctx.add (List.hd_exn id) (lex_value_to_value v) in
+      let render_ctx = add acc id (lex_value_to_value v) in
       aux render_ctx tl
     | LexValue (LexId id) :: LexAs :: LexValue (LexId alias) :: Comma :: tl ->
-      let render_ctx = acc |> Ctx.add (List.hd_exn alias) (Var id) in
+      let render_ctx = add acc alias (Var id) in
       aux render_ctx tl
     | LexValue (LexId id) :: Colon :: LexValue (v) :: tl ->
-      let render_ctx = acc |> Ctx.add (List.hd_exn id) (lex_value_to_value v) in
+      let render_ctx = add acc id (lex_value_to_value v) in
       render_ctx, tl
     | LexValue (LexId id) :: LexAs :: LexValue (LexId alias) :: tl ->
-      let render_ctx = acc |> Ctx.add (List.hd_exn alias) (Var id) in
+      let render_ctx = add acc alias (Var id) in
       render_ctx, tl
     | _ -> acc, []
   in

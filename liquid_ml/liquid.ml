@@ -99,7 +99,7 @@ let test () =
     ()
   in
   render "liquid_templates/std_test.liquid" ~settings () |> ignore;
-
+  (* render "liquid_templates/single.liquid" ~settings () |> ignore; *)
   (* render_file "liquid_templates/interpreter_test.liquid" |> ignore; *)
   (* render_file "liquid_templates/forloop_vars.liquid" |> ignore; *)
   (* render_file "liquid_templates/render_test.liquid" |> ignore; *)
