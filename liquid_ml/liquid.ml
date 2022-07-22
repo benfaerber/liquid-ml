@@ -1,8 +1,8 @@
+open Base
 open Liquid_syntax
 open Liquid_parser
 open Liquid_interpreter
 open Syntax
-open Values
 
 let vflog policy func arg =
   match policy with
@@ -29,7 +29,7 @@ let vgroup p title fname func arg =
 
 let default_settings = Settings.make ()
 
-let render_file filename ?(settings = default_settings) () =
+let render filename ?(settings = default_settings) () =
   let s x = x in
   let p = settings.log_policy in
   let raw_text = filename |> File.read |> Preprocessor.preprocess in
@@ -47,20 +47,40 @@ let render_file filename ?(settings = default_settings) () =
   rendered_text
 
 let test () =
-  let greet ctx params =
-    match unwrap_all ctx params with
+  let greet _ = function
     | String person :: _ ->
       Ok (String ("Hello " ^ person ^ "!"))
-    | _ -> Error "greet accepts a string"
+    | List people :: _ ->
+      Stdio.print_endline "G";
+      let greet_person = function
+        | String person -> String ("Hello " ^ person ^ "!")
+        | _ -> Nil
+      in
+
+      let greeted = List.map people ~f:greet_person in
+      Ok (List greeted)
+    | _ -> Error "greet accepts a string or a list of strings"
+  in
+
+  let is_even _ = function
+    | Number n :: _ ->
+      let even = (Float.to_int n) % 2 = 0 in
+      Ok (Bool even)
+    | String s :: _ ->
+      let n = Float.of_string s in
+      let even = (Float.to_int n) % 2 = 0 in
+      Ok (Bool even)
+    | _ -> Error "is_even accepts a number"
   in
 
   let custom_filters = function
     | "greet" -> Some greet
+    | "is_even" -> Some is_even
     | _ -> None
   in
 
-  let settings = Settings.make ~error_policy:Warn ~filters:custom_filters () in
-  render_file "liquid_templates/std_test.liquid" ~settings () |> ignore;
+  let settings = Settings.make ~error_policy:Warn ~log_policy:Never ~filters:custom_filters () in
+  render "liquid_templates/std_test.liquid" ~settings () |> ignore;
 
   (* render_file "liquid_templates/interpreter_test.liquid" |> ignore; *)
   (* render_file "liquid_templates/forloop_vars.liquid" |> ignore; *)

@@ -1,3 +1,6 @@
+BUG: No putting a space in filter arg causes parse fail
+Example: split:"," fails but split: "," succeeds
+
 Interpreter
 -----------
   Implement cycle groups (are they stored globally?)

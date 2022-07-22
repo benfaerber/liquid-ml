@@ -155,6 +155,10 @@ endfor
 {{ 2322 | money_without_currency }} -
 {{ 2.252 | money_without_trailing_zeros }}
 
-{{ "incorrect use" | plus: 909 | slice: "ss"}}
-
 {{ "Johnny" | greet }}
+
+{% assign people = "Jimmy,Jerry,Johnny" | split: ","  %}
+{{ people | greet }}
+
+{{ 2 | is_even }}
+{{ 3 | is_even }}
