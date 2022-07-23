@@ -16,8 +16,8 @@ let date ctx params =
   match unwrap_all ctx params with
   | String date_str :: String fmat :: _ -> do_date fmat date_str |> ok
   | String date_str :: _ -> do_date "%m/%d/%Y" date_str |> ok
-  | Date date :: String fmat :: _ -> String (Date.date_as_string date fmat) |> ok
-  | [Date date] -> String (Date.date_as_string date "%m/%d/%Y") |> ok
+  | Date date :: String fmat :: _ -> String (Date.as_string date fmat) |> ok
+  | [Date date] -> String (Date.as_string date "%m/%d/%Y") |> ok
   | other -> errc "date accepts a string or a date and an optional format string" other
 
 let default ctx params =

@@ -102,7 +102,7 @@ let rec value_as_string = function
   | Var v -> "Var(" ^ join_by_arrow v ^ ")"
   | Nil -> "Nil"
   | List l -> Core.sprintf "List(%s)" (List.map l ~f:value_as_string |> join_by_comma)
-  | Date d -> Core.sprintf "Date(%s)" (Date.date_as_string d "%Y-%m-%d %H:%M")
+  | Date d -> Core.sprintf "Date(%s)" (Date.as_string d "%Y-%m-%d %H:%M")
   | Object obj -> (
     Core.sprintf "\n  Obj(%s)" (object_as_string obj)
   )

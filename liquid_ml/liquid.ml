@@ -11,7 +11,7 @@ let vflog policy func arg =
 
 let mflog policy func arg =
   match policy with
-  | Settings.Verbose | Settings.Minimal -> func arg
+  | Settings.Verbose | Minimal -> func arg
   | _ -> ()
 
 let pwrite fname text = File.write ("logs/" ^ fname) text
@@ -24,8 +24,7 @@ let vgroup p title fname func arg =
   vlog p title;
   pwrite fname text;
   vlog p text;
-  vflog p Debug.print_line ();
-  ()
+  vflog p Debug.print_line ()
 
 let default_settings = Settings.make ()
 

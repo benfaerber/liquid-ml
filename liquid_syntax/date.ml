@@ -18,10 +18,10 @@ let format_date_string date_str fmat =
   let formatted = Printer.Date.sprint fmat date in
   formatted
 
-let date_as_string date fmat =
+let as_string date fmat =
   Printer.Calendar.sprint fmat date
 
-let date_as_iso_string date =
+let as_iso_string date =
   Printer.Calendar.sprint iso_format date
 
 (*

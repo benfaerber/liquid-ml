@@ -20,16 +20,16 @@ let string_range s start_i end_i =
   String.sub s ~pos:start_i ~len:(String.length s - end_i)
 
 let starts_with text prefix =
-  if String.length text > String.length prefix then (
+  if String.length text > String.length prefix then
     let rprefix = sub_prefix text (String.length prefix) in
     rprefix = prefix
-  ) else false
+  else false
 
 let ends_with text suffix =
-  if String.length text > String.length suffix then (
+  if String.length text > String.length suffix then
     let rsuffix = sub_suffix text (String.length suffix) in
     rsuffix = suffix
-  ) else false
+  else false
 
 let remove_prefix text prefix =
   if starts_with text prefix then
@@ -72,8 +72,8 @@ let rec fold_until lst acc func =
 
 let nth lst index =
   match List.nth lst index with
-  | Some(x) -> x
-  | None -> raise(Failure ("Failed to get item at index"))
+  | Some x -> x
+  | None -> Failure "Failed to get item at index" |> raise
 
 let first lst = nth lst 0
 
@@ -87,6 +87,6 @@ let join_by_nl lst = String.concat ~sep:"\n" lst
 let join lst = String.concat ~sep:"" lst
 
 let contains lst item =
-  List.mem lst item ~equal:(Caml.(=))
+  List.mem lst item ~equal:(=)
 
 let unwrap_or value fallback = match value with Some v -> v | None -> fallback

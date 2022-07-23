@@ -42,7 +42,8 @@ let expression_from_tokens full_tokens =
 
     let remove_skip = function
       | Value (String s) when s = Settings.skip -> []
-      | e -> [e] in
+      | e -> [e]
+    in
 
     let rec unfold_into_func = function
       | Func (id, (Value (String s) :: other_params)) :: tl when s = Settings.skip ->

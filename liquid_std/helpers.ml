@@ -67,7 +67,8 @@ let capitalize_first_letter s =
   capped ^ tl
 
 (* TODO: Add more currency *)
-
+(* 12345 -> 54321 *)
+(* 1234567 *)
 let format_thousands_int n =
   let i = n |> Int.to_string |> String.rev in
   let r = List.init (String.length i) ~f:(String.get i) in
