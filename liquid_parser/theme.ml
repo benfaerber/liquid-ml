@@ -6,7 +6,7 @@ open Syntax
 open Parser_tools
 
 let parse_render = function
-  | LexValue (LexString filename) :: tokens -> (
+  | LexValue (LexString filename) :: tokens -> begin
     match tokens with
     | EOS :: tl ->
       Some (Render (filename, Ctx.empty, None), tl)
@@ -26,12 +26,12 @@ let parse_render = function
       | _ -> None
     )
     | _ -> None
-  )
+  end
   | _ -> None
 
 let parse_form block_parser all_tokens =
   match all_tokens with
-  | LexValue (LexString filename) :: tokens -> (
+  | LexValue (LexString filename) :: tokens -> begin
     let ts = [LexForm] @ tokens in
     let bounds = Bounds.find_bounds ts 0 in
     let stop_point = Bounds.stop_point_from_bounds bounds in
@@ -60,7 +60,7 @@ let parse_form block_parser all_tokens =
       | _ -> None
     )
     | _ -> None
-  )
+  end
   | _ -> None
 
 let parse_style block_parser = function

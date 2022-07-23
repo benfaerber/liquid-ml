@@ -256,13 +256,13 @@ and interpret_style ctx str body =
     | _ -> ""
   in
 
-  let style = "<style data-liquid>\n" ^ rendered_body ^ "\n</style>" in
+  let style = "<style data-liquid>" ^ rendered_body ^ "</style>" in
 
   ctx, str ^ style
 
 and interpret_render ctx str ~filename ~render_ctx ~body =
   if filename = Settings.style_tag then
-  interpret_style ctx str body
+    interpret_style ctx str body
   else begin
     File.write "logs/body.txt" (Batteries.dump body);
     let ast = ast_from_file filename in

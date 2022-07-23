@@ -20,9 +20,7 @@ let build_condition tokens =
   let is_unless = List.hd_exn tokens = Unless in
   match tokens with
   | Else :: _ -> Always true
-  | If :: statement
-  | ElseIf :: statement
-  | Unless :: statement -> (
+  | If :: statement | ElseIf :: statement | Unless :: statement -> begin
     let rec aux acc pool =
       match pool with
       | [LexValue a1] -> IsTruthy (lex_value_to_value a1)
@@ -42,7 +40,7 @@ let build_condition tokens =
     in
     let res = aux (Always true) statement in
     if is_unless then Not res else res
-  )
+  end
   | _ -> raise (Failure "Invalid token list")
 
 
@@ -89,7 +87,7 @@ let parse_test_chain block_parser chunks =
     match pool with
     | fs :: tl -> (
       match fs with
-      | Case :: LexValue LexId(case_id) :: EOS :: _ ->
+      | Case :: LexValue (LexId case_id) :: EOS :: _ ->
         parse_when_statements block_parser case_id tl
       | _ ->
         let (condition, body) = parse_test_statement block_parser fs in
