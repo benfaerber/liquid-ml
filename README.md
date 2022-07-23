@@ -31,6 +31,13 @@ let () =
 
 You have access to the following settings:
 
+template_directory
+- The directory that contains template files. This is used both for the initial lookup (ie Liquid.render "yada.liquid") and for
+the `render` tag used within liquid. Default is project root.
+
+log_directory
+- Where log files are written too. This must be set if log policy is set to `Verbose`.
+
 error_policy:
 - `Strict` - A Liquid Syntax error will raise an exception
 - `Warn` - A Liquid Syntax error will print an error message
@@ -49,6 +56,10 @@ filters:
 context:
 - Variable Context available in the global scope
 - `value Ctx.t` aka `variable_context`
+
+preferred_currency:
+- Used in money formatting filters
+- `Usd`, `Eur`, `Cad`, `Aud`, `Gbp`
 
 ### Custom Variable Context
 The variable context provides the template with variables accessible in the global scope.

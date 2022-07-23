@@ -5,8 +5,8 @@ open Liquid_std
 open Syntax
 open Tools
 
-type app_state = { settings: Settings.t ref };;
-let state = { settings = ref (Settings.make ()) };;
+type app_state = { settings: Settings.t ref }
+let state = { settings = ref (Settings.make ()) }
 
 let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
@@ -37,7 +37,8 @@ let var_from t = Var (String.split ~on:'.' t)
 
 
 let ast_from_file filename =
-  let filepath = Core.sprintf "liquid_templates/%s.liquid" filename in
+  let base_dir = !(state.settings).template_directory in
+  let filepath = Core.sprintf "%s/%s.liquid" base_dir filename in
   let raw_text = File.read filepath in
   let ast =
     raw_text

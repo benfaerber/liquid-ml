@@ -49,22 +49,28 @@ type t =
   ; preferred_currency : currency
   ; filters : liquid_filter_lookup
   ; context : variable_context
+  ; template_directory : string
+  ; log_directory : string option
   }
 
 let default_filter_lookup _ = None
 let default_custom_ctx = Ctx.empty
 
 let make
-    ?(log_policy = Verbose)
+    ?(log_policy = Never)
+    ?(log_directory = "")
     ?(error_policy = Strict)
     ?(preferred_currency = Usd)
     ?(filters = default_filter_lookup)
     ?(context = default_custom_ctx)
+    ?(template_directory = ".")
     ()
   =
   { log_policy
+  ; log_directory = if log_directory = "" then None else Some log_directory
   ; error_policy
   ; preferred_currency
   ; filters
   ; context
+  ; template_directory
   }

@@ -14,15 +14,19 @@ let mflog policy func arg =
   | Settings.Verbose | Minimal -> func arg
   | _ -> ()
 
-let pwrite fname text = File.write ("logs/" ^ fname) text
+let pwrite fname text = File.write fname text
 
 let vlog policy arg = vflog policy Stdio.print_endline arg
 let mlog policy arg = mflog policy Stdio.print_endline arg
 
-let vgroup p title fname func arg =
+let vgroup p ld title fname func arg =
   let text = func arg in
   vlog p title;
-  pwrite fname text;
+  match ld with
+  | Some log_dir ->
+    let fpath = log_dir ^ "/" ^ fname in
+    File.write fpath text
+  | None -> ();
   vlog p text;
   vflog p Debug.print_line ()
 
@@ -31,17 +35,19 @@ let default_settings = Settings.make ()
 let render ?(settings = default_settings) filename =
   let s x = x in
   let p = settings.log_policy in
-  let raw_text = filename |> File.read |> Preprocessor.preprocess in
-  vgroup p "Raw Text:" "raw_text.txt" s raw_text;
+  let filepath = settings.template_directory ^ "/" ^ filename in
+  let raw_text = filepath |> File.read |> Preprocessor.preprocess in
+  let ld = settings.log_directory in
+  vgroup p ld "Raw Text:" "raw_text.txt" s raw_text;
 
   let lex_tokens = Lexer.lex raw_text in
-  vgroup p "Lex Tokens:" "tokens.txt" Debug.lex_tokens_as_string_with_index lex_tokens;
+  vgroup p ld "Lex Tokens:" "tokens.txt" Debug.lex_tokens_as_string_with_index lex_tokens;
 
   let ast = Parser.parse lex_tokens in
-  vgroup p "Abstract Syntax Tree:" "ast.txt" Debug.ast_as_string ast;
+  vgroup p ld "Abstract Syntax Tree:" "ast.txt" Debug.ast_as_string ast;
 
   let rendered_text = Interpreter.start settings ast in
-  vgroup p "Render:" "render.txt" s rendered_text;
+  vgroup p ld "Render:" "render.txt" s rendered_text;
 
   rendered_text
 
@@ -94,7 +100,9 @@ let test () =
     ~error_policy:Warn
     ~log_policy:Minimal
     ~filters:custom_filters
+    ~template_directory:"liquid_templates"
+    ~log_directory:"logs"
     ~context
     ()
   in
-  render ~settings "liquid_templates/std_test.liquid" |> ignore
+  render ~settings "std_test.liquid" |> ignore
