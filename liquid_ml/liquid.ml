@@ -28,7 +28,7 @@ let vgroup p title fname func arg =
 
 let default_settings = Settings.make ()
 
-let render filename ?(settings = default_settings) () =
+let render ?(settings = default_settings) filename =
   let s x = x in
   let p = settings.log_policy in
   let raw_text = filename |> File.read |> Preprocessor.preprocess in
@@ -97,12 +97,4 @@ let test () =
     ~context
     ()
   in
-  render "liquid_templates/std_test.liquid" ~settings () |> ignore;
-  (* render "liquid_templates/single.liquid" ~settings () |> ignore; *)
-  (* render_file "liquid_templates/interpreter_test.liquid" |> ignore; *)
-  (* render_file "liquid_templates/forloop_vars.liquid" |> ignore; *)
-  (* render_file "liquid_templates/render_test.liquid" |> ignore; *)
-  (* render_file "liquid_templates/scope_test.liquid" |> ignore; *)
-  (* render_file "liquid_templates/number_to_text.liquid" |> ignore; *)
-  (* render_file "liquid_templates/std_test.liquid" () |> ignore; *)
-  ()
+  render ~settings "liquid_templates/std_test.liquid" |> ignore

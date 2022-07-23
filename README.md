@@ -7,14 +7,14 @@ This is a work in progress. You are welcome to use it but the port is only ~70% 
 
 
 ### Getting Started
-This basic example renders a Liquid file with the default settings. The render is returned as a string.
+This basic example `render`s a Liquid file with the default settings. The render is returned as a string.
 
 ### Default Settings:
 ```ocaml
 open Liquid_ml
 
 let () =
-  Liquid.render "liquid_templates/test.liquid" ()
+  Liquid.render "liquid_templates/test.liquid"
   |> Stdio.print_endline
 ```
 
@@ -24,7 +24,7 @@ open Liquid_ml
 
 let () =
   let settings = Settings.make ~error_policy:Warn ~log_policy:Never in
-  render "liquid_templates/test.liquid" ~settings ()
+  render ~settings "liquid_templates/test.liquid"
   |> Stdio.print_endline
 
 ```
@@ -68,7 +68,7 @@ The variable context provides the template with variables accessible in the glob
     in
 
     let settings = Settings.make ~context () in
-    render "liquid_templates/test.liquid" ~settings ()
+    render ~settings "liquid_templates/test.liquid"
     |> Stdio.print_endline
 
 ```
@@ -127,7 +127,7 @@ let () =
   in
 
   let settings = Settings.make ~filters:filter_lookup in
-  render "liquid_templates/test.liquid" ~settings ()
+  render ~settings "liquid_templates/test.liquid"
   |> Stdio.print_endline
 
 ```
