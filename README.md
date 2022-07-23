@@ -14,7 +14,7 @@ This basic example renders a Liquid file with the default settings. The render i
 open Liquid_ml
 
 let () =
-  Liquid.render "liquid_templates/block_test.liquid" ()
+  Liquid.render "liquid_templates/test.liquid" ()
   |> Stdio.print_endline
 ```
 
@@ -24,7 +24,7 @@ open Liquid_ml
 
 let () =
   let settings = Settings.make ~error_policy:Warn ~log_policy:Never in
-  render "liquid_templates/std_test.liquid" ~settings ()
+  render "liquid_templates/test.liquid" ~settings ()
   |> Stdio.print_endline
 
 ```
@@ -45,19 +45,62 @@ filters:
 - A function that maps filter names to filter functions
 - `string -> liquid_filter option`
 
+context:
+- Variable Context available in the global scope
+- `value Ctx.t` aka `variable_context`
+
+### Custom Variable Context
+The variable context provides the template with variables accessible in the global scope.
+```ocaml
+  let () =
+    (* Create an object that can be accessed in Liquid using dot notation (enviroment.language -> "OCaml") *)
+    let enviroment =
+      Obj.empty
+      |> Obj.add "language" (String "OCaml")
+      |> Obj.add "version" (String "4.14.0")
+    in
+
+    (* HeRe we include our favorite_animal as a string an our enviroment as an object *)
+    let context =
+      Ctx.empty
+      |> Ctx.add "favorite_animal" (String "horse")
+      |> Ctx.add "enviroment" (Object enviroment)
+    in
+
+    let settings = Settings.make ~context () in
+    render "liquid_templates/test.liquid" ~settings ()
+    |> Stdio.print_endline
+
+```
+Now we can access these variables from the template:
+```liquid
+My favorite animal is {{ favorite_animal }}!
+This template was rendered using {{ enviroment.language }} Version {{ enviroment.version }}!
+```
+This renders as:
+```
+My favorite animal is horse!
+This template was rendered using OCaml Version 4.14.0
+```
+
+### Execution Context
+The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Caml.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
+
+
 
 ### Custom Filters
-A filter is a function that accepts the execution context and a list of params and returns a result of a Value.
+A filter is a function that accepts the execution context (`value Ctx.t`) and a list of params (`value list`) and returns a result of a `value`.
 This is what a filter looks like in Liquid:
 ```liquid
 {{ "my cool dog" | replace: "dog", "cat" }}
 ```
-This is transformed into a list of a parameters and passed to the filter:
+This is transformed into a list of a parameters and passed to the filter. Notice how the value on the left side of the pipe is the first in the list. This is how all filters work.
+You can think of this filter as function: `replace "my cool dog" "dog" "cat"`. This is the parameter list that will be passed to the filter:
 ```ocaml
 [String "my cool dog"; String "dog"; String "cat"]
 ```
 We then can use pattern matching to type check the filter.
-If the wrong type / wrong contents are passed into the filter we can return an error.
+If the wrong type / wrong contents are passed into the filter we can return an error. The error will be processed based on the error policy you set. The default is `Warn` which causes the filter to return `Nil` and print an error message to the console.
 
 ### Filter Example
 
@@ -67,7 +110,10 @@ open Liquid_ml
 type liquid_filter = value Ctx.t -> value list -> (value, string) Result.t
 
 let () =
-  (* This function accepts a string, anything else will throw an error *)
+  (*
+    This function accepts a string, anything else will throw an error.
+    Note: since we discard the tail, extra params aRe simply ignored
+  *)
   let greet _ = function
     | String person :: _ -> Ok (String ("Hello " ^ person ^ "!"))
     | _ -> Error "greet accepts a string or a list of strings"
@@ -81,7 +127,7 @@ let () =
   in
 
   let settings = Settings.make ~filters:filter_lookup in
-  render "liquid_templates/std_test.liquid" ~settings ()
+  render "liquid_templates/test.liquid" ~settings ()
   |> Stdio.print_endline
 
 ```
@@ -114,8 +160,6 @@ These are all the possible values that can be passed to a filter or stored in th
 
 When a list of parameters is passed to a filter it will never contain the `Var` type. Variables are unpacked before they are passed to filters. If the variable is undefined `Nil` is returned.
 
-### Execution Context
-The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Caml.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
 
 ### Compatibility
 This is not a complete port of Liquid. Here is a list of everything that has been ported:
