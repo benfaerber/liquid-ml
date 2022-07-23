@@ -61,11 +61,6 @@ let parse_weight_unit = function
   | "oz" | "ozs" | "ounces" | "ounce" -> Ounces
   | _ -> Pounds
 
-let capitalize_first_letter s =
-  let capped = s |> first_letter |> String.capitalize in
-  let tl = String.sub s ~pos:1 ~len:(String.length s - 1) in
-  capped ^ tl
-
 (* TODO: Add more currency *)
 (* 12345 -> 54321 *)
 (* 1234567 *)

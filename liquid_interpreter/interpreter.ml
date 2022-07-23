@@ -53,6 +53,7 @@ let process_error err =
   | Settings.Strict -> Invalid_argument err |> raise
   | Warn -> Stdio.print_endline err; Nil
   | Silent -> Nil
+  | Custom handler -> handler err; Nil
 
 let interpret_function ctx name params =
   let invalid_function_name _ _ = Error "Invalid function name!" in
@@ -246,12 +247,29 @@ and interpret_include ctx str ~filename =
   let ast = ast_from_file filename in
   interpret ctx str ast
 
+and interpret_style ctx str body =
+  let rendered_body =
+    match body with
+    | Some b ->
+      let (_, s) = interpret ctx "" b in
+      s
+    | _ -> ""
+  in
+
+  let style = "<style data-liquid>\n" ^ rendered_body ^ "\n</style>" in
+
+  ctx, str ^ style
+
 and interpret_render ctx str ~filename ~render_ctx ~body =
-  File.write "logs/body.txt" (Batteries.dump body);
-  let ast = ast_from_file filename in
-  let val_ctx = Values.unwrap_render_context ~outer_ctx:ctx ~render_ctx in
-  let (_, rendered_text) = interpret val_ctx "" ast in
-  ctx, str ^ rendered_text
+  if filename = Settings.style_tag then
+  interpret_style ctx str body
+  else begin
+    File.write "logs/body.txt" (Batteries.dump body);
+    let ast = ast_from_file filename in
+    let val_ctx = Values.unwrap_render_context ~outer_ctx:ctx ~render_ctx in
+    let (_, rendered_text) = interpret val_ctx "" ast in
+    ctx, str ^ rendered_text
+  end
 
 let make_ctx (settings: Settings.t) =
   settings.context

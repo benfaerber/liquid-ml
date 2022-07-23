@@ -32,14 +32,14 @@ let camelcase _ = function
   | String s :: _ -> (
     let wsexp = ~/"\\s|-|_" in
     let words = Re2.rewrite_exn wsexp ~template:" " s |> String.split ~on:' ' in
-    let cammed = List.map words ~f:capitalize_first_letter |> join in
+    let cammed = List.map words ~f:String.capitalize |> join in
     cammed |> ok_str
   )
   | other -> errc "camelcase accepts a string" other
 
 let capitalize _ = function
   | String s :: _ ->
-    capitalize_first_letter s |> ok_str
+    String.capitalize s |> ok_str
   | other -> errc "capitalize accepts a string" other
 
 
@@ -234,7 +234,7 @@ let split _ = function
 
 
 let upcase _ = function
-  | String s :: _ -> s |> String.capitalize |> ok_str
+  | String s :: _ -> s |> String.uppercase |> ok_str
   | other -> errc "upcase accepts a string" other
 
 

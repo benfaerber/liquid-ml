@@ -71,7 +71,7 @@ let parse_style block_parser = function
     let body = List.sub tl ~pos:0 ~len:stop_point in
     let rest = sub_list_suffix tokens stop_point in
 
-    let render = Render ("style_tag", Ctx.empty, Some (block_parser body)) in
+    let render = Render (Settings.style_tag, Ctx.empty, Some (block_parser body)) in
     Some (render, rest)
   | _ -> None
 

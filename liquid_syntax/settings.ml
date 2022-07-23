@@ -5,6 +5,8 @@ let increment = "*increment"
 let cycle = "*cycle"
 let next = "*next"
 let skip = "*skip"
+let style_tag = "*style_tag"
+
 
 type currency =
   | Usd
@@ -26,10 +28,12 @@ let currency_info_from_currency = function
   | Aud -> { symbol = "$"; abbr = "AUD"; name = "Australian Dollar" }
   | Gbp -> { symbol = "£"; abbr = "GBP"; name = "Pound Sterling" }
 
+type error_handler = string -> unit
 type error_policy =
   | Strict
   | Warn
   | Silent
+  | Custom of error_handler
 
 type log_policy =
   | Verbose

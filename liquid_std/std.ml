@@ -22,10 +22,9 @@ let date ctx params =
 
 let default ctx params =
   match unwrap_all ctx params with
-  | a :: b :: Bool allow_false :: _ -> (
+  | a :: b :: Bool allow_false :: _ ->
     let comp = if allow_false then Values.is_not_nil else Values.is_truthy in
     if comp ctx a then Ok a else Ok b
-  )
   | a :: b :: _ -> if Values.is_truthy ctx a then Ok a else Ok b
   | other -> errc "default accepts 2 values and an optional named argument allow_false" other
 
@@ -46,11 +45,11 @@ let base_function_from_id = function
 
 let rec first_successful name =
   function
-  | getter :: other_getters -> (
+  | getter :: other_getters -> begin
     match getter name with
     | Some f -> Some f
     | _ -> first_successful name other_getters
-  )
+  end
   | _ -> None
 
 

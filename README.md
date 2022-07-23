@@ -32,14 +32,15 @@ let () =
 You have access to the following settings:
 
 error_policy:
-- Strict - A Liquid Syntax error will raise an exception
-- Warn - A Liquid Syntax error will print an error message
-- Silent - Errors will be ignored
+- `Strict` - A Liquid Syntax error will raise an exception
+- `Warn` - A Liquid Syntax error will print an error message
+- `Silent` - Errors will be ignored
+- `Custom of (handler: string -> unit)` - Accepts a custom handler function
 
 log_policy:
-- Verbose - Everything will be logged
-- Minimal - The most important things will be logged
-- Never - Log nothing
+- `Verbose` - Everything will be logged
+- `Minimal` - The most important things will be logged
+- `Never` - Log nothing
 
 filters:
 - A function that maps filter names to filter functions
@@ -158,6 +159,8 @@ type value =
 
 These are all the possible values that can be passed to a filter or stored in the execution context. Date is powered by the library [Calendar](https://github.com/ocaml-community/calendar). Object is a custom `Caml.Map` defined in the file `syntax.ML`.
 
+Identifiers are represented as string lists. The ID `apple` is represented as `["apple"]`. The ID `collection.products[0].title` is represented as `["collection"; "products"; "0"; "title"]`.
+
 When a list of parameters is passed to a filter it will never contain the `Var` type. Variables are unpacked before they are passed to filters. If the variable is undefined `Nil` is returned.
 
 
@@ -175,6 +178,7 @@ This is not a complete port of Liquid. Here is a list of everything that has bee
 - section
 - assign
 - cycle
+- style
 
 #### Filters
 - Most filters not explicitly labeled "Shopify" in the [Liquid Filter Docs](https://shopify.dev/api/liquid/filters) have been ported. A complete list can be viewed in `liquid_std/std.ml`
