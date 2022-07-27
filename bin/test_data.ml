@@ -33,9 +33,9 @@ let test_collection =
 
   let all_products = [product_a; product_b; product_c] in
 
-  Object (
-    Obj.empty
-    |> Obj.add "handle" (String "all-products")
-    |> Obj.add "title" (String "All Products")
-    |> Obj.add "products" (List all_products)
-  )
+
+  Obj.empty
+  |> Obj.add "handle" (String "all-products")
+  |> Obj.add "title" (String "All Products")
+  |> Obj.add "products" (List all_products)
+  |> pack_object
