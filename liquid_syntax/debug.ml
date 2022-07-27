@@ -1,6 +1,5 @@
 open Base
 
-open Keyword
 open Syntax
 open Tools
 
@@ -43,7 +42,7 @@ let newline_as_token = true
 let rec lex_token_as_string = function
   | If -> "If" | EndIf -> "EndIf"
   | Unless -> "Unless" | EndUnless -> "EndUnless"
-  | For -> "For" | EndFor -> "EndFor"
+  | LexFor -> "For" | LexEndFor -> "EndFor"
   | Case -> "Case" | EndCase -> "EndCase"
   | Capture -> "Capture" | EndCapture -> "EndCapture"
   | Paginate -> "Paginate" | EndPaginate -> "EndPaginate"

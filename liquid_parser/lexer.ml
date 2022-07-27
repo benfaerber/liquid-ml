@@ -1,7 +1,8 @@
 open Base
 open Liquid_syntax
 open Tools
-open Keyword
+open Syntax
+open Keyword_lexer
 
 let lex_bool text =
   let literal_true = "true" in

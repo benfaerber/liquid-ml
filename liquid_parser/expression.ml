@@ -1,6 +1,5 @@
 open Base
 open Liquid_syntax
-open Keyword
 open Syntax
 open Parser_tools
 open Tools

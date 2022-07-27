@@ -57,6 +57,7 @@ let test () =
     ~context
     ()
   in
-  render ~settings "std_test.liquid" |> ignore
+  render ~settings "std_test.liquid"
+  |> Stdio.print_endline
 
 let () = test ()

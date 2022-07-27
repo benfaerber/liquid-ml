@@ -1,6 +1,5 @@
 open Base
 open Liquid_syntax
-open Keyword
 open Tools
 open Syntax
 open Parser_tools
@@ -23,7 +22,7 @@ let parse_test block_parser = function
   | _ -> None
 
 let parse_capture block_parser = function
-  | Keyword.Capture :: LexValue (LexId id) :: EOS :: tl ->
+  | Tokens.Capture :: LexValue (LexId id) :: EOS :: tl ->
     let (body, rest) = parse_single_body Capture tl in
     let capture = Capture (join id, block_parser body) in
     Some (capture, rest)
@@ -42,7 +41,7 @@ let parse_cycle _ all_tokens =
   in
 
   match all_tokens with
-  | Keyword.Cycle :: LexValue (LexString name) :: Colon :: tl -> parse_state (Some name) tl
+  | Tokens.Cycle :: LexValue (LexString name) :: Colon :: tl -> parse_state (Some name) tl
   | Cycle :: tl -> parse_state None tl
   | _ -> None
 

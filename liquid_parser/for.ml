@@ -1,6 +1,5 @@
 open Base
 open Liquid_syntax
-open Keyword
 open Tools
 open Syntax
 open Parser_tools
@@ -8,7 +7,7 @@ open Parser_tools
 type for_type = ForLoop | TableRow
 
 let parse_forlike for_type block_parser tokens =
-  let kw, is_tablerow = if for_type = ForLoop then Keyword.For, false else Keyword.TableRow, true in
+  let kw, is_tablerow = if for_type = ForLoop then Tokens.LexFor, false else TableRow, true in
   let do_for lid lex_val tl ~params =
     let id = join lid in
     let value = lex_value_to_value lex_val in
@@ -59,8 +58,8 @@ let parse_for = parse_forlike ForLoop
 let parse_tablerow = parse_forlike TableRow
 
 let parse_paginate block_parser = function
-  | Keyword.Paginate :: LexValue (LexId id) :: By :: LexValue (LexNumber num) :: tl -> (
-    let (body, rest) = parse_single_body Keyword.Paginate tl in
+  | Tokens.Paginate :: LexValue (LexId id) :: By :: LexValue (LexNumber num) :: tl -> (
+    let (body, rest) = parse_single_body Tokens.Paginate tl in
     let page = Paginate (id, Float.to_int num, block_parser body) in
     Some (page, rest)
   )

@@ -1,7 +1,6 @@
 open Base
 open Liquid_syntax
 open Tools
-open Keyword
 open Syntax
 open Parser_tools
 
@@ -10,7 +9,7 @@ let parse_render = function
     match tokens with
     | EOS :: tl ->
       Some (Render (filename, Ctx.empty, None), tl)
-    | For :: LexValue (list) :: LexAs :: LexValue (LexId id) :: EOS :: tl ->
+    | LexFor :: LexValue (list) :: LexAs :: LexValue (LexId id) :: EOS :: tl ->
       let render_ctx = Ctx.empty |> Ctx.add (List.hd_exn id) (Var id) in
       let render = Render (filename, render_ctx, None) in
       let iter_list = lex_value_to_value list in

@@ -1,4 +1,5 @@
 open Base
+include Tokens
 
 module LiquidObject =
   struct
@@ -42,7 +43,7 @@ type expression =
   | Value of value
   | Func of string * expression list
 
-type operator_equation = value * Keyword.operator * value
+type operator_equation = value * operator * value
 
 type combiner = And | Or
 type condition =
@@ -79,7 +80,7 @@ type ast =
   | Nothing
 
 let list_of_range = function
-  | Keyword.LexRange (start, stop) -> Batteries.(--) start stop |> Batteries.List.of_enum
+  | LexRange (start, stop) -> Batteries.(--) start stop |> Batteries.List.of_enum
   | _ -> raise (Failure "This is not a range!")
 
 let liq_list_of_range r = List (
@@ -87,7 +88,7 @@ let liq_list_of_range r = List (
 )
 
 let lex_value_to_value = function
-  | Keyword.LexId id -> Var id
+  | LexId id -> Var id
   | LexBool b -> Bool b
   | LexString s -> String s
   | LexNumber n -> Number n

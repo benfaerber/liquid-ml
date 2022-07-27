@@ -1,7 +1,7 @@
 open Base
 open Liquid_syntax
 
-open Keyword
+open Syntax
 open Tools
 
 type bound_finders =
@@ -16,7 +16,7 @@ let pair_to_bounds start stop = Some (p_to_b start stop)
 
 (* Several tags rely on the 'else' keyword. This list allows these tags to be tallied when needed *)
 let else_conflicts =
-  Some [p_to_b If EndIf; p_to_b Case EndCase; p_to_b Unless EndUnless; p_to_b For EndFor]
+  Some [p_to_b If EndIf; p_to_b Case EndCase; p_to_b Unless EndUnless; p_to_b LexFor LexEndFor]
 
 
 let bounds_from_opener = function
@@ -38,9 +38,9 @@ let bounds_from_opener = function
     ; other = Some [Else]
     ; conflicts = else_conflicts
     }
-  | For -> Some
-    { start = For
-    ; stop = EndFor
+  | LexFor -> Some
+    { start = LexFor
+    ; stop = LexEndFor
     ; other = Some [Else]
     ; conflicts = else_conflicts
     }

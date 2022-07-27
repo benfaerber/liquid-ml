@@ -83,7 +83,7 @@ let rec interpret_expression ctx = function
   )
 
 let interpret_equation ctx = function
-  | a, Keyword.Eq, b -> Values.eq ctx a b
+  | a, Tokens.Eq, b -> Values.eq ctx a b
   | a, Gte, b -> Values.gte ctx a b
   | a, Gt, b -> Values.gt ctx a b
   | a, Lte, b -> Values.lte ctx a b
