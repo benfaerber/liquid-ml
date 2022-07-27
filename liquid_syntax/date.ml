@@ -1,9 +1,13 @@
 open CalendarLib
-let mountain_time = Time_Zone.UTC_Plus 6
 
-let () = Time_Zone.change mountain_time
-
+module Timezone = Timezone
 type t = Calendar.t
+
+let set_timezone (tz: Timezone.t) =
+  let info = Timezone.info_from_timezone tz in
+  let calendar_tz = Time_Zone.UTC_Plus (Float.to_int info.utc_offset) in
+  Time_Zone.change calendar_tz
+
 let iso_format = "%FT%T%:z"
 
 let now = Calendar.now

@@ -51,6 +51,7 @@ type t =
   ; context : variable_context
   ; template_directory : string
   ; log_directory : string option
+  ; timezone : Date.Timezone.t
   }
 
 let default_filter_lookup _ = None
@@ -64,6 +65,7 @@ let make
     ?(filters = default_filter_lookup)
     ?(context = default_custom_ctx)
     ?(template_directory = ".")
+    ?(timezone = Date.Timezone.default)
     ()
   =
   { log_policy
@@ -73,4 +75,5 @@ let make
   ; filters
   ; context
   ; template_directory
+  ; timezone
   }

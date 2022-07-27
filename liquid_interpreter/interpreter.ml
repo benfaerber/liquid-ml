@@ -280,6 +280,7 @@ let make_ctx (settings: Settings.t) =
 
 let start settings ast =
   state.settings := settings;
+  Date.set_timezone settings.timezone;
   let ctx = make_ctx settings in
   let (_, text) = interpret ctx "" ast in
   text

@@ -54,6 +54,7 @@ let test () =
     ~template_directory:"liquid_templates"
     ~log_directory:"logs"
     ~preferred_currency:Eur
+    ~timezone:Date.Timezone.MST
     ~context
     ()
   in
