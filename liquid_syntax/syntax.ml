@@ -105,3 +105,7 @@ let for_params_default =
 
 type liquid_filter = variable_context -> value list -> (value, string) Result.t
 type liquid_filter_lookup = string -> liquid_filter option
+
+let liquid_int i = Number (Int.to_float i)
+let liquid_float i = Number i
+let pack_object obj = Object obj

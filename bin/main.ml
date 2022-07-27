@@ -53,6 +53,7 @@ let test () =
     ~filters:custom_filters
     ~template_directory:"liquid_templates"
     ~log_directory:"logs"
+    ~preferred_currency:Eur
     ~context
     ()
   in
