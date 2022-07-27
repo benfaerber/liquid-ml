@@ -1,5 +1,5 @@
-open Liquid_syntax
-open Syntax
+open Liquid_ml
+open Liquid
 
 let test_collection =
   let product_a = Object (

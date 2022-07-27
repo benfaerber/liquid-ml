@@ -128,7 +128,7 @@ let () =
   *)
   let greet _ = function
     | String person :: _ -> Ok (String ("Hello " ^ person ^ "!"))
-    | _ -> Error "greet accepts a string or a list of strings"
+    | _ -> Error "greet accepts a string"
   in
 
   (* This maps the liquid name to our function *)
@@ -166,6 +166,7 @@ type value =
 | Date of Date.t
 | Object of liquid_object
 | Nil
+and liquid_object = value Obj.t
 ```
 
 These are all the possible values that can be passed to a filter or stored in the execution context. Date is powered by the library [Calendar](https://github.com/ocaml-community/calendar). Object is a custom `Caml.Map` defined in the file `syntax.ML`.
@@ -184,7 +185,9 @@ This is not a complete port of Liquid. Here is a list of everything that has bee
 - unless
 - capture
 - raw
+- comment (comment tag, hash comments)
 - render
+- include
 - include
 - section
 - assign
