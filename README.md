@@ -24,7 +24,7 @@ open Liquid_ml
 
 let () =
   let settings = Settings.make ~error_policy:Warn ~log_policy:Never in
-  render ~settings "liquid_templates/test.liquid"
+  Liquid.render ~settings "liquid_templates/test.liquid"
   |> Stdio.print_endline
 
 ```
