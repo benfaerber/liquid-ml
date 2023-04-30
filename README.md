@@ -1,6 +1,6 @@
 # Liquid ML
 
-[Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml!
+[Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml programming language!
 
 ## !!!! NOTICE !!!!
 This is a work in progress. You are welcome to use it but the port is only ~70% complete so I can not guarantee that the API / Interpreter rules will remain consistant.
