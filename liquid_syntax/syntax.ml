@@ -7,11 +7,11 @@ module LiquidObject =
     let compare = String.compare
   end
 
-module Obj = Caml.Map.Make(LiquidObject)
+module Obj = Stdlib.Map.Make(LiquidObject)
 
 let obj_as_list obj =
   Obj.to_seq obj
-  |> Caml.Seq.fold_left (fun acc curr -> acc @ [curr]) []
+  |> Stdlib.Seq.fold_left (fun acc curr -> acc @ [curr]) []
 
 
 module VariableContext =
@@ -20,7 +20,7 @@ module VariableContext =
     let compare = String.compare
   end
 
-module Ctx = Caml.Map.Make(VariableContext)
+module Ctx = Stdlib.Map.Make(VariableContext)
 
 let idf id = String.split id ~on:'.'
 

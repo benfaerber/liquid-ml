@@ -107,8 +107,8 @@ let rec value_as_string = function
   )
 and object_as_string obj =
   let seq = Syntax.Obj.to_seq obj in
-  let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
-  let built = Caml.Seq.fold_left (fun acc curr -> acc ^ curr  ^ ", ") "" mapped in
+  let mapped = Stdlib.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
+  let built = Stdlib.Seq.fold_left (fun acc curr -> acc ^ curr  ^ ", ") "" mapped in
   if String.length built > 2 then
     remove_suffix built ", "
   else built
@@ -116,8 +116,8 @@ and object_as_string obj =
 
 let variable_context_as_string m =
   let seq = Syntax.Ctx.to_seq m in
-  let mapped = Caml.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
-  let built = Caml.Seq.fold_left (fun acc curr -> acc ^ ", " ^ curr) "" mapped in
+  let mapped = Stdlib.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
+  let built = Stdlib.Seq.fold_left (fun acc curr -> acc ^ ", " ^ curr) "" mapped in
   built
 
 let print_variable_context m = m |> variable_context_as_string |> Stdio.print_endline

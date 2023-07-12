@@ -1,10 +1,10 @@
 open Base
 
-let eq = Caml.(=)
-let (=) = Caml.(=)
-let (!=) = Caml.(!=)
-let (>) = Caml.(>)
-let (<) = Caml.(<)
+let eq = Stdlib.(=)
+let (=) = Stdlib.(=)
+let (!=) = Stdlib.(!=)
+let (>) = Stdlib.(>)
+let (<) = Stdlib.(<)
 let (~/) = Re2.create_exn
 
 let range x =

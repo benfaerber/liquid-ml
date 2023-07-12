@@ -96,7 +96,7 @@ This template was rendered using OCaml Version 4.14.0
 ```
 
 ### Execution Context
-The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Caml.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
+The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Stdlib.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
 
 
 
@@ -169,7 +169,7 @@ type value =
 and liquid_object = value Obj.t
 ```
 
-These are all the possible values that can be passed to a filter or stored in the execution context. Date is powered by the library [Calendar](https://github.com/ocaml-community/calendar). Object is a custom `Caml.Map` defined in the file `syntax.ML`.
+These are all the possible values that can be passed to a filter or stored in the execution context. Date is powered by the library [Calendar](https://github.com/ocaml-community/calendar). Object is a custom `Stdlib.Map` defined in the file `syntax.ML`.
 
 Identifiers are represented as string lists. The ID `apple` is represented as `["apple"]`. The ID `collection.products[0].title` is represented as `["collection"; "products"; "0"; "title"]`.
 

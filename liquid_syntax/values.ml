@@ -113,7 +113,7 @@ let compare_value pa pb =
 
 let unwrap_render_context ~outer_ctx ~render_ctx =
   let seq = Syntax.Ctx.to_seq render_ctx in
-  let mapped = Caml.Seq.map (fun (id, v) -> id, unwrap outer_ctx v) seq in
+  let mapped = Stdlib.Seq.map (fun (id, v) -> id, unwrap outer_ctx v) seq in
   Ctx.of_seq mapped
 
 let unwrap_float ctx v =

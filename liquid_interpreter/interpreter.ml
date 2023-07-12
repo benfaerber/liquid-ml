@@ -14,8 +14,8 @@ let has_notifier t = Ctx.mem (nlit t)
 
 let save_state ctx =
   let seq = Ctx.to_seq ctx in
-  let mapped = Caml.Seq.map (fun (id, _) -> id) seq in
-  let built = Caml.Seq.fold_left (fun acc curr -> acc @ [curr]) [] mapped in
+  let mapped = Stdlib.Seq.map (fun (id, _) -> id) seq in
+  let built = Stdlib.Seq.fold_left (fun acc curr -> acc @ [curr]) [] mapped in
   built
 
 let rewind ctx ostate =
@@ -31,7 +31,7 @@ let rewind ctx ostate =
 
 let list_from_ctx ctx =
   Ctx.to_seq ctx
-  |> Caml.Seq.fold_left (fun acc curr -> acc @ [curr]) []
+  |> Stdlib.Seq.fold_left (fun acc curr -> acc @ [curr]) []
 
 let var_from t = Var (String.split ~on:'.' t)
 
