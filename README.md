@@ -7,7 +7,7 @@ This is a work in progress. You are welcome to use it but the port is only ~70% 
 
 
 ### Getting Started
-This basic example `render`s a Liquid file with the default settings. The render is returned as a string.
+This basic example renders a Liquid file with the default settings. The render is returned as a string.
 
 ### Default Settings:
 ```ocaml
