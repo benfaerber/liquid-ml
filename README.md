@@ -90,6 +90,46 @@ This renders as:
 My favorite animal is horse!
 This template was rendered using OCaml Version 4.14.0
 ```
+We can perform logic operations using our variables:
+```ocaml
+(* OCaml *)
+let () =
+  (* Create an object that can be accessed in Liquid using dot notation (enviroment.language -> "OCaml") *)
+  let context =
+    Ctx.empty
+    |> Ctx.add "beatles" (List [String "John"; String "Paul"; String "Ringo"; String "George"])
+    |> Ctx.add "my_money" (Number 15.0)
+    |> Ctx.add "apple_price" (Number 5.0)
+  in
+
+  let settings = Settings.make ~context () in
+  render ~settings "liquid_templates/test.liquid"
+  |> Stdio.print_endline
+```
+```liquid
+{% comment %}Liquid{% endcomment %}
+{% for beatle in beatles %}
+    {{ beatle }} lives in a yellow submarine!
+{% endfor %}
+
+{% if my_money > apple_price %}
+   You bought an apple for {{ apple_price | money }}
+   {% assign after_purchase = my_money | minus: apple_price %}
+   You now have {{ after_purchase | money }}
+{% else %}
+   You don't have enough money!
+{% endif %}
+```
+This template renders to:
+```html
+John lives in a yellow submarine!
+Paul lives in a yellow submarine!
+Ringo lives in a yellow submarine!
+George lives in a yellow submarine!
+
+You bought an apple for $5.00
+You now have $10.00
+```
 
 ### Execution Context
 The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Stdlib.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
