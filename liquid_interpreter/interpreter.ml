@@ -215,7 +215,7 @@ and interpret_cycle ctx str ~group ~values =
     Values.unwrap_object_value_or cycle var_id (Number 0.)
     |> Values.unwrap_int ctx in
 
-  let curr = nth values (index % List.length values) in
+  let curr = nth values (Int.(%) index (List.length values)) in
   let nindex = Values.num_int (index + 1) in
   let ncycle = cycle |> Obj.add var_id nindex in
 

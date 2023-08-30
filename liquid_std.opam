@@ -20,9 +20,9 @@ depends: [
     "re2" { >= "0.13.0" }
     "base64" { >= "2.0.0" }
     "sha" { >= "1.0" }
-    "liquid_syntax" { = "0.1"} 
-    "liquid_parser" { = "0.1"}
-    "liquid_syntax" { = "0.1"} 
+    "liquid_syntax" { = version } 
+    "liquid_parser" { = version }
+    "liquid_syntax" { = version } 
 ]
 build: [
     ["dune" "build" "-p" name "-j" jobs]
