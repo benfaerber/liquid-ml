@@ -14,12 +14,12 @@ license: "MIT"
 depends: [ 
     "ocaml" { >= "4.11" }
     "dune" { >= "2.5" }
-    "base" 
-    "core" 
-    "stdio" 
+    "base" { >= "0.13.1" }
+    "core" { >= "0.13.0" } 
+    "stdio" { >= "0.13.0" } 
+    "re2" { >= "0.13.0" }
     "batteries" { >= "3.1.0" } 
-    "re2" 
-    "calendar" 
+    "calendar" { >= "1.10"}
 ]
 build: [
     ["dune" "build" "-p" name "-j" jobs]
