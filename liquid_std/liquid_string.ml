@@ -4,7 +4,6 @@ open Syntax
 open Tools
 open Helpers
 open Encoder
-open Base64
 
 let append _ = function
   | String base :: String addition :: _ ->
