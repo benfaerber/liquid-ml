@@ -19,7 +19,7 @@ depends: [
     "core" 
     "stdio" 
     "re2" 
-    "liquid_syntax" { = "0.1 "} 
+    "liquid_syntax" { = "0.1"} 
 ]
 build: [
     ["dune" "build" "-p" name "-j" jobs]
