@@ -14,13 +14,13 @@ license: "MIT"
 depends: [ 
     "ocaml" { >= "4.11" }
     "dune" { >= "2.5" } 
-    "base"
-    "core" 
-    "stdio" 
-    "re2"
-    "calendar"
-    "base64"
-    "sha"
+    "base" { >= "0.13.1" }
+    "core" { >= "0.13.0" } 
+    "stdio" { >= "0.13.0" } 
+    "re2" { >= "0.13.0" }
+    "calendar" { >= "1.10"}
+    "base64" { >= "2.0.0" }
+    "sha" { >= "1.0" }
     "liquid_syntax" { = "0.1"} 
     "liquid_parser" { = "0.1"}
     "liquid_syntax" { = "0.1"} 

@@ -13,10 +13,11 @@ dev-repo: "git+https://github.com/benfaerber/liquid-ml.git"
 license: "MIT"
 depends: [ 
     "ocaml" { >= "4.11" }
-    "base" { >= "2.5" } 
-    "core" 
-    "stdio" 
-    "re2" 
+    "dune" { >= "2.5" } 
+    "base" { >= "0.13.1" }
+    "core" { >= "0.13.0" } 
+    "stdio" { >= "0.13.0" } 
+    "re2" { >= "0.13.0" }
     "liquid_syntax" { = "0.1"} 
     "liquid_parser" { = "0.1"}
     "liquid_std" { = "0.1"}

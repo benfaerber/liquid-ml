@@ -17,7 +17,7 @@ depends: [
     "base" 
     "core" 
     "stdio" 
-    "batteries" 
+    "batteries" { >= "3.1.0" } 
     "re2" 
     "calendar" 
 ]
