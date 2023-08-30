@@ -11,7 +11,16 @@ homepage: "https://github.com/benfaerber/liquid-ml"
 bug-reports: "https://github.com/benfaerber/liquid-ml/issues"
 dev-repo: "git+https://github.com/benfaerber/liquid-ml.git"
 license: "MIT"
-depends: [ "base" "core" "stdio" "re2" "liquid_syntax" ]
+
+depends: [ 
+    "ocaml" { >= "4.11" }
+    "dune" { >= "2.5" } 
+    "base"
+    "core" 
+    "stdio" 
+    "re2" 
+    "liquid_syntax" { = "0.1 "} 
+]
 build: [
     ["dune" "build" "-p" name "-j" jobs]
 ]
