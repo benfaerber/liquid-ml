@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "liquid_syntax"
-version: "0.1"
+version: "0.1.1"
 synopsis: "The Syntax Definitions for Liquid"
 description: """
 The Syntax Definitions for Liquid

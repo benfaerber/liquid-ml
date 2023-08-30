@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "liquid_std"
-version: "0.1"
+version: "0.1.1"
 synopsis: "The Standard Libarary for Liquid"
 description: """
 The Standard Libarary for Liquid
