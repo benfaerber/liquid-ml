@@ -33,7 +33,7 @@ let floor _ = function
 
 
 let minus = apply_op Float.(-)
-let modulo = apply_op Float.(mod_float)
+let modulo = apply_op Stdlib.Float.(rem)
 let plus = apply_op Float.(+)
 let times = apply_op Float.( * )
 

@@ -19,11 +19,11 @@ let test () =
 
   let is_even _ = function
     | Number n :: _ ->
-      let even = Int.(%) (Float.to_int n) 2 = 0 in
+      let even = Stdlib.Int.rem (Float.to_int n) 2 = 0 in
       Ok (Bool even)
     | String s :: _ ->
       let n = Float.of_string s in
-      let even = Int.(%) (Float.to_int n) 2 = 0 in
+      let even = Stdlib.Int.rem (Float.to_int n) 2 = 0 in
       Ok (Bool even)
     | _ -> Error "is_even accepts a number"
   in
