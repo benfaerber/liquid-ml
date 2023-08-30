@@ -3,7 +3,7 @@ name: "liquid"
 version: "0.1"
 synopsis: "Shopify's Liquid templating language in OCaml"
 description: """
-Shopify's Liquid templating language for the OCaml!
+Shopify's Liquid templating language for OCaml!
 """
 maintainer: "faerberbendev@protonmail.com"
 authors: ["Ben Faerber"]
