@@ -1,4 +1,4 @@
-# Liquid ML
+# Liquid ML [![](https://img.shields.io/badge/opam-v0.1.1-orange?logo=ocaml)](https://ocaml.org/p/liquid_ml/latest)
 
 [Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml programming language!
 
