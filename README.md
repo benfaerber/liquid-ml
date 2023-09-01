@@ -3,6 +3,10 @@
 [Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml programming language!
 
 ### Getting Started
+Install via OPAM:
+```
+opam install liquid_ml
+```
 This basic example renders a Liquid file with the default settings. The render is returned as a string.
 
 ### Default Settings:
