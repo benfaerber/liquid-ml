@@ -34,18 +34,18 @@ let () =
 The variable context provides the template with variables accessible in the global scope.
 ```ocaml
   let () =
-    (* Create an object that can be accessed in Liquid using dot notation (enviroment.language -> "OCaml") *)
-    let enviroment =
+    (* Create an object that can be accessed in Liquid using dot notation (environment.language -> "OCaml") *)
+    let environment =
       Obj.empty
       |> Obj.add "language" (String "OCaml")
       |> Obj.add "version" (String "4.14.0")
     in
 
-    (* HeRe we include our favorite_animal as a string an our enviroment as an object *)
+    (* HeRe we include our favorite_animal as a string an our environment as an object *)
     let context =
       Ctx.empty
       |> Ctx.add "favorite_animal" (String "horse")
-      |> Ctx.add "enviroment" (Object enviroment)
+      |> Ctx.add "environment" (Object environment)
     in
 
     let settings = Settings.make ~context () in
@@ -56,7 +56,7 @@ The variable context provides the template with variables accessible in the glob
 Now we can access these variables from the template:
 ```liquid
 My favorite animal is {{ favorite_animal }}!
-This template was rendered using {{ enviroment.language }} Version {{ enviroment.version }}!
+This template was rendered using {{ environment.language }} Version {{ environment.version }}!
 ```
 This renders as:
 ```
