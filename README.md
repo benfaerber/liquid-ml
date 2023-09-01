@@ -17,6 +17,7 @@ let () =
   Liquid.render "liquid_templates/test.liquid"
   |> Stdio.print_endline
 ```
+(or use `Liquid.render_text` to render a string)
 
 ### With Settings:
 ```ocaml
