@@ -5,14 +5,14 @@ open Values
 
 let make_forloop_ctx ctx index length =
   let forloop_obj = Object (
-    Obj.empty
-    |> Obj.add "index" (num_int (index + 1))
-    |> Obj.add "length" (num_int length)
-    |> Obj.add "first" (Bool (index = 0))
-    |> Obj.add "index0" (num_int index)
-    |> Obj.add "last" (Bool (index = length - 1))
-    |> Obj.add "rindex" (num_int (length - index))
-    |> Obj.add "rindex0" (num_int (length - index - 1))
+    Object.empty
+    |> Object.add "index" (num_int (index + 1))
+    |> Object.add "length" (num_int length)
+    |> Object.add "first" (Bool (index = 0))
+    |> Object.add "index0" (num_int index)
+    |> Object.add "last" (Bool (index = length - 1))
+    |> Object.add "rindex" (num_int (length - index))
+    |> Object.add "rindex0" (num_int (length - index - 1))
   ) in
 
   ctx
@@ -21,12 +21,12 @@ let make_forloop_ctx ctx index length =
 
 let request () =
   let request_obj = Object (
-    Obj.empty
-    |> Obj.add "design_mode" (Bool false)
-    |> Obj.add "host" (String "")
-    |> Obj.add "origin" (String "")
-    |> Obj.add "page_type" (String "")
-    |> Obj.add "path" (String "")
+    Object.empty
+    |> Object.add "design_mode" (Bool false)
+    |> Object.add "host" (String "")
+    |> Object.add "origin" (String "")
+    |> Object.add "page_type" (String "")
+    |> Object.add "path" (String "")
   ) in
 
   request_obj

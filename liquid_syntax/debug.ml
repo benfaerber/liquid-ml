@@ -103,10 +103,10 @@ let rec value_as_string = function
   | List l -> Core.sprintf "List(%s)" (List.map l ~f:value_as_string |> join_by_comma)
   | Date d -> Core.sprintf "Date(%s)" (Date.as_string d "%Y-%m-%d %H:%M")
   | Object obj -> (
-    Core.sprintf "\n  Obj(%s)" (object_as_string obj)
+    Core.sprintf "\n  Object(%s)" (object_as_string obj)
   )
 and object_as_string obj =
-  let seq = Syntax.Obj.to_seq obj in
+  let seq = Syntax.Object.to_seq obj in
   let mapped = Stdlib.Seq.map (fun (id, v) -> Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br)) seq in
   let built = Stdlib.Seq.fold_left (fun acc curr -> acc ^ curr  ^ ", ") "" mapped in
   if String.length built > 2 then

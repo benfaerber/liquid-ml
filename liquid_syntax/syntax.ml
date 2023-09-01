@@ -7,10 +7,10 @@ module LiquidObject =
     let compare = String.compare
   end
 
-module Obj = Stdlib.Map.Make(LiquidObject)
+module Object = Stdlib.Map.Make(LiquidObject)
 
 let obj_as_list obj =
-  Obj.to_seq obj
+  Object.to_seq obj
   |> Stdlib.Seq.fold_left (fun acc curr -> acc @ [curr]) []
 
 
@@ -35,7 +35,7 @@ type value =
   | Date of Date.t
   | Object of liquid_object
   | Nil
-and liquid_object = value Obj.t
+and liquid_object = value Object.t
 
 type variable_context = value Ctx.t
 

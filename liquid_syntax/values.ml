@@ -55,7 +55,7 @@ and unwrap_chain ctx id =
     match acc_val with
     | Nil -> Ctx.find hd acc_ctx, acc_ctx
     | Object obj -> (
-      let nv = Obj.find hd obj in
+      let nv = Object.find hd obj in
       nv, Ctx.empty |> Ctx.add hd nv
     )
     | v -> (
@@ -139,7 +139,7 @@ let unwrap_object ctx v =
   | _ -> raise (Failure "Failed to get object")
 
 let unwrap_object_value_or obj id d =
-  match obj |> Obj.find_opt id with
+  match obj |> Object.find_opt id with
   | Some v -> v
   | _ -> d
 

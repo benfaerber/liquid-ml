@@ -35,9 +35,9 @@ let test () =
   in
 
   let enviroment =
-    Obj.empty
-    |> Obj.add "language" (String "OCaml")
-    |> Obj.add "version" (String "4.14.0")
+    Object.empty
+    |> Object.add "language" (String "OCaml")
+    |> Object.add "version" (String "4.14.0")
   in
 
   let context =
