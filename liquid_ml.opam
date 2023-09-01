@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "liquid"
-version: "0.1.1"
+version: "0.1.2"
 synopsis: "Shopify's Liquid templating language in OCaml"
 description: """
 Shopify's Liquid templating language for OCaml!
@@ -12,16 +12,16 @@ bug-reports: "https://github.com/benfaerber/liquid-ml/issues"
 dev-repo: "git+https://github.com/benfaerber/liquid-ml.git"
 license: "MIT"
 
-depends: [ 
+depends: [
     "ocaml" { >= "4.11" }
-    "dune" { >= "2.5" } 
+    "dune" { >= "2.5" }
     "base" { >= "0.15.0" }
-    "core" { >= "0.15.0" } 
-    "stdio" { >= "0.15.0" } 
+    "core" { >= "0.15.0" }
+    "stdio" { >= "0.15.0" }
     "re2" { >= "0.13.0" }
-    "liquid_syntax" { = version } 
+    "liquid_syntax" { = version }
     "liquid_parser" { = version }
-    "liquid_std" { = version } 
+    "liquid_std" { = version }
     "liquid_interpreter" { = version }
 ]
 build: [

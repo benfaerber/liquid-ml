@@ -174,7 +174,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
         let find_int k =
           match Ctx.find Settings.forloop acc_ctx with
           | Object obj -> (
-            match Obj.find_opt k obj with
+            match Object.find_opt k obj with
             | Some (Number n) -> Float.to_int n
             | _ -> raise (Failure "Failed to find int")
           )
@@ -217,7 +217,7 @@ and interpret_cycle ctx str ~group ~values =
 
   let curr = nth values (Stdlib.Int.rem index (List.length values)) in
   let nindex = Values.num_int (index + 1) in
-  let ncycle = cycle |> Obj.add var_id nindex in
+  let ncycle = cycle |> Object.add var_id nindex in
 
   let nctx = ctx |> Ctx.add Settings.cycle (Object ncycle) in
 
@@ -235,7 +235,7 @@ and interpret_increment ctx str ~id ~exp =
       |> Values.unwrap_int ctx in
 
     let nval = Values.num_int (ival + offset) in
-    let nincr = incr |> Obj.add var_id nval in
+    let nincr = incr |> Object.add var_id nval in
 
     let nctx = ctx |> Ctx.add Settings.increment (Object nincr) in
 
@@ -274,8 +274,8 @@ and interpret_render ctx str ~filename ~render_ctx ~body =
 
 let make_ctx (settings: Settings.t) =
   settings.context
-  |> Ctx.add Settings.cycle (Object Obj.empty)
-  |> Ctx.add Settings.increment (Object Obj.empty)
+  |> Ctx.add Settings.cycle (Object Object.empty)
+  |> Ctx.add Settings.increment (Object Object.empty)
   |> Settings_ctx.add settings
 
 let start settings ast =

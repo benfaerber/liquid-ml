@@ -122,7 +122,7 @@ let where ctx params =
   let do_where lst test_key check =
     let filterer = function
       | Object obj -> (
-        match Obj.find_opt test_key obj with
+        match Object.find_opt test_key obj with
         | Some value -> check value
         | _ -> false
       )

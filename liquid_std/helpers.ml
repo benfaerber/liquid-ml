@@ -41,7 +41,7 @@ let apply_op op _ = function
 
 let extract_key_from_object_list lst key =
   let lookup_key = function
-    | Object obj -> (match Obj.find_opt key obj with Some x -> x | _ -> Nil)
+    | Object obj -> (match Object.find_opt key obj with Some x -> x | _ -> Nil)
     | _ -> Nil
   in
 

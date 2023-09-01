@@ -36,9 +36,9 @@ The variable context provides the template with variables accessible in the glob
   let () =
     (* Create an object that can be accessed in Liquid using dot notation (enviroment.language -> "OCaml") *)
     let enviroment =
-      Obj.empty
-      |> Obj.add "language" (String "OCaml")
-      |> Obj.add "version" (String "4.14.0")
+      Object.empty
+      |> Object.add "language" (String "OCaml")
+      |> Object.add "version" (String "4.14.0")
     in
 
     (* HeRe we include our favorite_animal as a string an our enviroment as an object *)
@@ -136,7 +136,7 @@ context:
 preferred_currency:
 - Used in money formatting filters
 - `Usd`, `Eur`, `Cad`, `Aud`, `Gbp`
-  
+
 
 ### Execution Context
 The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Stdlib.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
@@ -209,7 +209,7 @@ type value =
 | Date of Date.t
 | Object of liquid_object
 | Nil
-and liquid_object = value Obj.t
+and liquid_object = value Object.t
 ```
 
 These are all the possible values that can be passed to a filter or stored in the execution context. Date is powered by the library [Calendar](https://github.com/ocaml-community/calendar). Object is a custom `Stdlib.Map` defined in the file `syntax.ML`.
