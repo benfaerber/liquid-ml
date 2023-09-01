@@ -29,38 +29,6 @@ let () =
 
 ```
 
-You have access to the following settings:
-
-template_directory
-- The directory that contains template files. This is used both for the initial lookup (ie Liquid.render "yada.liquid") and for
-the `render` tag used within liquid. Default is project root.
-
-log_directory
-- Where log files are written too. This must be set if log policy is set to `Verbose`.
-
-error_policy:
-- `Strict` - A Liquid Syntax error will raise an exception
-- `Warn` - A Liquid Syntax error will print an error message
-- `Silent` - Errors will be ignored
-- `Custom of (handler: string -> unit)` - Accepts a custom handler function
-
-log_policy:
-- `Verbose` - Everything will be logged
-- `Minimal` - The most important things will be logged
-- `Never` - Log nothing
-
-filters:
-- A function that maps filter names to filter functions
-- `string -> liquid_filter option`
-
-context:
-- Variable Context available in the global scope
-- `value Ctx.t` aka `variable_context`
-
-preferred_currency:
-- Used in money formatting filters
-- `Usd`, `Eur`, `Cad`, `Aud`, `Gbp`
-
 ### Custom Variable Context
 The variable context provides the template with variables accessible in the global scope.
 ```ocaml
@@ -134,6 +102,40 @@ George lives in a yellow submarine!
 You bought an apple for $5.00
 You now have $10.00
 ```
+
+### Settings
+You have access to the following settings:
+
+template_directory
+- The directory that contains template files. This is used both for the initial lookup (ie Liquid.render "yada.liquid") and for
+the `render` tag used within liquid. Default is project root.
+
+log_directory
+- Where log files are written too. This must be set if log policy is set to `Verbose`.
+
+error_policy:
+- `Strict` - A Liquid Syntax error will raise an exception
+- `Warn` - A Liquid Syntax error will print an error message
+- `Silent` - Errors will be ignored
+- `Custom of (handler: string -> unit)` - Accepts a custom handler function
+
+log_policy:
+- `Verbose` - Everything will be logged
+- `Minimal` - The most important things will be logged
+- `Never` - Log nothing
+
+filters:
+- A function that maps filter names to filter functions
+- `string -> liquid_filter option`
+
+context:
+- Variable Context available in the global scope
+- `value Ctx.t` aka `variable_context`
+
+preferred_currency:
+- Used in money formatting filters
+- `Usd`, `Eur`, `Cad`, `Aud`, `Gbp`
+  
 
 ### Execution Context
 The type `Ctx.t` is used to store the execution context. All variables active in the current scope are stored here. Certain events such as `break` and `continue` are also stored in the execution context. `Ctx.t` is a `Stdlib.Map` learn more here: [OCaml Map Docs](https://ocaml.org/docs/map)
