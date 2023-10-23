@@ -231,7 +231,6 @@ This is not a complete port of Liquid. Here is a list of everything that has bee
 - comment (comment tag, hash comments)
 - render
 - include
-- include
 - section
 - assign
 - cycle
