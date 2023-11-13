@@ -215,6 +215,7 @@ and liquid_object = value Object.t
 These are all the possible values that can be passed to a filter or stored in the execution context. Date is powered by the library [Calendar](https://github.com/ocaml-community/calendar). Object is a custom `Stdlib.Map` defined in the file `syntax.ML`.
 
 Identifiers are represented as string lists. The ID `apple` is represented as `["apple"]`. The ID `collection.products[0].title` is represented as `["collection"; "products"; "0"; "title"]`.
+This means you can refer to indexes using syntax: `collections.products.1.title` which is standard in Liquid.
 
 When a list of parameters is passed to a filter it will never contain the `Var` type. Variables are unpacked before they are passed to filters. If the variable is undefined `Nil` is returned.
 
