@@ -236,7 +236,8 @@ This is not a complete port of Liquid. Here is a list of everything that has bee
 - assign
 - cycle
 - style
-
+- liquid tag, allowing you to write a block of liquid code without using `{% TAG_NAME %}`
+  
 #### Filters
 - Most filters not explicitly labeled "Shopify" in the [Liquid Filter Docs](https://shopify.dev/api/liquid/filters) have been ported. A complete list can be viewed in `liquid_std/std.ml`
 
