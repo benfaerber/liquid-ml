@@ -85,7 +85,7 @@ let () =
     {{ beatle }} lives in a yellow submarine!
 {% endfor %}
 
-{% if my_money > apple_price %}
+{% if my_money >= apple_price %}
    You bought an apple for {{ apple_price | money }}
    {% assign after_purchase = my_money | minus: apple_price %}
    You now have {{ after_purchase | money }}
