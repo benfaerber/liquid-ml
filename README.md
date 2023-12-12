@@ -1,6 +1,7 @@
 # Liquid ML [![](https://img.shields.io/badge/opam-v0.1.2-orange?logo=ocaml)](https://ocaml.org/p/liquid_ml/latest)
 
 [Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml programming language!
+Featured on [Awesome OCaml](https://github.com/ocaml-community/awesome-ocaml)!
 
 ### Getting Started
 Install via OPAM:
