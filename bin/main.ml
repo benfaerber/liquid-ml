@@ -2,6 +2,10 @@ open Base
 open Liquid_ml
 open Liquid
 
+
+type cool = A | B | C
+    [@@deriving show]
+
 let test () =
   let greet _ = function
     | String person :: _ ->
@@ -46,6 +50,8 @@ let test () =
     |> Ctx.add "enviroment" (Object enviroment)
     |> Ctx.add "collection" Test_data.test_collection
   in
+
+  Stdio.print_endline (show_cool A);
 
   let settings = Settings.make
     ~error_policy:Warn

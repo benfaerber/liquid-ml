@@ -3,6 +3,8 @@ open CalendarLib
 module Timezone = Timezone
 type t = Calendar.t
 
+let pp () = ""
+
 let set_timezone (tz: Timezone.t) =
   let info = Timezone.info_from_timezone tz in
   let calendar_tz = Time_Zone.UTC_Plus (Float.to_int info.utc_offset) in

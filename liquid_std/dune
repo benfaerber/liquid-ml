@@ -1,4 +1,5 @@
 (library
  (public_name liquid_std)
  (libraries base core stdio re2 calendar base64 sha liquid_syntax liquid_parser)
-)
+ (preprocess
+  (pps ppx_deriving.std)))
