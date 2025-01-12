@@ -14,12 +14,14 @@ type currency =
   | Cad
   | Aud
   | Gbp
+  [@@deriving show]
 
 type currency_info =
   { symbol : string
   ; abbr : string
   ; name : string
-  }
+  } 
+  [@@deriving show]
 
 let currency_info_from_currency = function
   | Usd -> { symbol = "$"; abbr = "USD"; name = "US Dollar" }
@@ -33,12 +35,14 @@ type error_policy =
   | Strict
   | Warn
   | Silent
-  | Custom of error_handler
+  | Custom of error_handler [@printer fun _ -> ignore]
+  [@@deriving show]
 
 type log_policy =
   | Verbose
   | Minimal
   | Never
+  [@@deriving show]
 
 let log_policy_key = "*log_policy"
 let preferred_currency_key = "*preferred_currency"
@@ -47,12 +51,12 @@ type t =
   { log_policy : log_policy
   ; error_policy : error_policy
   ; preferred_currency : currency
-  ; filters : liquid_filter_lookup
-  ; context : variable_context
+  ; filters : liquid_filter_lookup [@printer fun _ -> ignore]
+  ; context : variable_context [@printer fun _ -> ignore]
   ; template_directory : string
   ; log_directory : string option
   ; timezone : Date.Timezone.t
-  }
+  } [@@deriving show]
 
 let default_filter_lookup _ = None
 let default_custom_ctx = Ctx.empty

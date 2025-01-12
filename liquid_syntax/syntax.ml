@@ -19,12 +19,15 @@ module VariableContext =
     type t = string
     let compare = String.compare
   end
+  [@@deriving show]
 
 module Ctx = Stdlib.Map.Make(VariableContext)
+  [@@deriving show]
 
 let idf id = String.split id ~on:'.'
 
 type id = string list
+  [@@deriving show]
 
 type value =
   | Bool of bool
@@ -32,26 +35,39 @@ type value =
   | Number of float
   | Var of string list
   | List of value list
-  | Date of Date.t
+  | Date of Date.t [@printer fun _ -> ignore]
   | Object of liquid_object
   | Nil
-and liquid_object = value Object.t
+and liquid_object = value Object.t [@printer fun fmt x -> 
+  Object.iter (fun key value ->
+    fprintf fmt "%s: %a, " key (fun fmt v -> fprintf fmt "%s" (show_value v)) value
+  ) x |> ignore
+  ]
+  [@@deriving show]
+
+
+
 
 type variable_context = value Ctx.t
 
 type expression =
   | Value of value
   | Func of string * expression list
+  [@@deriving show]
 
 type operator_equation = value * operator * value
+  [@@deriving show]
 
 type combiner = And | Or
+  [@@deriving show]
+
 type condition =
   | Combine of combiner * condition * condition
   | Equation of operator_equation
   | IsTruthy of value
   | Not of condition
   | Always of bool
+  [@@deriving show]
 
 type for_params =
   { limit : int
@@ -60,6 +76,7 @@ type for_params =
   ; cols : int
   ; is_tablerow : bool
   }
+  [@@deriving show]
 
 type ast =
   | Capture of string * ast
@@ -75,9 +92,10 @@ type ast =
   | Layout of string option
   | Include of string
   | Section of string
-  | Render of string * variable_context * ast option
+  | Render of string * variable_context * ast option [@printer fun _ -> ignore]
   | Paginate of id * int * ast
   | Nothing
+  [@@deriving show]
 
 let list_of_range = function
   | LexRange (start, stop) -> Batteries.(--) start stop |> Batteries.List.of_enum

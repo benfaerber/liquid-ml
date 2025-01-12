@@ -1,6 +1,8 @@
 open Base
 
 type whitespace_control = Trim | White
+  [@@deriving show]
+
 type block_token =
   | StatementStart of whitespace_control
   | StatementEnd of whitespace_control
@@ -8,9 +10,11 @@ type block_token =
   | ExpressionEnd of whitespace_control
   | LiquidStart
   | RawText of string
+  [@@deriving show]
 
 type operator =
   Eq | Gte | Gt | Lte | Lt | Ne | Contains
+  [@@deriving show]
 
 type lex_value =
   | LexBool of bool
@@ -20,8 +24,10 @@ type lex_value =
   | LexRange of int * int
   | LexNil
   | LexBlank
+  [@@deriving show]
 
 type lex_combiner = LexAnd | LexOr
+  [@@deriving show]
 
 type lex_token =
   | If | EndIf
@@ -51,3 +57,4 @@ type lex_token =
   | LexValue of lex_value
   | LexExpression of lex_token list
   | EOS
+  [@@deriving show]

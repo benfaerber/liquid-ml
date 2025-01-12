@@ -3,7 +3,7 @@ type info =
   ; name : string
   ; utc_offset : float
   ; gmt_offset : float
-  }
+  } [@@deriving show]
 
 type t =
   | ACDT | ACST | ACT | ACWST | ADT | AEDT
@@ -38,6 +38,7 @@ type t =
   | VUT | WAKT | WAST | WAT | WEST | WET
   | WFT | WGST | WIB | WIT | WST | YAKT| YEKT
   | Custom of int
+  [@@deriving show]
 
 let default = GMT
 

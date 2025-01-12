@@ -3,9 +3,6 @@ open Liquid_ml
 open Liquid
 
 
-type cool = A | B | C
-    [@@deriving show]
-
 let test () =
   let greet _ = function
     | String person :: _ ->
@@ -44,14 +41,15 @@ let test () =
     |> Object.add "version" (String "4.14.0")
   in
 
+  enviroment |> show_liquid_object |> Stdio.print_endline; 
+  String "hello" |> show_value |> Stdio.print_endline;
+
   let context =
     Ctx.empty
     |> Ctx.add "favorite_animal" (String "horse")
     |> Ctx.add "enviroment" (Object enviroment)
     |> Ctx.add "collection" Test_data.test_collection
   in
-
-  Stdio.print_endline (show_cool A);
 
   let settings = Settings.make
     ~error_policy:Warn
@@ -64,7 +62,10 @@ let test () =
     ~context
     ()
   in
+  settings |> Settings.show |> Stdio.print_endline;
+
   render ~settings "std_test.liquid"
-  |> Stdio.print_endline
+  (* |> Stdio.print_endline *)
+  |> ignore
 
 let () = test ()
