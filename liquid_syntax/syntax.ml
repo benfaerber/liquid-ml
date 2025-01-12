@@ -39,16 +39,23 @@ type value =
   | Object of liquid_object
   | Nil
 and liquid_object = value Object.t [@printer fun fmt x -> 
+  fprintf fmt "{ "; 
   Object.iter (fun key value ->
     fprintf fmt "%s: %a, " key (fun fmt v -> fprintf fmt "%s" (show_value v)) value
-  ) x |> ignore
+  ) x; 
+  fprintf fmt " }"; 
   ]
   [@@deriving show]
 
 
+type variable_context = value Ctx.t [@printer fun fmt x -> 
+  fprintf fmt "{ "; 
+  Ctx.iter (fun key value ->
+    fprintf fmt "%s: %a, " key (fun fmt v -> fprintf fmt "%s" (show_value v)) value
+  ) x; 
+  fprintf fmt " }"; 
+  ] [@@deriving show]
 
-
-type variable_context = value Ctx.t
 
 type expression =
   | Value of value
@@ -120,7 +127,7 @@ let for_params_default =
   ; reved = false
   ; cols = 10
   ; is_tablerow = false
-  }
+  } [@@deriving show]
 
 type liquid_filter = variable_context -> value list -> (value, string) Result.t
 type liquid_filter_lookup = string -> liquid_filter option

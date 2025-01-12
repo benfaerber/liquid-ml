@@ -9,7 +9,7 @@ let identity _ params = List.hd_exn params
 let err t = Error ("Liquid Error: " ^ t)
 let errc t c = Error (
   Core.sprintf "Liquid Error: %s, Params: %s" t
-  (List.map c ~f:Debug.value_as_string |> join_by_comma)
+  (List.map c ~f:show_value |> join_by_comma)
 )
 
 let ok v = Ok v
@@ -48,6 +48,7 @@ let extract_key_from_object_list lst key =
   List.map lst ~f:lookup_key
 
 type weight_units = Grams | Kilograms | Pounds | Ounces
+  [@@deriving show]
 let weight_unit_as_string = function
   | Grams -> "g"
   | Kilograms -> "kg"

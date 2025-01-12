@@ -1,7 +1,6 @@
 open Base
 open Liquid_syntax
 open Tools
-
 let has_encoded_text text =
   let exp = ~/"&#?[a-zA-Z0-9]{2,10};" in
   Re2.matches exp text

@@ -16,10 +16,10 @@ let render_text ?(settings = default_settings) text =
   Logger.vgroup p ld "Lex Tokens:" "tokens.txt" Debug.lex_tokens_as_string_with_index lex_tokens;
 
   let ast = Parser.parse lex_tokens in
-  Logger.vgroup p ld "Abstract Syntax Tree:" "ast.txt" Debug.ast_as_string ast;
+  Logger.vgroup p ld "Abstract Syntax Tree:" "ast.txt" Debug.show_ast ast;
 
   let rendered_text = Interpreter.start settings ast in
-  Logger.vgroup p ld "Render:" "render.txt" const rendered_text;
+  (* Logger.vgroup p ld "Render:" "render.txt" const rendered_text; *)
 
   rendered_text
 

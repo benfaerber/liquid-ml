@@ -53,8 +53,8 @@ let test () =
 
   let settings = Settings.make
     ~error_policy:Warn
-    ~log_policy:Minimal
     ~filters:custom_filters
+    ~log_policy:Verbose
     ~template_directory:"liquid_templates"
     ~log_directory:"logs"
     ~preferred_currency:Eur
