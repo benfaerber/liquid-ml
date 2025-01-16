@@ -1,33 +1,29 @@
 open Base
 include Tokens
 
-module LiquidObject =
-  struct
-    type t = string
-    let compare = String.compare
-  end
+module LiquidObject = struct
+  type t = string
 
-module Object = Stdlib.Map.Make(LiquidObject)
+  let compare = String.compare
+end
+
+module Object = Stdlib.Map.Make (LiquidObject)
 
 let obj_as_list obj =
-  Object.to_seq obj
-  |> Stdlib.Seq.fold_left (fun acc curr -> acc @ [curr]) []
+  Object.to_seq obj |> Stdlib.Seq.fold_left (fun acc curr -> acc @ [ curr ]) []
 
+module VariableContext = struct
+  type t = string
 
-module VariableContext =
-  struct
-    type t = string
-    let compare = String.compare
-  end
-  [@@deriving show]
+  let compare = String.compare
+end
+[@@deriving show]
 
-module Ctx = Stdlib.Map.Make(VariableContext)
-  [@@deriving show]
+module Ctx = Stdlib.Map.Make (VariableContext) [@@deriving show]
 
 let idf id = String.split id ~on:'.'
 
-type id = string list
-  [@@deriving show]
+type id = string list [@@deriving show]
 
 type value =
   | Bool of bool
@@ -38,35 +34,40 @@ type value =
   | Date of Date.t [@printer fun _ -> ignore]
   | Object of liquid_object
   | Nil
-and liquid_object = value Object.t [@printer fun fmt x -> 
-  fprintf fmt "{ "; 
-  Object.iter (fun key value ->
-    fprintf fmt "%s: %a, " key (fun fmt v -> fprintf fmt "%s" (show_value v)) value
-  ) x; 
-  fprintf fmt " }"; 
-  ]
-  [@@deriving show]
 
+and liquid_object =
+  (value Object.t
+  [@printer
+    fun fmt x ->
+      fprintf fmt "{ ";
+      Object.iter
+        (fun key value ->
+          fprintf fmt "%s: %a, " key
+            (fun fmt v -> fprintf fmt "%s" (show_value v))
+            value)
+        x;
+      fprintf fmt " }"])
+[@@deriving show]
 
-type variable_context = value Ctx.t [@printer fun fmt x -> 
-  fprintf fmt "{ "; 
-  Ctx.iter (fun key value ->
-    fprintf fmt "%s: %a, " key (fun fmt v -> fprintf fmt "%s" (show_value v)) value
-  ) x; 
-  fprintf fmt " }"; 
-  ] [@@deriving show]
+type variable_context =
+  (value Ctx.t
+  [@printer
+    fun fmt x ->
+      fprintf fmt "{ ";
+      Ctx.iter
+        (fun key value ->
+          fprintf fmt "%s: %a, " key
+            (fun fmt v -> fprintf fmt "%s" (show_value v))
+            value)
+        x;
+      fprintf fmt " }"])
+[@@deriving show]
 
+type expression = Value of value | Func of string * expression list
+[@@deriving show]
 
-type expression =
-  | Value of value
-  | Func of string * expression list
-  [@@deriving show]
-
-type operator_equation = value * operator * value
-  [@@deriving show]
-
-type combiner = And | Or
-  [@@deriving show]
+type operator_equation = value * operator * value [@@deriving show]
+type combiner = And | Or [@@deriving show]
 
 type condition =
   | Combine of combiner * condition * condition
@@ -74,22 +75,22 @@ type condition =
   | IsTruthy of value
   | Not of condition
   | Always of bool
-  [@@deriving show]
+[@@deriving show]
 
-type for_params =
-  { limit : int
-  ; offset : int
-  ; reved : bool
-  ; cols : int
-  ; is_tablerow : bool
-  }
-  [@@deriving show]
+type for_params = {
+  limit : int;
+  offset : int;
+  reved : bool;
+  cols : int;
+  is_tablerow : bool;
+}
+[@@deriving show]
 
 type ast =
   | Capture of string * ast
   | Block of ast list
-  | Test of condition * ast * (ast option)
-  | For of string * value * for_params * ast * (ast option)
+  | Test of condition * ast * ast option
+  | For of string * value * for_params * ast * ast option
   | Cycle of string option * string list
   | Expression of expression
   | Assignment of string * expression
@@ -102,15 +103,15 @@ type ast =
   | Render of string * variable_context * ast option [@printer fun _ -> ignore]
   | Paginate of id * int * ast
   | Nothing
-  [@@deriving show]
+[@@deriving show]
 
 let list_of_range = function
-  | LexRange (start, stop) -> Batteries.(--) start stop |> Batteries.List.of_enum
+  | LexRange (start, stop) ->
+      Batteries.( -- ) start stop |> Batteries.List.of_enum
   | _ -> raise (Failure "This is not a range!")
 
-let liq_list_of_range r = List (
-  List.map (list_of_range r) ~f:(fun n -> Number (Int.to_float n))
-)
+let liq_list_of_range r =
+  List (List.map (list_of_range r) ~f:(fun n -> Number (Int.to_float n)))
 
 let lex_value_to_value = function
   | LexId id -> Var id
@@ -122,12 +123,8 @@ let lex_value_to_value = function
   | LexBlank -> String ""
 
 let for_params_default =
-  { limit = 50
-  ; offset = 0
-  ; reved = false
-  ; cols = 10
-  ; is_tablerow = false
-  } [@@deriving show]
+  { limit = 50; offset = 0; reved = false; cols = 10; is_tablerow = false }
+[@@deriving show]
 
 type liquid_filter = variable_context -> value list -> (value, string) Result.t
 type liquid_filter_lookup = string -> liquid_filter option

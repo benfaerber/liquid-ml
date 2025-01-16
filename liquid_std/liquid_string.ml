@@ -6,8 +6,7 @@ open Helpers
 open Encoder
 
 let append _ = function
-  | String base :: String addition :: _ ->
-    String (base ^ addition) |> ok
+  | String base :: String addition :: _ -> String (base ^ addition) |> ok
   | other -> errc "append accepts 2 strings" other
 
 let base64_decode _ = function
@@ -29,19 +28,18 @@ let base64_url_safe_encode _ = function
 (* The function is called camelcase but in the docs returns pascal case ??? Wierd *)
 (* TODO: does camelcase make a work that is uppercase lower? Ie my-URL -> myUrl *)
 let camelcase _ = function
-  | String s :: _ -> (
-    let wsexp = ~/"\\s|-|_" in
-    let words = Re2.rewrite_exn wsexp ~template:" " s |> String.split ~on:' ' in
-    let cammed = List.map words ~f:String.capitalize |> join in
-    cammed |> ok_str
-  )
+  | String s :: _ ->
+      let wsexp = ~/"\\s|-|_" in
+      let words =
+        Re2.rewrite_exn wsexp ~template:" " s |> String.split ~on:' '
+      in
+      let cammed = List.map words ~f:String.capitalize |> join in
+      cammed |> ok_str
   | other -> errc "camelcase accepts a string" other
 
 let capitalize _ = function
-  | String s :: _ ->
-    String.capitalize s |> ok_str
+  | String s :: _ -> String.capitalize s |> ok_str
   | other -> errc "capitalize accepts a string" other
-
 
 let downcase _ = function
   | String s :: _ -> s |> String.lowercase |> ok_str
@@ -52,35 +50,36 @@ let escape _ = function
   | other -> errc "escape accepts a string" other
 
 let escape_once _ = function
-  | String s :: _ -> (
-    if has_encoded_text s |> not then
-      encode_text s
-    else
-      s
-  ) |> ok_str
+  | String s :: _ ->
+      (if has_encoded_text s |> not then encode_text s else s) |> ok_str
   | other -> errc "escape_once accepts a string" other
 
 (* handlelize aka kebab-case *)
 let handleize _ = function
   | String s :: _ ->
-    let trimmed = remove_whitespace Both s in
-    let special_chars = ~/"[^a-zA-z0-9]+" in
-    let words = Re2.rewrite_exn special_chars ~template:" " trimmed |> String.split ~on:' ' in
-    let cleaned = List.filter words ~f:(fun t -> t != "") in
-    let kebab = List.map cleaned ~f:String.lowercase |> String.concat ~sep:"-" in
-    kebab |> ok_str
+      let trimmed = remove_whitespace Both s in
+      let special_chars = ~/"[^a-zA-z0-9]+" in
+      let words =
+        Re2.rewrite_exn special_chars ~template:" " trimmed
+        |> String.split ~on:' '
+      in
+      let cleaned = List.filter words ~f:(fun t -> t != "") in
+      let kebab =
+        List.map cleaned ~f:String.lowercase |> String.concat ~sep:"-"
+      in
+      kebab |> ok_str
   | other -> errc "handleize accepts a string" other
 
 let hmac_sha1 _ = function
   | String message :: String hash :: _ ->
-    let enc = message ^ hash |> Sha1.string |> Sha1.to_hex in
-    enc |> ok_str
+      let enc = message ^ hash |> Sha1.string |> Sha1.to_hex in
+      enc |> ok_str
   | other -> errc "hmac_sha1 accepts a string and a hash (string)" other
 
 let hmac_sha256 _ = function
   | String message :: String hash :: _ ->
-    let enc = message ^ hash |> Sha256.string |> Sha256.to_hex in
-    enc |> ok_str
+      let enc = message ^ hash |> Sha256.string |> Sha256.to_hex in
+      enc |> ok_str
   | other -> errc "hmac_sha256 accepts a string and a hash (string)" other
 
 let lstrip _ = function
@@ -95,148 +94,153 @@ let strip _ = function
   | String s :: _ -> remove_whitespace Both s |> ok_str
   | other -> errc "strip accepts a string" other
 
-
 let md5 _ = function
   | String s :: _ ->
-    let enc = s |> Md5_lib.string |> Md5_lib.to_hex in
-    enc |> ok_str
+      let enc = s |> Md5_lib.string |> Md5_lib.to_hex in
+      enc |> ok_str
   | other -> errc "md5 accepts a string" other
 
-
 let newline_to_br _ = function
-  | String s :: _ -> (
-    let nl = ~/"\n" in
-    let r = Re2.rewrite_exn nl ~template:"<br />\n" s in
-    r |> ok_str
-  )
+  | String s :: _ ->
+      let nl = ~/"\n" in
+      let r = Re2.rewrite_exn nl ~template:"<br />\n" s in
+      r |> ok_str
   | other -> errc "newline_to_br accepts a string" other
-
 
 let pluralize _ = function
   | Number n :: String singular :: String plural :: _ ->
-    let l = if n = 1. then singular else plural in
-    l |> ok_str
-  | other -> errc "pluralize accepts a number, a singular string and a plural string" other
-
+      let l = if n = 1. then singular else plural in
+      l |> ok_str
+  | other ->
+      errc "pluralize accepts a number, a singular string and a plural string"
+        other
 
 let prepend _ = function
-  | String base :: String addition :: _ ->
-    addition ^ base |> ok_str
+  | String base :: String addition :: _ -> addition ^ base |> ok_str
   | other -> errc "prepend accepts 2 strings" other
 
 let remove _ = function
   | String haystack :: String needle :: _ ->
-    let exp = ~/needle in
-    let res = Re2.rewrite_exn exp haystack ~template:"" in
-    res |> ok_str
+      let exp = ~/needle in
+      let res = Re2.rewrite_exn exp haystack ~template:"" in
+      res |> ok_str
   | other -> errc "remove accepts 2 strings" other
 
 let remove_first _ = function
   | String haystack :: String needle :: _ ->
-    let s = String.substr_replace_first haystack ~pattern:needle ~with_:"" in
-    s |> ok_str
+      let s = String.substr_replace_first haystack ~pattern:needle ~with_:"" in
+      s |> ok_str
   | other -> errc "remove_fist accepts 2 strings" other
-
 
 let remove_last _ = function
   | String haystack :: String needle :: _ ->
-    let rhaystack, rneedle = String.rev haystack, String.rev needle in
-    let s = String.substr_replace_first rhaystack ~pattern:rneedle ~with_:"" in
-    String.rev s |> ok_str
+      let rhaystack, rneedle = (String.rev haystack, String.rev needle) in
+      let s =
+        String.substr_replace_first rhaystack ~pattern:rneedle ~with_:""
+      in
+      String.rev s |> ok_str
   | other -> errc "remove_fist accepts 2 strings" other
-
 
 let replace _ = function
   | String haystack :: String find_needle :: String replace_needle :: _ ->
-    let exp = ~/find_needle in
-    let res = Re2.rewrite_exn exp haystack ~template:replace_needle in
-    res |> ok_str
+      let exp = ~/find_needle in
+      let res = Re2.rewrite_exn exp haystack ~template:replace_needle in
+      res |> ok_str
   | other -> errc "replace accepts 3 strings" other
 
 let replace_first _ = function
   | String haystack :: String find_needle :: String replace_needle :: _ ->
-    let s = String.substr_replace_first haystack ~pattern:find_needle ~with_:replace_needle in
-    s |> ok_str
+      let s =
+        String.substr_replace_first haystack ~pattern:find_needle
+          ~with_:replace_needle
+      in
+      s |> ok_str
   | other -> errc "replace_first accepts 3 strings" other
 
 let replace_last _ = function
   | String haystack :: String find_needle :: String replace_needle :: _ ->
-    let r_hay, r_find, r_rep = String.rev haystack, String.rev find_needle, String.rev replace_needle in
-    let s = String.substr_replace_first r_hay ~pattern:r_find ~with_:r_rep in
-    String.rev s |> ok_str
+      let r_hay, r_find, r_rep =
+        (String.rev haystack, String.rev find_needle, String.rev replace_needle)
+      in
+      let s = String.substr_replace_first r_hay ~pattern:r_find ~with_:r_rep in
+      String.rev s |> ok_str
   | other -> errc "replace_last accepts 3 strings" other
 
 let sha1 _ = function
   | String message :: _ ->
-    let enc = message |> Sha1.string |> Sha1.to_hex in
-    enc |> ok_str
+      let enc = message |> Sha1.string |> Sha1.to_hex in
+      enc |> ok_str
   | other -> errc "sha1 accepts a string" other
 
 let sha256 _ = function
   | String message :: _ ->
-    let enc = message |> Sha256.string |> Sha256.to_hex in
-    enc |> ok_str
+      let enc = message |> Sha256.string |> Sha256.to_hex in
+      enc |> ok_str
   | other -> errc "sha256 accepts a string" other
 
-
 let strip_html _ = function
-  | String s :: _ -> (
-    let exp = ~/"<.+?/?>" in
-    let r = Re2.rewrite_exn exp ~template:"" s in
-    r |> ok_str
-  )
+  | String s :: _ ->
+      let exp = ~/"<.+?/?>" in
+      let r = Re2.rewrite_exn exp ~template:"" s in
+      r |> ok_str
   | other -> errc "string_html accepts a string" other
 
 let strip_newlines _ = function
-  | String s :: _ -> (
-    let exp = ~/"\n" in
-    let r = Re2.rewrite_exn exp ~template:"" s in
-    r |> ok_str
-  )
+  | String s :: _ ->
+      let exp = ~/"\n" in
+      let r = Re2.rewrite_exn exp ~template:"" s in
+      r |> ok_str
   | other -> errc "strip_newlines accepts a string" other
-
 
 let truncate _ params =
   let do_truncate finisher s chars =
-    (if String.length s > chars then
-      (String.sub s ~pos:0 ~len:chars) ^ finisher
-    else
-      s
-    ) |> ok_str
+    (if String.length s > chars then String.sub s ~pos:0 ~len:chars ^ finisher
+     else s)
+    |> ok_str
   in
 
   match params with
-  | String s :: Number fchars :: String finisher :: _ -> do_truncate finisher s (Float.to_int fchars)
+  | String s :: Number fchars :: String finisher :: _ ->
+      do_truncate finisher s (Float.to_int fchars)
   | String s :: Number fchars :: _ -> do_truncate "..." s (Float.to_int fchars)
-  | other -> errc "truncate accepts a string, a number and an optional finisher value (string)" other
+  | other ->
+      errc
+        "truncate accepts a string, a number and an optional finisher value \
+         (string)"
+        other
 
 let truncatewords _ params =
   let do_truncwords finisher s count =
     let words = String.split s ~on:' ' in
     (if List.length words > count then
-      let picked_words = List.sub words ~pos:0 ~len:count |> join_by_space in
-      picked_words ^ finisher
-    else
-      s
-    ) |> ok_str
+       let picked_words = List.sub words ~pos:0 ~len:count |> join_by_space in
+       picked_words ^ finisher
+     else s)
+    |> ok_str
   in
 
   match params with
-  | String s :: Number fcount :: String finisher :: _ -> do_truncwords finisher s (Float.to_int fcount)
-  | String s :: Number fcount :: _ -> do_truncwords "..." s (Float.to_int fcount)
-  | other -> errc "truncatewords accepts a string, a number and an optional finisher value (string)" other
+  | String s :: Number fcount :: String finisher :: _ ->
+      do_truncwords finisher s (Float.to_int fcount)
+  | String s :: Number fcount :: _ ->
+      do_truncwords "..." s (Float.to_int fcount)
+  | other ->
+      errc
+        "truncatewords accepts a string, a number and an optional finisher \
+         value (string)"
+        other
 
 let split _ = function
   | String s :: String delim :: _ ->
-    let literal = Str.split (Str.regexp delim) s |> List.map ~f:(fun x -> String x) in
-    literal |> ok_list
+      let literal =
+        Str.split (Str.regexp delim) s |> List.map ~f:(fun x -> String x)
+      in
+      literal |> ok_list
   | other -> errc "split accepts a string and a delimiter (string)" other
-
 
 let upcase _ = function
   | String s :: _ -> s |> String.uppercase |> ok_str
   | other -> errc "upcase accepts a string" other
-
 
 let url_encode _ = function
   | String url :: _ -> encode_url url |> ok_str
