@@ -28,10 +28,6 @@ let lex_tokens_as_string_with_index ts =
   ))
 let print_lex_tokens_with_index ts = ts |> lex_tokens_as_string_with_index |> Stdio.print_endline
 
-let combiner_as_string = function
-  | And -> "And"
-  | Or -> "Or"
-
 let id_as_string = join_by_arrow
 
 and object_as_string obj =
@@ -59,7 +55,7 @@ let rec condition_as_string =
   | IsTruthy v -> "IsTruthy(" ^ (show_value v) ^ ")"
   | Not x -> "Not(\n" ^ (condition_as_string x) ^ "\n)"
   | Combine (c, l, r) ->
-    Core.sprintf "%s(\n%s, %s\n)" (combiner_as_string c) (aux l) (aux r)
+    Core.sprintf "%s(\n%s, %s\n)" (show_combiner c) (aux l) (aux r)
   in aux
 
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
@@ -95,9 +91,6 @@ let print_parse_result_with_rest pr = pr |> parse_result_with_rest_as_string |> 
 let remove_double_nl text =
   let exp = Re2.create_exn "\n\n" in
   Re2.rewrite_exn exp ~template:"" text
-
-
-
 
 let print_rendered r =
   r |> remove_double_nl |> Stdio.print_endline

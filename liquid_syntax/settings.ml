@@ -20,8 +20,7 @@ type currency_info =
   { symbol : string
   ; abbr : string
   ; name : string
-  } 
-  [@@deriving show]
+  } [@@deriving show]
 
 let currency_info_from_currency = function
   | Usd -> { symbol = "$"; abbr = "USD"; name = "US Dollar" }
