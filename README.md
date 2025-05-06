@@ -35,24 +35,27 @@ let () =
 ### Custom Variable Context
 The variable context provides the template with variables accessible in the global scope.
 ```ocaml
-  let () =
-    (* Create an object that can be accessed in Liquid using dot notation (environment.language -> "OCaml") *)
-    let environment =
-      Object.empty
-      |> Object.add "language" (String "OCaml")
-      |> Object.add "version" (String "4.14.0")
-    in
+open Liquid_ml
+open Liquid_ml.Exports
 
-    (* HeRe we include our favorite_animal as a string an our environment as an object *)
-    let context =
-      Ctx.empty
-      |> Ctx.add "favorite_animal" (String "horse")
-      |> Ctx.add "environment" (Object environment)
-    in
+let () =
+  (* Create an object that can be accessed in Liquid using dot notation (environment.language -> "OCaml") *)
+  let environment =
+    Object.empty
+    |> Object.add "language" (String "OCaml")
+    |> Object.add "version" (String "4.14.0")
+  in
 
-    let settings = Settings.make ~context () in
-    render ~settings "liquid_templates/test.liquid"
-    |> Stdio.print_endline
+  (* HeRe we include our favorite_animal as a string an our environment as an object *)
+  let context =
+    Ctx.empty
+    |> Ctx.add "favorite_animal" (String "horse")
+    |> Ctx.add "environment" (Object environment)
+  in
+
+  let settings = Settings.make ~context () in
+  render ~settings "liquid_templates/test.liquid"
+  |> Stdio.print_endline
 
 ```
 Now we can access these variables from the template:
