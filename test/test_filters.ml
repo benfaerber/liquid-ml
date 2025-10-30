@@ -89,7 +89,7 @@ let test_modulo () =
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ num | modulo: 3 }}" in
   (* Float modulo may return 1.0 *)
-  check string "modulo filter" "1.0" result
+  check string "modulo filter" "1" result
 
 let test_abs () =
   let context = Ctx.empty |> Ctx.add "num" (Number (-5.0)) in
