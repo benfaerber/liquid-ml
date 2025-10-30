@@ -1,0 +1,4 @@
+(test
+ (name test_runner)
+ (libraries alcotest liquid_ml base core stdio)
+)
