@@ -12,7 +12,12 @@ let encode_decode_url reps encode_decode url =
     let p, w = match encode_decode with Encode -> (d, e) | Decode -> (e, d) in
     String.substr_replace_all acc ~pattern:p ~with_:w
   in
-  List.fold reps ~init:url ~f:folder
+  (* For decoding, we need to reverse the list so % is decoded last *)
+  let ordered_reps = match encode_decode with
+    | Encode -> reps
+    | Decode -> List.rev reps
+  in
+  List.fold ordered_reps ~init:url ~f:folder
 
 let encode_decode_text reps encode_decode text =
     let folder acc (unicode_value, number_encoded, name_encoded) =
