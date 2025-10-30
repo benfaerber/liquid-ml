@@ -37,7 +37,8 @@ jobs:
     - name: Run tests with coverage
       if: matrix.ocaml-compiler == '5.2.x'
       run: |
-        BISECT_ENABLE=yes opam exec -- dune runtest --instrument-with bisect_ppx --force
+        mkdir -p _coverage
+        BISECT_FILE=_coverage/bisect BISECT_ENABLE=yes opam exec -- dune runtest --instrument-with bisect_ppx --force
       continue-on-error: true
 
     - name: Run tests without coverage
@@ -49,9 +50,9 @@ jobs:
     - name: Generate coverage report
       if: matrix.ocaml-compiler == '5.2.x'
       run: |
-        opam exec -- bisect-ppx-report html
-        opam exec -- bisect-ppx-report summary
-        opam exec -- bisect-ppx-report cobertura coverage.xml
+        opam exec -- bisect-ppx-report html --coverage-path _coverage
+        opam exec -- bisect-ppx-report summary --coverage-path _coverage
+        opam exec -- bisect-ppx-report cobertura coverage.xml --coverage-path _coverage
 
     - name: Upload coverage to Codecov
       if: matrix.ocaml-compiler == '5.2.x'
