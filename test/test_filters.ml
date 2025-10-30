@@ -52,6 +52,54 @@ let test_strip () =
   let result = render_text ~settings "{{ text | strip }}" in
   check string "strip filter" "hello" result
 
+let test_lstrip () =
+  let context = Ctx.empty |> Ctx.add "text" (String "  hello") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | lstrip }}" in
+  check string "lstrip filter" "hello" result
+
+let test_rstrip () =
+  let context = Ctx.empty |> Ctx.add "text" (String "hello  ") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | rstrip }}" in
+  check string "rstrip filter" "hello" result
+
+let test_handleize () =
+  let context = Ctx.empty |> Ctx.add "text" (String "Hello World! 123") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | handleize }}" in
+  check string "handleize filter" "hello-world-123" result
+
+let test_camelcase () =
+  let context = Ctx.empty |> Ctx.add "text" (String "hello-world_test") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | camelcase }}" in
+  check string "camelcase filter" "HelloWorldTest" result
+
+let test_base64_encode () =
+  let context = Ctx.empty |> Ctx.add "text" (String "hello") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | base64_encode }}" in
+  check string "base64_encode filter" "aGVsbG8=" result
+
+let test_base64_decode () =
+  let context = Ctx.empty |> Ctx.add "text" (String "aGVsbG8=") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | base64_decode }}" in
+  check string "base64_decode filter" "hello" result
+
+let test_split () =
+  let context = Ctx.empty |> Ctx.add "text" (String "a,b,c") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | split: ',' | join: '-' }}" in
+  check string "split filter" "a-b-c" result
+
+let test_truncate () =
+  let context = Ctx.empty |> Ctx.add "text" (String "Ground control to Major Tom.") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ text | truncate: 20 }}" in
+  check string "truncate filter" "Ground control to..." result
+
 let test_size () =
   let context = Ctx.empty |> Ctx.add "text" (String "hello") in
   let settings = Settings.make ~context () in
@@ -102,6 +150,30 @@ let test_round () =
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ num | round }}" in
   check string "round filter" "4" result
+
+let test_floor () =
+  let context = Ctx.empty |> Ctx.add "num" (Number 3.7) in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ num | floor }}" in
+  check string "floor filter" "3" result
+
+let test_ceil () =
+  let context = Ctx.empty |> Ctx.add "num" (Number 3.2) in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ num | ceil }}" in
+  check string "ceil filter" "4" result
+
+let test_at_least () =
+  let context = Ctx.empty |> Ctx.add "num" (Number 3.0) in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ num | at_least: 5 }}" in
+  check string "at_least filter" "5" result
+
+let test_at_most () =
+  let context = Ctx.empty |> Ctx.add "num" (Number 8.0) in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ num | at_most: 5 }}" in
+  check string "at_most filter" "5" result
 
 (* List Filters *)
 
@@ -180,6 +252,14 @@ let suite =
       test_case "replace" `Quick test_replace;
       test_case "remove" `Quick test_remove;
       test_case "strip" `Quick test_strip;
+      test_case "lstrip" `Quick test_lstrip;
+      test_case "rstrip" `Quick test_rstrip;
+      test_case "handleize" `Quick test_handleize;
+      test_case "camelcase" `Quick test_camelcase;
+      test_case "base64_encode" `Quick test_base64_encode;
+      test_case "base64_decode" `Quick test_base64_decode;
+      test_case "split" `Quick test_split;
+      test_case "truncate" `Quick test_truncate;
       test_case "size" `Quick test_size;
       (* Number filters *)
       test_case "plus" `Quick test_plus;
@@ -189,6 +269,10 @@ let suite =
       test_case "modulo" `Quick test_modulo;
       test_case "abs" `Quick test_abs;
       test_case "round" `Quick test_round;
+      test_case "floor" `Quick test_floor;
+      test_case "ceil" `Quick test_ceil;
+      test_case "at_least" `Quick test_at_least;
+      test_case "at_most" `Quick test_at_most;
       (* List filters *)
       test_case "first" `Quick test_first;
       test_case "last" `Quick test_last;

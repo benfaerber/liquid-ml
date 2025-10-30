@@ -199,7 +199,7 @@ let strip_newlines _ = function
 let truncate _ params =
   let do_truncate finisher s chars =
     (if String.length s > chars then
-      (String.sub s ~pos:0 ~len:chars) ^ finisher
+      (String.sub s ~pos:0 ~len:(chars-3)) ^ finisher
     else
       s
     ) |> ok_str
