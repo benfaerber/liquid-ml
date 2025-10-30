@@ -17,12 +17,12 @@ let currency_from_value = function
   | _ -> Usd
 
 let preferred_currency ctx =
-  Values.unwrap ctx (Var [preferred_currency_key])
-  |> currency_from_value
+  Values.unwrap ctx (Var [ preferred_currency_key ]) |> currency_from_value
 
 let preferred_currency_info ctx =
   preferred_currency ctx |> currency_info_from_currency
 
 let add settings ctx =
   ctx
-  |> Ctx.add preferred_currency_key (value_from_currency settings.preferred_currency)
+  |> Ctx.add preferred_currency_key
+       (value_from_currency settings.preferred_currency)

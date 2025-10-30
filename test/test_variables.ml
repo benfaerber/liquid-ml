@@ -29,7 +29,7 @@ let test_add_boolean () =
   check string "add boolean" "true" result
 
 let test_add_list () =
-  let items = List [String "apple"; String "banana"; String "cherry"] in
+  let items = List [ String "apple"; String "banana"; String "cherry" ] in
   let ctx = Ctx.empty |> Ctx.add "fruits" items in
   let settings = Settings.make ~context:ctx () in
   let template = "{% for fruit in fruits %}{{ fruit }} {% endfor %}" in
@@ -37,7 +37,9 @@ let test_add_list () =
   check string "add list" "apple banana cherry " result
 
 let test_add_object () =
-  let obj = Object.empty |> Object.add "x" (Number 10.0) |> Object.add "y" (Number 20.0) in
+  let obj =
+    Object.empty |> Object.add "x" (Number 10.0) |> Object.add "y" (Number 20.0)
+  in
   let ctx = Ctx.empty |> Ctx.add "point" (Object obj) in
   let settings = Settings.make ~context:ctx () in
   let result = render_text ~settings "{{ point.x }},{{ point.y }}" in
@@ -61,7 +63,9 @@ let test_object_add_multiple () =
   in
   let ctx = Ctx.empty |> Ctx.add "user" (Object obj) in
   let settings = Settings.make ~context:ctx () in
-  let result = render_text ~settings "{{ user.name }} is {{ user.age }} in {{ user.city }}" in
+  let result =
+    render_text ~settings "{{ user.name }} is {{ user.age }} in {{ user.city }}"
+  in
   check string "object with multiple fields" "Bob is 30 in NYC" result
 
 let test_nested_objects () =
@@ -77,7 +81,9 @@ let test_nested_objects () =
   in
   let ctx = Ctx.empty |> Ctx.add "user" (Object user) in
   let settings = Settings.make ~context:ctx () in
-  let result = render_text ~settings "{{ user.name }} lives on {{ user.address.street }}" in
+  let result =
+    render_text ~settings "{{ user.name }} lives on {{ user.address.street }}"
+  in
   check string "nested objects" "Charlie lives on Main St" result
 
 (* Test nil handling *)
@@ -91,13 +97,15 @@ let test_nil_value () =
 let test_nil_in_comparison () =
   let ctx = Ctx.empty |> Ctx.add "value" Nil in
   let settings = Settings.make ~context:ctx () in
-  let result = render_text ~settings "{% if value %}yes{% else %}no{% endif %}" in
+  let result =
+    render_text ~settings "{% if value %}yes{% else %}no{% endif %}"
+  in
   check string "nil is falsy" "no" result
 
 (* Test variable scoping in loops *)
 
 let test_variable_scope_in_for () =
-  let items = List [String "A"; String "B"; String "C"] in
+  let items = List [ String "A"; String "B"; String "C" ] in
   let ctx = Ctx.empty |> Ctx.add "items" items in
   let settings = Settings.make ~context:ctx () in
   let template = "{% for item in items %}{{ item }}{% endfor %}{{ item }}" in
@@ -108,7 +116,7 @@ let test_variable_scope_in_for () =
 (* Test forloop object *)
 
 let test_forloop_index () =
-  let items = List [String "A"; String "B"; String "C"] in
+  let items = List [ String "A"; String "B"; String "C" ] in
   let ctx = Ctx.empty |> Ctx.add "items" items in
   let settings = Settings.make ~context:ctx () in
   let template = "{% for item in items %}{{ forloop.index }}{% endfor %}" in
@@ -116,7 +124,7 @@ let test_forloop_index () =
   check string "forloop.index" "123" result
 
 let test_forloop_index0 () =
-  let items = List [String "A"; String "B"; String "C"] in
+  let items = List [ String "A"; String "B"; String "C" ] in
   let ctx = Ctx.empty |> Ctx.add "items" items in
   let settings = Settings.make ~context:ctx () in
   let template = "{% for item in items %}{{ forloop.index0 }}{% endfor %}" in
@@ -124,18 +132,24 @@ let test_forloop_index0 () =
   check string "forloop.index0" "012" result
 
 let test_forloop_first () =
-  let items = List [String "A"; String "B"; String "C"] in
+  let items = List [ String "A"; String "B"; String "C" ] in
   let ctx = Ctx.empty |> Ctx.add "items" items in
   let settings = Settings.make ~context:ctx () in
-  let template = "{% for item in items %}{% if forloop.first %}{{ item }}{% endif %}{% endfor %}" in
+  let template =
+    "{% for item in items %}{% if forloop.first %}{{ item }}{% endif %}{% \
+     endfor %}"
+  in
   let result = render_text ~settings template in
   check string "forloop.first" "A" result
 
 let test_forloop_last () =
-  let items = List [String "A"; String "B"; String "C"] in
+  let items = List [ String "A"; String "B"; String "C" ] in
   let ctx = Ctx.empty |> Ctx.add "items" items in
   let settings = Settings.make ~context:ctx () in
-  let template = "{% for item in items %}{% if forloop.last %}{{ item }}{% endif %}{% endfor %}" in
+  let template =
+    "{% for item in items %}{% if forloop.last %}{{ item }}{% endif %}{% \
+     endfor %}"
+  in
   let result = render_text ~settings template in
   check string "forloop.last" "C" result
 
@@ -163,14 +177,18 @@ let test_assign_with_filter () =
 (* Test capture tag *)
 
 let test_capture_simple () =
-  let template = "{% capture my_var %}Hello World{% endcapture %}{{ my_var }}" in
+  let template =
+    "{% capture my_var %}Hello World{% endcapture %}{{ my_var }}"
+  in
   let result = render_text template in
   check string "capture simple" "Hello World" result
 
 let test_capture_with_variables () =
   let ctx = Ctx.empty |> Ctx.add "name" (String "Alice") in
   let settings = Settings.make ~context:ctx () in
-  let template = "{% capture greeting %}Hello, {{ name }}!{% endcapture %}{{ greeting }}" in
+  let template =
+    "{% capture greeting %}Hello, {{ name }}!{% endcapture %}{{ greeting }}"
+  in
   let result = render_text ~settings template in
   check string "capture with variables" "Hello, Alice!" result
 

@@ -70,14 +70,15 @@ let test_if_else () =
 let test_unless () =
   let context = Ctx.empty |> Ctx.add "hide" (Bool false) in
   let settings = Settings.make ~context () in
-  let result = render_text ~settings "{% unless hide %}Visible{% endunless %}" in
+  let result =
+    render_text ~settings "{% unless hide %}Visible{% endunless %}"
+  in
   check string "unless" "Visible" result
 
 (* Test for loop with list *)
 let test_for_loop () =
   let context =
-    Ctx.empty
-    |> Ctx.add "items" (List [String "A"; String "B"; String "C"])
+    Ctx.empty |> Ctx.add "items" (List [ String "A"; String "B"; String "C" ])
   in
   let settings = Settings.make ~context () in
   let template = "{% for item in items %}{{ item }}{% endfor %}" in
@@ -89,7 +90,8 @@ let test_case_statement () =
   let context = Ctx.empty |> Ctx.add "fruit" (String "apple") in
   let settings = Settings.make ~context () in
   let template =
-    "{% case fruit %}{% when 'apple' %}Red{% when 'banana' %}Yellow{% endcase %}"
+    "{% case fruit %}{% when 'apple' %}Red{% when 'banana' %}Yellow{% endcase \
+     %}"
   in
   let result = render_text ~settings template in
   check string "case statement" "Red" result
@@ -133,7 +135,8 @@ let test_nested_object_access () =
 let test_list_index_access () =
   let context =
     Ctx.empty
-    |> Ctx.add "items" (List [String "First"; String "Second"; String "Third"])
+    |> Ctx.add "items"
+         (List [ String "First"; String "Second"; String "Third" ])
   in
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ items[1] }}" in

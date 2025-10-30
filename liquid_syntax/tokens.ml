@@ -1,6 +1,7 @@
 open Base
 
 type whitespace_control = Trim | White
+
 type block_token =
   | StatementStart of whitespace_control
   | StatementEnd of whitespace_control
@@ -9,8 +10,7 @@ type block_token =
   | LiquidStart
   | RawText of string
 
-type operator =
-  Eq | Gte | Gt | Lte | Lt | Ne | Contains
+type operator = Eq | Gte | Gt | Lte | Lt | Ne | Contains
 
 type lex_value =
   | LexBool of bool
@@ -24,27 +24,50 @@ type lex_value =
 type lex_combiner = LexAnd | LexOr
 
 type lex_token =
-  | If | EndIf
-  | Unless | EndUnless
-  | Case | EndCase
-  | LexFor | LexEndFor
-  | Capture | EndCapture
-  | Paginate | EndPaginate
-  | TableRow | EndTableRow
-  | Raw | EndRaw
+  | If
+  | EndIf
+  | Unless
+  | EndUnless
+  | Case
+  | EndCase
+  | LexFor
+  | LexEndFor
+  | Capture
+  | EndCapture
+  | Paginate
+  | EndPaginate
+  | TableRow
+  | EndTableRow
+  | Raw
+  | EndRaw
   | ElseIf
   | Else
   | When
-  | LexForm | LexStyle | LexEndForm | LexEndStyle
-  | LexInclude | LexRender | LexLayout | LexSection
-  | LexBreak | LexContinue
+  | LexForm
+  | LexStyle
+  | LexEndForm
+  | LexEndStyle
+  | LexInclude
+  | LexRender
+  | LexLayout
+  | LexSection
+  | LexBreak
+  | LexContinue
   | Cycle
-  | In | By
-  | LexWith | LexAs
-  | Assign | Increment | Decrement
-  | Pipe | Colon | Equals | Comma
+  | In
+  | By
+  | LexWith
+  | LexAs
+  | Assign
+  | Increment
+  | Decrement
+  | Pipe
+  | Colon
+  | Equals
+  | Comma
   | LexNone
-  | Space | Newline
+  | Space
+  | Newline
   | Operator of operator
   | LexText of string
   | LexCombiner of lex_combiner

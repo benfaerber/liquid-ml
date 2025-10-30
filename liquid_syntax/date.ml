@@ -1,15 +1,14 @@
 open CalendarLib
-
 module Timezone = Timezone
+
 type t = Calendar.t
 
-let set_timezone (tz: Timezone.t) =
+let set_timezone (tz : Timezone.t) =
   let info = Timezone.info_from_timezone tz in
   let calendar_tz = Time_Zone.UTC_Plus (Float.to_int info.utc_offset) in
   Time_Zone.change calendar_tz
 
 let iso_format = "%FT%T%:z"
-
 let now = Calendar.now
 
 let now_as_string fmat =
@@ -22,11 +21,8 @@ let format_date_string date_str fmat =
   let formatted = Printer.Date.sprint fmat date in
   formatted
 
-let as_string date fmat =
-  Printer.Calendar.sprint fmat date
-
-let as_iso_string date =
-  Printer.Calendar.sprint iso_format date
+let as_string date fmat = Printer.Calendar.sprint fmat date
+let as_iso_string date = Printer.Calendar.sprint iso_format date
 
 (*
 ISO:

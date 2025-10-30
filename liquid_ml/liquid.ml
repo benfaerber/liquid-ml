@@ -13,7 +13,8 @@ let render_text ?(settings = default_settings) text =
   Logger.vgroup p ld "Raw Text:" "raw_text.txt" const raw_text;
 
   let lex_tokens = Lexer.lex raw_text in
-  Logger.vgroup p ld "Lex Tokens:" "tokens.txt" Debug.lex_tokens_as_string_with_index lex_tokens;
+  Logger.vgroup p ld "Lex Tokens:" "tokens.txt"
+    Debug.lex_tokens_as_string_with_index lex_tokens;
 
   let ast = Parser.parse lex_tokens in
   Logger.vgroup p ld "Abstract Syntax Tree:" "ast.txt" Debug.ast_as_string ast;

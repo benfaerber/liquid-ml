@@ -16,7 +16,7 @@ let () =
   Printf.printf "Empty object test: '%s'\n" result2;
 
   (* Test 3: variable scope *)
-  let items = List [String "A"; String "B"; String "C"] in
+  let items = List [ String "A"; String "B"; String "C" ] in
   let ctx3 = Ctx.empty |> Ctx.add "items" items in
   let settings3 = Settings.make ~context:ctx3 () in
   let template3 = "{% for item in items %}{{ item }}{% endfor %}{{ item }}" in

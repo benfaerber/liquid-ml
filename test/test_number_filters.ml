@@ -60,14 +60,15 @@ let test_ceil () =
 
 (* Test suite *)
 let suite =
-  "Number Filter Tests", [
-    test_case "plus" `Quick test_plus;
-    test_case "minus" `Quick test_minus;
-    test_case "times" `Quick test_times;
-    test_case "divided_by" `Quick test_divided_by;
-    test_case "modulo" `Quick test_modulo;
-    test_case "abs" `Quick test_abs;
-    test_case "round" `Quick test_round;
-    test_case "floor" `Quick test_floor;
-    test_case "ceil" `Quick test_ceil;
-  ]
+  ( "Number Filter Tests",
+    [
+      test_case "plus" `Quick test_plus;
+      test_case "minus" `Quick test_minus;
+      test_case "times" `Quick test_times;
+      test_case "divided_by" `Quick test_divided_by;
+      test_case "modulo" `Quick test_modulo;
+      test_case "abs" `Quick test_abs;
+      test_case "round" `Quick test_round;
+      test_case "floor" `Quick test_floor;
+      test_case "ceil" `Quick test_ceil;
+    ] )

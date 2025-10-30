@@ -2,7 +2,8 @@ open Liquid_ml
 open Liquid
 
 let test_collection =
-  let product_a = Object.empty
+  let product_a =
+    Object.empty
     |> Object.add "handle" (String "my-product-a")
     |> Object.add "title" (String "My Product A")
     |> Object.add "status" (String "available")
@@ -11,7 +12,8 @@ let test_collection =
     |> pack_object
   in
 
-  let product_b = Object.empty
+  let product_b =
+    Object.empty
     |> Object.add "handle" (String "my-product-b")
     |> Object.add "title" (String "My Product B")
     |> Object.add "category" (String "Food")
@@ -21,7 +23,8 @@ let test_collection =
     |> pack_object
   in
 
-  let product_c = Object.empty
+  let product_c =
+    Object.empty
     |> Object.add "handle" (String "my-product-c")
     |> Object.add "title" (String "My Product C")
     |> Object.add "category" (String "Toy")
@@ -31,8 +34,7 @@ let test_collection =
     |> pack_object
   in
 
-  let all_products = [product_a; product_b; product_c] in
-
+  let all_products = [ product_a; product_b; product_c ] in
 
   Object.empty
   |> Object.add "handle" (String "all-products")

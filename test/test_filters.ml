@@ -95,7 +95,9 @@ let test_split () =
   check string "split filter" "a-b-c" result
 
 let test_truncate () =
-  let context = Ctx.empty |> Ctx.add "text" (String "Ground control to Major Tom.") in
+  let context =
+    Ctx.empty |> Ctx.add "text" (String "Ground control to Major Tom.")
+  in
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ text | truncate: 20 }}" in
   check string "truncate filter" "Ground control to..." result
@@ -179,7 +181,7 @@ let test_at_most () =
 
 let test_first () =
   let context =
-    Ctx.empty |> Ctx.add "items" (List [String "A"; String "B"; String "C"])
+    Ctx.empty |> Ctx.add "items" (List [ String "A"; String "B"; String "C" ])
   in
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ items | first }}" in
@@ -187,7 +189,7 @@ let test_first () =
 
 let test_last () =
   let context =
-    Ctx.empty |> Ctx.add "items" (List [String "A"; String "B"; String "C"])
+    Ctx.empty |> Ctx.add "items" (List [ String "A"; String "B"; String "C" ])
   in
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ items | last }}" in
@@ -195,7 +197,7 @@ let test_last () =
 
 let test_join () =
   let context =
-    Ctx.empty |> Ctx.add "items" (List [String "A"; String "B"; String "C"])
+    Ctx.empty |> Ctx.add "items" (List [ String "A"; String "B"; String "C" ])
   in
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ items | join: ', ' }}" in
@@ -203,19 +205,25 @@ let test_join () =
 
 let test_reverse () =
   let context =
-    Ctx.empty |> Ctx.add "items" (List [String "A"; String "B"; String "C"])
+    Ctx.empty |> Ctx.add "items" (List [ String "A"; String "B"; String "C" ])
   in
   let settings = Settings.make ~context () in
-  let template = "{% assign rev = items | reverse %}{% for item in rev %}{{ item }}{% endfor %}" in
+  let template =
+    "{% assign rev = items | reverse %}{% for item in rev %}{{ item }}{% \
+     endfor %}"
+  in
   let result = render_text ~settings template in
   check string "reverse filter" "CBA" result
 
 let test_sort () =
   let context =
-    Ctx.empty |> Ctx.add "items" (List [String "C"; String "A"; String "B"])
+    Ctx.empty |> Ctx.add "items" (List [ String "C"; String "A"; String "B" ])
   in
   let settings = Settings.make ~context () in
-  let template = "{% assign sorted = items | sort %}{% for item in sorted %}{{ item }}{% endfor %}" in
+  let template =
+    "{% assign sorted = items | sort %}{% for item in sorted %}{{ item }}{% \
+     endfor %}"
+  in
   let result = render_text ~settings template in
   check string "sort filter" "ABC" result
 
