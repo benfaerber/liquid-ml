@@ -10,8 +10,8 @@ let abs _ params =
   | String s :: _ -> s |> Float.of_string |> do_abs
   | other -> errc "abs accepts a number" other
 
-let at_least = pick_at_by_op Float.(<)
-let at_most = pick_at_by_op Float.(>)
+let at_least = pick_at_by_op Float.(>)
+let at_most = pick_at_by_op Float.(<)
 
 let ceil _ = function
   | Number n :: _ -> Float.round_up n |> ok_num
