@@ -143,24 +143,24 @@ let test_list_index_access () =
   check string "list index access" "Second" result
 
 let suite =
-  ( "Rendering Tests",
-    [
-      test_case "Plain text" `Quick test_plain_text;
-      test_case "Variable interpolation" `Quick test_variable_interpolation;
-      test_case "Multiple variables" `Quick test_multiple_variables;
-      test_case "Number variable" `Quick test_number_variable;
-      test_case "Boolean variable" `Quick test_boolean_variable;
-      test_case "Undefined variable" `Quick test_undefined_variable;
-      test_case "If statement (true)" `Quick test_if_true;
-      test_case "If statement (false)" `Quick test_if_false;
-      test_case "If-else statement" `Quick test_if_else;
-      test_case "Unless statement" `Quick test_unless;
-      test_case "For loop" `Quick test_for_loop;
-      test_case "Case statement" `Quick test_case_statement;
-      test_case "Assign tag" `Quick test_assign;
-      test_case "Comment tag" `Quick test_comment;
-      test_case "Raw tag" `Quick test_raw;
-      test_case "Object access" `Quick test_object_access;
-      test_case "Nested object access" `Quick test_nested_object_access;
-      test_case "List index access" `Quick test_list_index_access;
+  ( "Rendering Tests"
+  , [
+      test_case "Plain text" `Quick test_plain_text
+    ; test_case "Variable interpolation" `Quick test_variable_interpolation
+    ; test_case "Multiple variables" `Quick test_multiple_variables
+    ; test_case "Number variable" `Quick test_number_variable
+    ; test_case "Boolean variable" `Quick test_boolean_variable
+    ; test_case "Undefined variable" `Quick test_undefined_variable
+    ; test_case "If statement (true)" `Quick test_if_true
+    ; test_case "If statement (false)" `Quick test_if_false
+    ; test_case "If-else statement" `Quick test_if_else
+    ; test_case "Unless statement" `Quick test_unless
+    ; test_case "For loop" `Quick test_for_loop
+    ; test_case "Case statement" `Quick test_case_statement
+    ; test_case "Assign tag" `Quick test_assign
+    ; test_case "Comment tag" `Quick test_comment
+    ; test_case "Raw tag" `Quick test_raw
+    ; test_case "Object access" `Quick test_object_access
+    ; test_case "Nested object access" `Quick test_nested_object_access
+    ; test_case "List index access" `Quick test_list_index_access
     ] )

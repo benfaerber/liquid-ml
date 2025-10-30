@@ -78,16 +78,16 @@ let rec parse init_tokens =
 and parse_one tokens =
   let parsers =
     [
-      parse_assignment;
-      parse_test;
-      parse_capture;
-      parse_for;
-      parse_tablerow;
-      parse_cycle;
-      parse_theme;
-      parse_paginate;
-      parse_expression;
-      parse_other;
+      parse_assignment
+    ; parse_test
+    ; parse_capture
+    ; parse_for
+    ; parse_tablerow
+    ; parse_cycle
+    ; parse_theme
+    ; parse_paginate
+    ; parse_expression
+    ; parse_other
     ]
   in
 

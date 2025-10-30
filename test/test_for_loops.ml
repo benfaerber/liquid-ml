@@ -424,61 +424,61 @@ let test_for_loop_large_list () =
 
 (* Test suite *)
 let suite =
-  ( "For Loop Tests",
-    [
+  ( "For Loop Tests"
+  , [
       (* Basic *)
-      test_case "basic for loop" `Quick test_basic_for_loop;
-      test_case "for loop with separators" `Quick test_for_loop_with_separators;
-      test_case "for loop empty list" `Quick test_for_loop_empty_list;
-      test_case "for loop single item" `Quick test_for_loop_single_item;
-      (* Forloop properties *)
-      test_case "forloop.index" `Quick test_forloop_index;
-      test_case "forloop.index0" `Quick test_forloop_index0;
-      test_case "forloop.first" `Quick test_forloop_first;
-      test_case "forloop.last" `Quick test_forloop_last;
-      test_case "forloop.length" `Quick test_forloop_length;
-      test_case "forloop.rindex" `Quick test_forloop_rindex;
-      test_case "forloop.rindex0" `Quick test_forloop_rindex0;
-      (* Break and continue - TODO: break/continue not implemented yet *)
+      test_case "basic for loop" `Quick test_basic_for_loop
+    ; test_case "for loop with separators" `Quick test_for_loop_with_separators
+    ; test_case "for loop empty list" `Quick test_for_loop_empty_list
+    ; test_case "for loop single item" `Quick test_for_loop_single_item
+    ; (* Forloop properties *)
+      test_case "forloop.index" `Quick test_forloop_index
+    ; test_case "forloop.index0" `Quick test_forloop_index0
+    ; test_case "forloop.first" `Quick test_forloop_first
+    ; test_case "forloop.last" `Quick test_forloop_last
+    ; test_case "forloop.length" `Quick test_forloop_length
+    ; test_case "forloop.rindex" `Quick test_forloop_rindex
+    ; test_case "forloop.rindex0" `Quick test_forloop_rindex0
+    ; (* Break and continue - TODO: break/continue not implemented yet *)
       (* test_case "for loop break" `Quick test_for_loop_break; *)
       (* test_case "for loop continue" `Quick test_for_loop_continue; *)
       (* test_case "for loop multiple breaks" `Quick test_for_loop_multiple_breaks; *)
       (* test_case "for loop multiple continues" `Quick test_for_loop_multiple_continues; *)
 
       (* Nested loops *)
-      test_case "nested for loops" `Quick test_nested_for_loops;
-      test_case "nested loops with forloop" `Quick
-        test_nested_for_loops_with_forloop;
-      test_case "triple nested loops" `Quick test_triple_nested_loops;
-      (* Objects *)
-      test_case "for loop with objects" `Quick test_for_loop_with_objects;
-      test_case "for loop accessing object properties" `Quick
-        test_for_loop_accessing_object_properties;
-      (* Filters *)
+      test_case "nested for loops" `Quick test_nested_for_loops
+    ; test_case "nested loops with forloop" `Quick
+        test_nested_for_loops_with_forloop
+    ; test_case "triple nested loops" `Quick test_triple_nested_loops
+    ; (* Objects *)
+      test_case "for loop with objects" `Quick test_for_loop_with_objects
+    ; test_case "for loop accessing object properties" `Quick
+        test_for_loop_accessing_object_properties
+    ; (* Filters *)
       test_case "for loop with sorted list" `Quick
-        test_for_loop_with_sorted_list;
-      test_case "for loop with reversed list" `Quick
-        test_for_loop_with_reversed_list;
-      test_case "for loop with filtered list" `Quick
-        test_for_loop_with_filtered_list;
-      (* Advanced features *)
-      test_case "for loop with limit" `Quick test_for_loop_limit;
-      test_case "for loop with offset" `Quick test_for_loop_offset;
-      (* test_case "for loop with limit and offset" `Quick test_for_loop_limit_and_offset; *)
+        test_for_loop_with_sorted_list
+    ; test_case "for loop with reversed list" `Quick
+        test_for_loop_with_reversed_list
+    ; test_case "for loop with filtered list" `Quick
+        test_for_loop_with_filtered_list
+    ; (* Advanced features *)
+      test_case "for loop with limit" `Quick test_for_loop_limit
+    ; test_case "for loop with offset" `Quick test_for_loop_offset
+    ; (* test_case "for loop with limit and offset" `Quick test_for_loop_limit_and_offset; *)
       (* TODO: limit+offset combo not working *)
-      test_case "for loop reversed" `Quick test_for_loop_reversed;
-      (* Else clause *)
-      test_case "for else not triggered" `Quick test_for_else_not_triggered;
-      test_case "for else triggered" `Quick test_for_else_triggered;
-      (* Edge cases *)
-      test_case "for loop with nil" `Quick test_for_loop_with_nil;
-      (* test_case "for loop variable scope" `Quick test_for_loop_variable_scope; *)
+      test_case "for loop reversed" `Quick test_for_loop_reversed
+    ; (* Else clause *)
+      test_case "for else not triggered" `Quick test_for_else_not_triggered
+    ; test_case "for else triggered" `Quick test_for_else_triggered
+    ; (* Edge cases *)
+      test_case "for loop with nil" `Quick test_for_loop_with_nil
+    ; (* test_case "for loop variable scope" `Quick test_for_loop_variable_scope; *)
       (* TODO: scope not isolated *)
-      test_case "for loop with numbers" `Quick test_for_loop_with_numbers;
-      test_case "for loop with booleans" `Quick test_for_loop_with_booleans;
-      test_case "for loop complex condition" `Quick
-        test_for_loop_complex_condition;
-      test_case "for loop with assign inside" `Quick
-        test_for_loop_with_assign_inside;
-      test_case "for loop large list" `Quick test_for_loop_large_list;
+      test_case "for loop with numbers" `Quick test_for_loop_with_numbers
+    ; test_case "for loop with booleans" `Quick test_for_loop_with_booleans
+    ; test_case "for loop complex condition" `Quick
+        test_for_loop_complex_condition
+    ; test_case "for loop with assign inside" `Quick
+        test_for_loop_with_assign_inside
+    ; test_case "for loop large list" `Quick test_for_loop_large_list
     ] )

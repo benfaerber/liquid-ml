@@ -25,14 +25,14 @@ let log_policy_key = "*log_policy"
 let preferred_currency_key = "*preferred_currency"
 
 type t = {
-  log_policy : log_policy;
-  error_policy : error_policy;
-  preferred_currency : currency;
-  filters : liquid_filter_lookup;
-  context : variable_context;
-  template_directory : string;
-  log_directory : string option;
-  timezone : Date.Timezone.t;
+    log_policy : log_policy
+  ; error_policy : error_policy
+  ; preferred_currency : currency
+  ; filters : liquid_filter_lookup
+  ; context : variable_context
+  ; template_directory : string
+  ; log_directory : string option
+  ; timezone : Date.Timezone.t
 }
 
 let default_filter_lookup _ = None
@@ -43,12 +43,12 @@ let make ?(log_policy = Never) ?(log_directory = "") ?(error_policy = Strict)
     ?(context = default_custom_ctx) ?(template_directory = ".")
     ?(timezone = Date.Timezone.default) () =
   {
-    log_policy;
-    log_directory = (if log_directory = "" then None else Some log_directory);
-    error_policy;
-    preferred_currency;
-    filters;
-    context;
-    template_directory;
-    timezone;
+    log_policy
+  ; log_directory = (if log_directory = "" then None else Some log_directory)
+  ; error_policy
+  ; preferred_currency
+  ; filters
+  ; context
+  ; template_directory
+  ; timezone
   }

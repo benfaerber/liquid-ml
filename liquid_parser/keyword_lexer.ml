@@ -10,62 +10,62 @@ let is_operator = function
 let lex_keyword text =
   let keywords =
     [
-      ("elsif", ElseIf);
-      ("else", Else);
-      ("if", If);
-      ("endif", EndIf);
-      ("unless", Unless);
-      ("endunless", EndUnless);
-      ("case", Case);
-      ("endcase", EndCase);
-      ("raw", Raw);
-      ("endraw", EndRaw);
-      ("when", When);
-      ("with", LexWith);
-      ("form", LexForm);
-      ("endform", LexEndForm);
-      ("style", LexStyle);
-      ("endstyle", LexEndStyle);
-      ("for", LexFor);
-      ("endfor", LexEndFor);
-      ("capture", Capture);
-      ("endcapture", EndCapture);
-      ("break", LexBreak);
-      ("continue", LexContinue);
-      ("cycle", Cycle);
-      ("tablerow", TableRow);
-      ("endtablerow", EndTableRow);
-      ("paginate", Paginate);
-      ("endpaginate", EndPaginate);
-      ("assign", Assign);
-      ("increment", Increment);
-      ("decrement", Decrement);
-      ("include", LexInclude);
-      ("layout", LexLayout);
-      ("render", LexRender);
-      ("section", LexSection);
-      ("in", In);
-      ("by", By);
-      ("as", LexAs);
-      ("==", Operator Eq);
-      (">=", Operator Gte);
-      (">", Operator Gt);
-      ("<=", Operator Lte);
-      ("<", Operator Lt);
-      ("!=", Operator Ne);
-      ("<>", Operator Ne);
-      ("contains", Operator Contains);
-      ("and", LexCombiner LexAnd);
-      ("or", LexCombiner LexOr);
-      (":", Colon);
-      ("|", Pipe);
-      ("=", Equals);
-      (",", Comma);
-      (" ", Space);
-      ("\n", Newline);
-      ("nil", LexValue LexNil);
-      ("blank", LexValue LexBlank);
-      ("none", LexNone);
+      ("elsif", ElseIf)
+    ; ("else", Else)
+    ; ("if", If)
+    ; ("endif", EndIf)
+    ; ("unless", Unless)
+    ; ("endunless", EndUnless)
+    ; ("case", Case)
+    ; ("endcase", EndCase)
+    ; ("raw", Raw)
+    ; ("endraw", EndRaw)
+    ; ("when", When)
+    ; ("with", LexWith)
+    ; ("form", LexForm)
+    ; ("endform", LexEndForm)
+    ; ("style", LexStyle)
+    ; ("endstyle", LexEndStyle)
+    ; ("for", LexFor)
+    ; ("endfor", LexEndFor)
+    ; ("capture", Capture)
+    ; ("endcapture", EndCapture)
+    ; ("break", LexBreak)
+    ; ("continue", LexContinue)
+    ; ("cycle", Cycle)
+    ; ("tablerow", TableRow)
+    ; ("endtablerow", EndTableRow)
+    ; ("paginate", Paginate)
+    ; ("endpaginate", EndPaginate)
+    ; ("assign", Assign)
+    ; ("increment", Increment)
+    ; ("decrement", Decrement)
+    ; ("include", LexInclude)
+    ; ("layout", LexLayout)
+    ; ("render", LexRender)
+    ; ("section", LexSection)
+    ; ("in", In)
+    ; ("by", By)
+    ; ("as", LexAs)
+    ; ("==", Operator Eq)
+    ; (">=", Operator Gte)
+    ; (">", Operator Gt)
+    ; ("<=", Operator Lte)
+    ; ("<", Operator Lt)
+    ; ("!=", Operator Ne)
+    ; ("<>", Operator Ne)
+    ; ("contains", Operator Contains)
+    ; ("and", LexCombiner LexAnd)
+    ; ("or", LexCombiner LexOr)
+    ; (":", Colon)
+    ; ("|", Pipe)
+    ; ("=", Equals)
+    ; (",", Comma)
+    ; (" ", Space)
+    ; ("\n", Newline)
+    ; ("nil", LexValue LexNil)
+    ; ("blank", LexValue LexBlank)
+    ; ("none", LexNone)
     ]
   in
 

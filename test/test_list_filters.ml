@@ -157,17 +157,17 @@ let test_sort_natural_objects () =
 
 (* Test suite *)
 let suite =
-  ( "List Filter Tests",
-    [
-      test_case "compact" `Quick test_compact;
-      test_case "concat" `Quick test_concat;
-      test_case "map" `Quick test_map;
-      test_case "slice list" `Quick test_slice_list;
-      test_case "slice string" `Quick test_slice_string;
-      test_case "slice single index" `Quick test_slice_single_index;
-      test_case "uniq" `Quick test_uniq;
-      test_case "where with value" `Quick test_where_with_value;
-      test_case "where truthy" `Quick test_where_truthy;
-      test_case "sort_natural" `Quick test_sort_natural;
-      test_case "sort_natural with key" `Quick test_sort_natural_objects;
+  ( "List Filter Tests"
+  , [
+      test_case "compact" `Quick test_compact
+    ; test_case "concat" `Quick test_concat
+    ; test_case "map" `Quick test_map
+    ; test_case "slice list" `Quick test_slice_list
+    ; test_case "slice string" `Quick test_slice_string
+    ; test_case "slice single index" `Quick test_slice_single_index
+    ; test_case "uniq" `Quick test_uniq
+    ; test_case "where with value" `Quick test_where_with_value
+    ; test_case "where truthy" `Quick test_where_truthy
+    ; test_case "sort_natural" `Quick test_sort_natural
+    ; test_case "sort_natural with key" `Quick test_sort_natural_objects
     ] )

@@ -249,45 +249,45 @@ let test_chained_filters () =
   check string "chained filters" "HELLO!" result
 
 let suite =
-  ( "Filter Tests",
-    [
+  ( "Filter Tests"
+  , [
       (* String filters *)
-      test_case "upcase" `Quick test_upcase;
-      test_case "downcase" `Quick test_downcase;
-      test_case "capitalize" `Quick test_capitalize;
-      test_case "append" `Quick test_append;
-      test_case "prepend" `Quick test_prepend;
-      test_case "replace" `Quick test_replace;
-      test_case "remove" `Quick test_remove;
-      test_case "strip" `Quick test_strip;
-      test_case "lstrip" `Quick test_lstrip;
-      test_case "rstrip" `Quick test_rstrip;
-      test_case "handleize" `Quick test_handleize;
-      test_case "camelcase" `Quick test_camelcase;
-      test_case "base64_encode" `Quick test_base64_encode;
-      test_case "base64_decode" `Quick test_base64_decode;
-      test_case "split" `Quick test_split;
-      test_case "truncate" `Quick test_truncate;
-      test_case "size" `Quick test_size;
-      (* Number filters *)
-      test_case "plus" `Quick test_plus;
-      test_case "minus" `Quick test_minus;
-      test_case "times" `Quick test_times;
-      test_case "divided_by" `Quick test_divided_by;
-      test_case "modulo" `Quick test_modulo;
-      test_case "abs" `Quick test_abs;
-      test_case "round" `Quick test_round;
-      test_case "floor" `Quick test_floor;
-      test_case "ceil" `Quick test_ceil;
-      test_case "at_least" `Quick test_at_least;
-      test_case "at_most" `Quick test_at_most;
-      (* List filters *)
-      test_case "first" `Quick test_first;
-      test_case "last" `Quick test_last;
-      test_case "join" `Quick test_join;
-      test_case "reverse" `Quick test_reverse;
-      test_case "sort" `Quick test_sort;
-      (* Custom and chained *)
-      test_case "custom filter" `Quick test_custom_filter;
-      test_case "chained filters" `Quick test_chained_filters;
+      test_case "upcase" `Quick test_upcase
+    ; test_case "downcase" `Quick test_downcase
+    ; test_case "capitalize" `Quick test_capitalize
+    ; test_case "append" `Quick test_append
+    ; test_case "prepend" `Quick test_prepend
+    ; test_case "replace" `Quick test_replace
+    ; test_case "remove" `Quick test_remove
+    ; test_case "strip" `Quick test_strip
+    ; test_case "lstrip" `Quick test_lstrip
+    ; test_case "rstrip" `Quick test_rstrip
+    ; test_case "handleize" `Quick test_handleize
+    ; test_case "camelcase" `Quick test_camelcase
+    ; test_case "base64_encode" `Quick test_base64_encode
+    ; test_case "base64_decode" `Quick test_base64_decode
+    ; test_case "split" `Quick test_split
+    ; test_case "truncate" `Quick test_truncate
+    ; test_case "size" `Quick test_size
+    ; (* Number filters *)
+      test_case "plus" `Quick test_plus
+    ; test_case "minus" `Quick test_minus
+    ; test_case "times" `Quick test_times
+    ; test_case "divided_by" `Quick test_divided_by
+    ; test_case "modulo" `Quick test_modulo
+    ; test_case "abs" `Quick test_abs
+    ; test_case "round" `Quick test_round
+    ; test_case "floor" `Quick test_floor
+    ; test_case "ceil" `Quick test_ceil
+    ; test_case "at_least" `Quick test_at_least
+    ; test_case "at_most" `Quick test_at_most
+    ; (* List filters *)
+      test_case "first" `Quick test_first
+    ; test_case "last" `Quick test_last
+    ; test_case "join" `Quick test_join
+    ; test_case "reverse" `Quick test_reverse
+    ; test_case "sort" `Quick test_sort
+    ; (* Custom and chained *)
+      test_case "custom filter" `Quick test_custom_filter
+    ; test_case "chained filters" `Quick test_chained_filters
     ] )

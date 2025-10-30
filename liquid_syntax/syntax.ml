@@ -49,11 +49,11 @@ type condition =
   | Always of bool
 
 type for_params = {
-  limit : int;
-  offset : int;
-  reved : bool;
-  cols : int;
-  is_tablerow : bool;
+    limit : int
+  ; offset : int
+  ; reved : bool
+  ; cols : int
+  ; is_tablerow : bool
 }
 
 type ast =

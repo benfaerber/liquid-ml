@@ -193,34 +193,34 @@ let test_capture_with_variables () =
   check string "capture with variables" "Hello, Alice!" result
 
 let suite =
-  ( "Variable Tests",
-    [
+  ( "Variable Tests"
+  , [
       (* Context tests *)
-      test_case "Empty context" `Quick test_empty_context;
-      test_case "Add string" `Quick test_add_string;
-      test_case "Add number" `Quick test_add_number;
-      test_case "Add boolean" `Quick test_add_boolean;
-      test_case "Add list" `Quick test_add_list;
-      test_case "Add object" `Quick test_add_object;
-      (* Object tests *)
-      test_case "Empty object" `Quick test_empty_object;
-      test_case "Object with multiple fields" `Quick test_object_add_multiple;
-      test_case "Nested objects" `Quick test_nested_objects;
-      (* Nil tests *)
-      test_case "Nil value" `Quick test_nil_value;
-      test_case "Nil is falsy" `Quick test_nil_in_comparison;
-      (* Scoping tests *)
-      test_case "Variable scope in for" `Quick test_variable_scope_in_for;
-      (* Forloop tests *)
-      test_case "forloop.index" `Quick test_forloop_index;
-      test_case "forloop.index0" `Quick test_forloop_index0;
-      test_case "forloop.first" `Quick test_forloop_first;
-      test_case "forloop.last" `Quick test_forloop_last;
-      (* Assignment tests *)
-      test_case "Assign new variable" `Quick test_assign_new_variable;
-      test_case "Assign from context" `Quick test_assign_from_context;
-      test_case "Assign with filter" `Quick test_assign_with_filter;
-      (* Capture tests *)
-      test_case "Capture simple" `Quick test_capture_simple;
-      test_case "Capture with variables" `Quick test_capture_with_variables;
+      test_case "Empty context" `Quick test_empty_context
+    ; test_case "Add string" `Quick test_add_string
+    ; test_case "Add number" `Quick test_add_number
+    ; test_case "Add boolean" `Quick test_add_boolean
+    ; test_case "Add list" `Quick test_add_list
+    ; test_case "Add object" `Quick test_add_object
+    ; (* Object tests *)
+      test_case "Empty object" `Quick test_empty_object
+    ; test_case "Object with multiple fields" `Quick test_object_add_multiple
+    ; test_case "Nested objects" `Quick test_nested_objects
+    ; (* Nil tests *)
+      test_case "Nil value" `Quick test_nil_value
+    ; test_case "Nil is falsy" `Quick test_nil_in_comparison
+    ; (* Scoping tests *)
+      test_case "Variable scope in for" `Quick test_variable_scope_in_for
+    ; (* Forloop tests *)
+      test_case "forloop.index" `Quick test_forloop_index
+    ; test_case "forloop.index0" `Quick test_forloop_index0
+    ; test_case "forloop.first" `Quick test_forloop_first
+    ; test_case "forloop.last" `Quick test_forloop_last
+    ; (* Assignment tests *)
+      test_case "Assign new variable" `Quick test_assign_new_variable
+    ; test_case "Assign from context" `Quick test_assign_from_context
+    ; test_case "Assign with filter" `Quick test_assign_with_filter
+    ; (* Capture tests *)
+      test_case "Capture simple" `Quick test_capture_simple
+    ; test_case "Capture with variables" `Quick test_capture_with_variables
     ] )

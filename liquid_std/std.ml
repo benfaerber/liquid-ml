@@ -8,10 +8,10 @@ let rec first_successful name = function
 let function_from_id name =
   let sources =
     [
-      Liquid_number.function_from_id;
-      Liquid_string.function_from_id;
-      Liquid_list.function_from_id;
-      Liquid_helpers.function_from_id;
+      Liquid_number.function_from_id
+    ; Liquid_string.function_from_id
+    ; Liquid_list.function_from_id
+    ; Liquid_helpers.function_from_id
     ]
   in
 

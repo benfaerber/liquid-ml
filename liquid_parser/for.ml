@@ -31,11 +31,11 @@ let parse_forlike for_type block_parser tokens =
         Debug.print_lex_tokens_with_index else_chunk;
         let for_loop =
           For
-            ( id,
-              value,
-              params,
-              block_parser body_chunk,
-              Some (block_parser else_chunk) )
+            ( id
+            , value
+            , params
+            , block_parser body_chunk
+            , Some (block_parser else_chunk) )
         in
         Some (for_loop, rest)
     | _ ->
@@ -52,48 +52,48 @@ let parse_forlike for_type block_parser tokens =
         | LexValue (LexId [ "reversed" ]) :: ptl ->
             Next
               ( {
-                  limit = found.limit;
-                  offset = found.offset;
-                  reved = true;
-                  cols = found.cols;
-                  is_tablerow;
-                },
-                ptl )
+                  limit = found.limit
+                ; offset = found.offset
+                ; reved = true
+                ; cols = found.cols
+                ; is_tablerow
+                }
+              , ptl )
         | LexValue (LexId [ "offset" ])
           :: Colon
           :: LexValue (LexNumber n)
           :: ptl ->
             Next
               ( {
-                  limit = found.limit;
-                  offset = Float.to_int n;
-                  reved = found.reved;
-                  cols = found.cols;
-                  is_tablerow;
-                },
-                ptl )
+                  limit = found.limit
+                ; offset = Float.to_int n
+                ; reved = found.reved
+                ; cols = found.cols
+                ; is_tablerow
+                }
+              , ptl )
         | LexValue (LexId [ "limit" ]) :: Colon :: LexValue (LexNumber n) :: ptl
           ->
             Next
               ( {
-                  limit = Float.to_int n;
-                  offset = found.offset;
-                  reved = found.reved;
-                  cols = found.cols;
-                  is_tablerow;
-                },
-                ptl )
+                  limit = Float.to_int n
+                ; offset = found.offset
+                ; reved = found.reved
+                ; cols = found.cols
+                ; is_tablerow
+                }
+              , ptl )
         | LexValue (LexId [ "cols" ]) :: Colon :: LexValue (LexNumber n) :: ptl
           ->
             Next
               ( {
-                  limit = found.limit;
-                  offset = found.offset;
-                  reved = found.reved;
-                  cols = Float.to_int n;
-                  is_tablerow;
-                },
-                ptl )
+                  limit = found.limit
+                ; offset = found.offset
+                ; reved = found.reved
+                ; cols = Float.to_int n
+                ; is_tablerow
+                }
+              , ptl )
         | _ -> Stop found
       in
 

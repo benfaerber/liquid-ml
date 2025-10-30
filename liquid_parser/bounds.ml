@@ -4,10 +4,10 @@ open Syntax
 open Tools
 
 type bound_finders = {
-  start : lex_token;
-  stop : lex_token;
-  other : lex_token list option;
-  conflicts : bound_finders list option;
+    start : lex_token
+  ; stop : lex_token
+  ; other : lex_token list option
+  ; conflicts : bound_finders list option
 }
 
 let p_to_b start stop = { start; stop; other = None; conflicts = None }
@@ -17,44 +17,44 @@ let pair_to_bounds start stop = Some (p_to_b start stop)
 let else_conflicts =
   Some
     [
-      p_to_b If EndIf;
-      p_to_b Case EndCase;
-      p_to_b Unless EndUnless;
-      p_to_b LexFor LexEndFor;
+      p_to_b If EndIf
+    ; p_to_b Case EndCase
+    ; p_to_b Unless EndUnless
+    ; p_to_b LexFor LexEndFor
     ]
 
 let bounds_from_opener = function
   | If ->
       Some
         {
-          start = If;
-          stop = EndIf;
-          other = Some [ Else; ElseIf ];
-          conflicts = else_conflicts;
+          start = If
+        ; stop = EndIf
+        ; other = Some [ Else; ElseIf ]
+        ; conflicts = else_conflicts
         }
   | Case ->
       Some
         {
-          start = Case;
-          stop = EndCase;
-          other = Some [ When; Else ];
-          conflicts = else_conflicts;
+          start = Case
+        ; stop = EndCase
+        ; other = Some [ When; Else ]
+        ; conflicts = else_conflicts
         }
   | Unless ->
       Some
         {
-          start = Unless;
-          stop = EndUnless;
-          other = Some [ Else ];
-          conflicts = else_conflicts;
+          start = Unless
+        ; stop = EndUnless
+        ; other = Some [ Else ]
+        ; conflicts = else_conflicts
         }
   | LexFor ->
       Some
         {
-          start = LexFor;
-          stop = LexEndFor;
-          other = Some [ Else ];
-          conflicts = else_conflicts;
+          start = LexFor
+        ; stop = LexEndFor
+        ; other = Some [ Else ]
+        ; conflicts = else_conflicts
         }
   | Raw -> pair_to_bounds Raw EndRaw
   | LexStyle -> pair_to_bounds LexStyle LexEndStyle
