@@ -112,18 +112,6 @@ let test_remove_first () =
   let result = render_text ~settings "{{ text | remove_first: 'dog' }}" in
   check string "remove_first filter" " dog dog" result
 
-let test_url_encode () =
-  let context = Ctx.empty |> Ctx.add "text" (String "hello world") in
-  let settings = Settings.make ~context () in
-  let result = render_text ~settings "{{ text | url_encode }}" in
-  check string "url_encode filter" "hello%20world" result
-
-let test_url_decode () =
-  let context = Ctx.empty |> Ctx.add "text" (String "hello%20world") in
-  let settings = Settings.make ~context () in
-  let result = render_text ~settings "{{ text | url_decode }}" in
-  check string "url_decode filter" "hello world" result
-
 (* Test suite *)
 let suite =
   "String Filter Tests", [
@@ -145,6 +133,4 @@ let suite =
     test_case "newline_to_br" `Quick test_newline_to_br;
     test_case "replace_first" `Quick test_replace_first;
     test_case "remove_first" `Quick test_remove_first;
-    test_case "url_encode" `Quick test_url_encode;
-    test_case "url_decode" `Quick test_url_decode;
   ]

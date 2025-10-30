@@ -55,8 +55,18 @@ let size _  = function
 
 let sort _ = function
   | List lst :: String key :: _ ->
-    let mapped = extract_key_from_object_list lst key in
-    let sorted = List.sort mapped ~compare:Values.compare_value in
+    let compare_by_key a b =
+      let extract = function
+        | Object obj -> (
+          match Object.find_opt key obj with
+          | Some v -> v
+          | None -> Nil
+        )
+        | v -> v
+      in
+      Values.compare_value (extract a) (extract b)
+    in
+    let sorted = List.sort lst ~compare:compare_by_key in
     sorted |> ok_list
   | List lst :: _ ->
     let sorted = List.sort lst ~compare:Values.compare_value in
@@ -76,8 +86,18 @@ let sort_natural ctx params =
 
   match params with
   | List lst :: String key :: _ ->
-    let mapped = extract_key_from_object_list lst key in
-    let sorted = List.sort mapped ~compare in
+    let compare_by_key a b =
+      let extract = function
+        | Object obj -> (
+          match Object.find_opt key obj with
+          | Some v -> v
+          | None -> Nil
+        )
+        | v -> v
+      in
+      String.compare (comp_key (extract a)) (comp_key (extract b))
+    in
+    let sorted = List.sort lst ~compare:compare_by_key in
     sorted |> ok_list
   | List lst :: _ ->
     let sorted = List.sort lst ~compare in
@@ -87,28 +107,28 @@ let sort_natural ctx params =
 
 (* TODO: Implement negative indexs *)
 let slice _ params =
-  let do_slice slicer lengther lst fstart fstop =
-    let start, stop = fi fstart, fi fstop in
+  let do_slice slicer lengther lst fstart flength =
+    let start, length = fi fstart, fi flength in
     if start >= 0 then
-      slicer lst ~pos:start ~len:(start + stop)
+      slicer lst ~pos:start ~len:length
     else
       let cstart = lengther lst + start in
-      slicer lst ~pos:cstart ~len:stop
+      slicer lst ~pos:cstart ~len:length
   in
 
   let do_slice_string = do_slice String.sub String.length in
   let do_slice_list = do_slice List.sub List.length in
 
   match params with
-  | String s :: Number fstart :: Number fstop :: _ ->
-    do_slice_string s fstart fstop |> ok_str
+  | String s :: Number fstart :: Number flength :: _ ->
+    do_slice_string s fstart flength |> ok_str
   | String s :: Number findex :: _ ->
     do_slice_string s findex 1. |> ok_str
-  | List lst :: Number fstart :: Number fstop :: _ ->
-    do_slice_list lst fstart fstop |> ok_list
+  | List lst :: Number fstart :: Number flength :: _ ->
+    do_slice_list lst fstart flength |> ok_list
   | List lst :: Number findex :: _ ->
     do_slice_list lst findex 1. |> ok_list
-  | other -> errc "slice accepts a string or list as well as a start index and optional stop index" other
+  | other -> errc "slice accepts a string or list as well as a start index and optional length" other
 
 
 let uniq _ = function
