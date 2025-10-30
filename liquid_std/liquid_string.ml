@@ -198,8 +198,10 @@ let strip_newlines _ = function
 
 let truncate _ params =
   let do_truncate finisher s chars =
+    let finisher_len = String.length finisher in
     (if String.length s > chars then
-      (String.sub s ~pos:0 ~len:(chars-3)) ^ finisher
+      let truncate_len = max 0 (chars - finisher_len) in
+      (String.sub s ~pos:0 ~len:truncate_len) ^ finisher
     else
       s
     ) |> ok_str
