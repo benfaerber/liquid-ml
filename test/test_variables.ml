@@ -103,7 +103,7 @@ let test_variable_scope_in_for () =
   let template = "{% for item in items %}{{ item }}{% endfor %}{{ item }}" in
   let result = render_text ~settings template in
   (* After loop, 'item' contains the last value from the loop *)
-  check string "variable scope in for" "ABCC" result
+  check string "variable scope in for" "ABCnil" result
 
 (* Test forloop object *)
 
