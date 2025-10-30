@@ -34,11 +34,15 @@ jobs:
     - name: Build
       run: opam exec -- dune build
 
-    - name: Run tests with coverage
+    - name: Build and run tests with coverage
       if: matrix.ocaml-compiler == '5.2.x'
       run: |
         mkdir -p _coverage
-        BISECT_FILE=_coverage/bisect BISECT_ENABLE=yes opam exec -- dune runtest --instrument-with bisect_ppx --force
+        export BISECT_FILE=_coverage/bisect
+        export BISECT_ENABLE=yes
+        opam exec -- dune clean
+        opam exec -- dune build --instrument-with bisect_ppx
+        opam exec -- dune runtest --instrument-with bisect_ppx --force
       continue-on-error: true
 
     - name: Run tests without coverage
@@ -46,6 +50,15 @@ jobs:
       run: |
         opam exec -- dune runtest
       continue-on-error: true
+
+    - name: Check coverage files
+      if: matrix.ocaml-compiler == '5.2.x'
+      run: |
+        echo "Checking for coverage files..."
+        find . -name "*.coverage" -o -name "bisect*.coverage" || echo "No coverage files found"
+        ls -la _coverage/ || echo "_coverage directory is empty or doesn't exist"
+        echo "Checking _build directory..."
+        find _build -name "*.coverage" 2>/dev/null || echo "No coverage files in _build"
 
     - name: Generate coverage report
       if: matrix.ocaml-compiler == '5.2.x'
