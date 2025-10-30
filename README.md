@@ -1,4 +1,4 @@
-# Liquid ML [![](https://img.shields.io/badge/opam-v0.1.2-orange?logo=ocaml)](https://ocaml.org/p/liquid_ml/latest)
+# Liquid ML [![](https://img.shields.io/badge/opam-v0.1.2-orange?logo=ocaml)](https://ocaml.org/p/liquid_ml/latest) [![CI](https://github.com/benfaerber/liquid-ml/actions/workflows/ci.yml/badge.svg)](https://github.com/benfaerber/liquid-ml/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/benfaerber/liquid-ml/branch/main/graph/badge.svg)](https://codecov.io/gh/benfaerber/liquid-ml)
 
 [Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml programming language
 
