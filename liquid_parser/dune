@@ -1,5 +1,5 @@
 (library
  (public_name liquid_parser)
  (libraries base core stdio re2 liquid_syntax)
- (preprocess (pps bisect_ppx --conditional))
-)
+ (preprocess
+  (pps bisect_ppx --conditional)))

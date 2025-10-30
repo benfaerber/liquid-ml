@@ -1,10 +1,12 @@
 ; Run with: dune build @coverage
+
 (rule
  (alias coverage)
  (action
   (progn
    (run mkdir -p _coverage)
-   (bash "BISECT_FILE=$(pwd)/_coverage/bisect BISECT_ENABLE=yes dune runtest --instrument-with bisect_ppx --force")
+   (bash
+     "BISECT_FILE=$(pwd)/_coverage/bisect BISECT_ENABLE=yes dune runtest --instrument-with bisect_ppx --force")
    (run bisect-ppx-report summary --coverage-path _coverage)
    (run bisect-ppx-report html --coverage-path _coverage)
    (echo "Coverage report generated at _coverage/index.html\n"))))

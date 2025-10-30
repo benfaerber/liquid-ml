@@ -1,4 +1,5 @@
 (executables
  (names main)
  (libraries liquid_ml base core)
- (preprocess (pps bisect_ppx --conditional)))
+ (preprocess
+  (pps bisect_ppx --conditional)))

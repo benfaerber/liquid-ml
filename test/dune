@@ -1,5 +1,5 @@
 (test
  (name test_runner)
  (libraries alcotest liquid_ml base core stdio)
- (preprocess (pps bisect_ppx --conditional))
-)
+ (preprocess
+  (pps bisect_ppx --conditional)))
