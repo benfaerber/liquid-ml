@@ -23,7 +23,9 @@ depends: [
     "liquid_parser" { = version }
     "liquid_std" { = version }
     "liquid_interpreter" { = version }
+    "alcotest" { >= "1.5.0" & with-test }
 ]
 build: [
     ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]

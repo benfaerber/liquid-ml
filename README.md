@@ -224,6 +224,9 @@ This means you can refer to indexes using syntax: `collections.products.1.title`
 
 When a list of parameters is passed to a filter it will never contain the `Var` type. Variables are unpacked before they are passed to filters. If the variable is undefined `Nil` is returned.
 
+### Development:
+- Testing - `dune test`
+- Build - `dune build`
 
 ### Compatibility
 This is not a complete port of Liquid. Here is a list of everything that has been ported:
