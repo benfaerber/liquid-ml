@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, add-tests ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        ocaml-compiler:
+          - 4.14.x
+          - 5.2.x
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up OCaml
+      uses: ocaml/setup-ocaml@v3
+      with:
+        ocaml-compiler: ${{ matrix.ocaml-compiler }}
+        dune-cache: true
+
+    - name: Install dependencies
+      run: |
+        opam install . --deps-only --with-test --yes
+        opam install bisect_ppx --yes
+
+    - name: Build
+      run: opam exec -- dune build
+
+    - name: Run tests with coverage
+      if: matrix.ocaml-compiler == '5.2.x'
+      run: |
+        BISECT_ENABLE=yes opam exec -- dune runtest --instrument-with bisect_ppx --force
+      continue-on-error: true
+
+    - name: Run tests without coverage
+      if: matrix.ocaml-compiler != '5.2.x'
+      run: |
+        opam exec -- dune runtest
+      continue-on-error: true
+
+    - name: Generate coverage report
+      if: matrix.ocaml-compiler == '5.2.x'
+      run: |
+        opam exec -- bisect-ppx-report html
+        opam exec -- bisect-ppx-report summary
+        opam exec -- bisect-ppx-report cobertura coverage.xml
+
+    - name: Upload coverage to Codecov
+      if: matrix.ocaml-compiler == '5.2.x'
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
