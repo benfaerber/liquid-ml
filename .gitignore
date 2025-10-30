@@ -4,3 +4,7 @@ _build/*
 _esy
 logs/*
 .DS_Store
+*.coverage
+coverage.xml
+_coverage/
+bisect*.coverage
