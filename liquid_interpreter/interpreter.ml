@@ -5,9 +5,6 @@ open Liquid_std
 open Syntax
 open Tools
 
-type app_state = { settings : Settings.t ref }
-
-let state = { settings = ref (Settings.make ()) }
 let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
@@ -32,15 +29,15 @@ let list_from_ctx ctx =
 
 let var_from t = Var (String.split ~on:'.' t)
 
-let ast_from_file filename =
-  let base_dir = !(state.settings).template_directory in
+let ast_from_file settings filename =
+  let base_dir = settings.Settings.template_directory in
   let filepath = Core.sprintf "%s/%s.liquid" base_dir filename in
   let raw_text = File.read filepath in
   let ast = raw_text |> Preprocessor.preprocess |> Lexer.lex |> Parser.parse in
   ast
 
-let process_error err =
-  let policy = !(state.settings).error_policy in
+let process_error settings err =
+  let policy = settings.Settings.error_policy in
   match policy with
   | Settings.Strict -> Invalid_argument err |> raise
   | Warn ->
@@ -51,27 +48,27 @@ let process_error err =
       handler err;
       Nil
 
-let interpret_function ctx name params =
+let interpret_function settings ctx name params =
   let invalid_function_name _ _ = Error "Invalid function name!" in
 
   let func =
     match Std.function_from_id name with
     | Some func -> func
     | None -> (
-        let custom_lookup = !(state.settings).filters in
+        let custom_lookup = settings.Settings.filters in
         match custom_lookup name with
         | Some func -> func
         | None -> invalid_function_name)
   in
 
   let uparams = Values.unwrap_all ctx params in
-  match func ctx uparams with Ok res -> res | Error err -> process_error err
+  match func ctx uparams with Ok res -> res | Error err -> process_error settings err
 
-let rec interpret_expression ctx = function
+let rec interpret_expression settings ctx = function
   | Value v -> Values.unwrap ctx v
   | Func (name, exps) ->
-      let params = List.map exps ~f:(interpret_expression ctx) in
-      interpret_function ctx name params
+      let params = List.map exps ~f:(interpret_expression settings ctx) in
+      interpret_function settings ctx name params
 
 let interpret_equation ctx = function
   | a, Tokens.Eq, b -> Values.eq ctx a b
@@ -91,58 +88,58 @@ let rec interpret_condition ctx = function
   | Combine (Or, l, r) -> interpret_condition ctx l || interpret_condition ctx r
   | IsTruthy v -> Values.is_truthy ctx v
 
-let rec interpret ctx str = function
-  | Block cmds -> interpret_block ctx str cmds
+let rec interpret settings ctx str = function
+  | Block cmds -> interpret_block settings ctx str cmds
   | Assignment (id, exp) ->
       if starts_with id Settings.increment then
-        interpret_increment ctx str ~id ~exp
-      else (ctx |> Ctx.add id (interpret_expression ctx exp), str)
+        interpret_increment settings ctx str ~id ~exp
+      else (ctx |> Ctx.add id (interpret_expression settings ctx exp), str)
   | Test (cond, body, else_body) ->
-      interpret_test ctx str ~cond ~body ~else_body
+      interpret_test settings ctx str ~cond ~body ~else_body
   | For (alias, iterable, params, body, else_body) ->
-      interpret_for ctx str ~alias ~iterable ~params ~body ~else_body
-  | Cycle (group, values) -> interpret_cycle ctx str ~group ~values
+      interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body
+  | Cycle (group, values) -> interpret_cycle settings ctx str ~group ~values
   | Render (filename, render_ctx, body) ->
-      interpret_render ctx str ~filename ~render_ctx ~body
-  | Include filename -> interpret_include ctx str ~filename
+      interpret_render settings ctx str ~filename ~render_ctx ~body
+  | Include filename -> interpret_include settings ctx str ~filename
   | Section section_name ->
       let section_path = "sections/" ^ section_name in
-      interpret_render ctx str ~filename:section_path ~render_ctx:Ctx.empty
+      interpret_render settings ctx str ~filename:section_path ~render_ctx:Ctx.empty
         ~body:None
   | Text t -> (ctx, str ^ t)
   | Expression exp ->
-      let value = interpret_expression ctx exp in
+      let value = interpret_expression settings ctx exp in
       (ctx, str ^ Values.string_from_value ctx value)
   | Break -> (notifier "break" ctx, str)
   | Continue -> (notifier "continue" ctx, str)
   | Capture (id, body) ->
-      let _, rendered = interpret ctx "" body in
+      let _, rendered = interpret settings ctx "" body in
       (Ctx.add id (String rendered) ctx, str)
   | _ -> raise (Failure "NYI")
 
-and interpret_block ctx str = function
-  | [ cmd ] -> interpret ctx str cmd
+and interpret_block settings ctx str = function
+  | [ cmd ] -> interpret settings ctx str cmd
   | hd :: tl ->
-      let nctx, nstr = interpret ctx str hd in
+      let nctx, nstr = interpret settings ctx str hd in
       if has_notifier "break" nctx then (notifier "break" ctx, str)
       else if has_notifier "continue" nctx then (notifier "continue" ctx, str)
-      else interpret_block nctx nstr tl
+      else interpret_block settings nctx nstr tl
   | _ -> (ctx, str)
 
-and interpret_else ctx str = function
-  | Some eb -> interpret ctx str eb
+and interpret_else settings ctx str = function
+  | Some eb -> interpret settings ctx str eb
   | None -> (ctx, str)
 
-and interpret_test ctx str ~cond ~body ~else_body =
+and interpret_test settings ctx str ~cond ~body ~else_body =
   let pre_state = save_state ctx in
   let rctx, rstr =
-    if interpret_condition ctx cond then interpret ctx str body
-    else interpret_else ctx str else_body
+    if interpret_condition ctx cond then interpret settings ctx str body
+    else interpret_else settings ctx str else_body
   in
 
   (rewind rctx pre_state, rstr)
 
-and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
+and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
   let uiter = Values.unwrap ctx iterable in
   let pre_state = save_state ctx in
   let loop (acc_ctx, acc_str) curr ~last =
@@ -150,7 +147,7 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
     let loop_ctx = Ctx.add alias curr acc_ctx in
     match body with
     | Block b ->
-        let inner_ctx, rendered = interpret_block loop_ctx "" b in
+        let inner_ctx, rendered = interpret_block settings loop_ctx "" b in
         let r_str = acc_str ^ rendered in
         if has_notifier "break" inner_ctx then
           Done (rewind inner_ctx pre_state, r_str)
@@ -188,9 +185,9 @@ and interpret_for ctx str ~alias ~iterable ~params ~body ~else_body =
       let forlen = List.length r in
       let forloop_ctx = Interpreter_objects.make_forloop_ctx ctx 0 forlen in
       fold_until r (forloop_ctx, str) loop
-  | _ -> interpret_else ctx str else_body
+  | _ -> interpret_else settings ctx str else_body
 
-and interpret_cycle ctx str ~group ~values =
+and interpret_cycle _settings ctx str ~group ~values =
   let gname = unwrap_or group "default" in
   let var_id = Core.sprintf "%s:%s" gname (join_by_underscore values) in
   let cycle = var_from Settings.cycle |> Values.unwrap_object ctx in
@@ -207,7 +204,7 @@ and interpret_cycle ctx str ~group ~values =
 
   (nctx, str ^ curr)
 
-and interpret_increment ctx str ~id ~exp =
+and interpret_increment _settings ctx str ~id ~exp =
   match exp with
   | Value (String modifier) ->
       let var_id =
@@ -229,15 +226,15 @@ and interpret_increment ctx str ~id ~exp =
       (nctx, str ^ Values.string_from_value ctx nval)
   | _ -> raise (Failure "invalid increment")
 
-and interpret_include ctx str ~filename =
-  let ast = ast_from_file filename in
-  interpret ctx str ast
+and interpret_include settings ctx str ~filename =
+  let ast = ast_from_file settings filename in
+  interpret settings ctx str ast
 
-and interpret_style ctx str body =
+and interpret_style settings ctx str body =
   let rendered_body =
     match body with
     | Some b ->
-        let _, s = interpret ctx "" b in
+        let _, s = interpret settings ctx "" b in
         s
     | _ -> ""
   in
@@ -246,13 +243,13 @@ and interpret_style ctx str body =
 
   (ctx, str ^ style)
 
-and interpret_render ctx str ~filename ~render_ctx ~body =
-  if filename = Settings.style_tag then interpret_style ctx str body
+and interpret_render settings ctx str ~filename ~render_ctx ~body =
+  if filename = Settings.style_tag then interpret_style settings ctx str body
   else
     (* File.write "logs/body.txt" (Batteries.dump body); *)
-    let ast = ast_from_file filename in
+    let ast = ast_from_file settings filename in
     let val_ctx = Values.unwrap_render_context ~outer_ctx:ctx ~render_ctx in
-    let _, rendered_text = interpret val_ctx "" ast in
+    let _, rendered_text = interpret settings val_ctx "" ast in
     (ctx, str ^ rendered_text)
 
 let make_ctx (settings : Settings.t) =
@@ -261,9 +258,8 @@ let make_ctx (settings : Settings.t) =
   |> Ctx.add Settings.increment (Object Object.empty)
   |> Settings_ctx.add settings
 
-let start settings ast =
-  state.settings := settings;
+let start (settings : Settings.t) ast =
   Date.set_timezone settings.timezone;
   let ctx = make_ctx settings in
-  let _, text = interpret ctx "" ast in
+  let _, text = interpret settings ctx "" ast in
   text
