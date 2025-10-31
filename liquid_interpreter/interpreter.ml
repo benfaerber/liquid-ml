@@ -123,8 +123,8 @@ and interpret_block settings ctx str = function
   | [ cmd ] -> interpret settings ctx str cmd
   | hd :: tl ->
       let nctx, nstr = interpret settings ctx str hd in
-      if has_notifier "break" nctx then (notifier "break" ctx, str)
-      else if has_notifier "continue" nctx then (notifier "continue" ctx, str)
+      if has_notifier "break" nctx then (nctx, nstr)
+      else if has_notifier "continue" nctx then (nctx, nstr)
       else interpret_block settings nctx nstr tl
   | _ -> (ctx, str)
 
@@ -139,7 +139,13 @@ and interpret_test settings ctx str ~cond ~body ~else_body =
     else interpret_else settings ctx str else_body
   in
 
-  (rewind rctx pre_state, rstr)
+  let break_exists = has_notifier "break" rctx in
+  let continue_exists = has_notifier "continue" rctx in
+  let result_ctx = rewind rctx pre_state in
+  let result_ctx = if break_exists then notifier "break" result_ctx else result_ctx in
+  let result_ctx = if continue_exists then notifier "continue" result_ctx else result_ctx in
+
+  (result_ctx, rstr)
 
 and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
   let uiter = Values.unwrap ctx iterable in
@@ -152,7 +158,27 @@ and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
         let inner_ctx, rendered = interpret_block settings loop_ctx "" b in
         let r_str = acc_str ^ rendered in
         if has_notifier "break" inner_ctx then
-          Done (rewind inner_ctx pre_state, r_str)
+          Done (rewind inner_ctx pre_state, acc_str)
+        else if has_notifier "continue" inner_ctx then
+          let find_int k =
+            match Ctx.find Settings.forloop acc_ctx with
+            | Object obj -> (
+                match Object.find_opt k obj with
+                | Some (Number n) -> Float.to_int n
+                | _ -> raise (Failure "Failed to find int"))
+            | _ -> raise (Failure "Failed to find forloop object")
+          in
+          let index = find_int "index" in
+          let length = find_int "length" in
+          let nacc =
+            Interpreter_objects.make_forloop_ctx inner_ctx index length
+          in
+          
+          (* Remove the continue notifier for the next iteration *)
+          let next_ctx = Ctx.remove (nlit "continue") nacc in
+
+          if last then Forward (rewind next_ctx pre_state, r_str)
+          else Forward (next_ctx, r_str)
         else
           let find_int k =
             match Ctx.find Settings.forloop acc_ctx with
