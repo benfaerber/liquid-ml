@@ -28,8 +28,11 @@ jobs:
 
     - name: Install dependencies
       run: |
+        eval $(opam env)
         opam install . --deps-only --with-test --yes
         opam install bisect_ppx --yes
+        opam install ppx_deriving --yes
+        opam install ppx_deriving_show --yes
 
     - name: Build
       run: opam exec -- dune build
