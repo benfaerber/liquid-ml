@@ -440,12 +440,12 @@ let suite =
     ; test_case "forloop.rindex" `Quick test_forloop_rindex
     ; test_case "forloop.rindex0" `Quick test_forloop_rindex0
     ; (* Break and continue - TODO: break/continue not implemented yet *)
-      test_case "for loop break" `Quick test_for_loop_break;
-      test_case "for loop continue" `Quick test_for_loop_continue;
-      test_case "for loop multiple breaks" `Quick test_for_loop_multiple_breaks;
-      test_case "for loop multiple continues" `Quick test_for_loop_multiple_continues;
-
-      (* Nested loops *)
+      test_case "for loop break" `Quick test_for_loop_break
+    ; test_case "for loop continue" `Quick test_for_loop_continue
+    ; test_case "for loop multiple breaks" `Quick test_for_loop_multiple_breaks
+    ; test_case "for loop multiple continues" `Quick
+        test_for_loop_multiple_continues
+    ; (* Nested loops *)
       test_case "nested for loops" `Quick test_nested_for_loops
     ; test_case "nested loops with forloop" `Quick
         test_nested_for_loops_with_forloop

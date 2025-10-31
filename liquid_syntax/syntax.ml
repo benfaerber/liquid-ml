@@ -139,8 +139,7 @@ type ast =
 [@@deriving show]
 
 let list_of_range = function
-  | LexRange (start, stop) ->
-      List.range start (stop + 1)
+  | LexRange (start, stop) -> List.range start (stop + 1)
   | _ -> raise (Failure "This is not a range!")
 
 let liq_list_of_range r =

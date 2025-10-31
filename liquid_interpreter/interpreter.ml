@@ -142,8 +142,12 @@ and interpret_test settings ctx str ~cond ~body ~else_body =
   let break_exists = has_notifier "break" rctx in
   let continue_exists = has_notifier "continue" rctx in
   let result_ctx = rewind rctx pre_state in
-  let result_ctx = if break_exists then notifier "break" result_ctx else result_ctx in
-  let result_ctx = if continue_exists then notifier "continue" result_ctx else result_ctx in
+  let result_ctx =
+    if break_exists then notifier "break" result_ctx else result_ctx
+  in
+  let result_ctx =
+    if continue_exists then notifier "continue" result_ctx else result_ctx
+  in
 
   (result_ctx, rstr)
 
@@ -173,7 +177,7 @@ and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
           let nacc =
             Interpreter_objects.make_forloop_ctx inner_ctx index length
           in
-          
+
           (* Remove the continue notifier for the next iteration *)
           let next_ctx = Ctx.remove (nlit "continue") nacc in
 
