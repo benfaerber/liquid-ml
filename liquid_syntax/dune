@@ -1,5 +1,5 @@
 (library
  (public_name liquid_syntax)
- (libraries base core stdio batteries re2 calendar)
+ (libraries base core stdio batteries re2 calendar ppx_deriving.runtime)
  (preprocess
-  (pps bisect_ppx --conditional)))
+  (pps ppx_deriving.show bisect_ppx --conditional)))

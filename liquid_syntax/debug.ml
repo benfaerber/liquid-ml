@@ -2,34 +2,12 @@ open Base
 open Syntax
 open Tools
 
-let ws_control_as_string = function White -> "White" | Trim -> "Trim"
-
-let block_token_as_string = function
-  | StatementStart ws -> "StatementStart " ^ ws_control_as_string ws
-  | StatementEnd ws -> "StatementEnd " ^ ws_control_as_string ws
-  | ExpressionStart ws -> "ExpressionStart " ^ ws_control_as_string ws
-  | ExpressionEnd ws -> "ExpressionEnd " ^ ws_control_as_string ws
-  | LiquidStart -> "LiquidStart"
-  | RawText oth -> oth
-
-let operator_as_string = function
-  | Eq -> "Eq"
-  | Gte -> "Gte"
-  | Gt -> "Gt"
-  | Lte -> "Lte"
-  | Lt -> "Lt"
-  | Ne -> "Ne"
-  | Contains -> "Contains"
-
-let lex_value_as_string = function
-  | LexBool b -> "Bool(" ^ (if b then "True" else "False") ^ ")"
-  | LexString s -> "String(" ^ s ^ ")"
-  | LexNumber f -> Core.sprintf "Num(%f)" f
-  | LexId id -> "Id(" ^ join_by_arrow id ^ ")"
-  | LexRange (s, e) -> "Range(" ^ Int.to_string s ^ ", " ^ Int.to_string e ^ ")"
-  | LexNil | LexBlank -> "Nil"
-
-let lex_combiner_as_string = function LexAnd -> "And" | LexOr -> "Or"
+(* Use auto-generated show functions where possible *)
+let ws_control_as_string = show_whitespace_control
+let block_token_as_string = show_block_token
+let operator_as_string = show_operator
+let lex_value_as_string = show_lex_value
+let lex_combiner_as_string = show_lex_combiner
 let dump x = x |> Batteries.dump |> Stdio.print_endline
 
 let remove_nl text =
@@ -42,59 +20,8 @@ let add_br text =
 
 let newline_as_token = true
 
-let rec lex_token_as_string = function
-  | If -> "If"
-  | EndIf -> "EndIf"
-  | Unless -> "Unless"
-  | EndUnless -> "EndUnless"
-  | LexFor -> "For"
-  | LexEndFor -> "EndFor"
-  | Case -> "Case"
-  | EndCase -> "EndCase"
-  | Capture -> "Capture"
-  | EndCapture -> "EndCapture"
-  | Paginate -> "Paginate"
-  | EndPaginate -> "EndPaginate"
-  | TableRow -> "TableRow"
-  | EndTableRow -> "EndTableRow"
-  | Raw -> "Raw"
-  | EndRaw -> "EndRaw"
-  | Else -> "Else"
-  | By -> "By"
-  | ElseIf -> "ElseIf"
-  | When -> "When"
-  | LexBreak -> "Break"
-  | LexContinue -> "Continue"
-  | Cycle -> "Cycle"
-  | In -> "In"
-  | Assign -> "Assign"
-  | Increment -> "Increment"
-  | Decrement -> "Decrement"
-  | Pipe -> "Pipe"
-  | Colon -> "Colon"
-  | Equals -> "Equals"
-  | Comma -> "Comma"
-  | LexCombiner c -> lex_combiner_as_string c
-  | Space -> "Space"
-  | Newline -> if newline_as_token then "\\n\n" else "\n"
-  | Operator op -> operator_as_string op
-  | LexValue v -> lex_value_as_string v
-  | LexText t -> if eq t "\n" then "\n" else "Text(" ^ t ^ ")"
-  | EOS -> "EOS"
-  | LexNone -> "None"
-  | LexLayout -> "Layout"
-  | LexSection -> "Section"
-  | LexRender -> "Render"
-  | LexInclude -> "Include"
-  | LexStyle -> "Style"
-  | LexEndStyle -> "EndStyle"
-  | LexForm -> "Form"
-  | LexEndForm -> "EndForm"
-  | LexExpression e ->
-      "Expression<\n  "
-      ^ join_by_space (List.map e ~f:lex_token_as_string)
-      ^ "\n>"
-  | _ -> "Unknown"
+(* Use auto-generated function *)
+let lex_token_as_string = show_lex_token
 
 let block_tokens_as_string bts =
   join_by_space (List.map bts ~f:block_token_as_string)
@@ -113,71 +40,22 @@ let lex_tokens_as_string_with_index ts =
 let print_lex_tokens_with_index ts =
   ts |> lex_tokens_as_string_with_index |> Stdio.print_endline
 
-let combiner_as_string = function And -> "And" | Or -> "Or"
-let id_as_string = join_by_arrow
+(* Use auto-generated functions *)
+let combiner_as_string = show_combiner
+let id_as_string = show_id
+let value_as_string = show_value
 
-let rec value_as_string = function
-  | Bool b -> "Bool(" ^ (if b then "True" else "False") ^ ")"
-  | String s -> "String(" ^ s ^ ")"
-  | Number f -> Core.sprintf "Num(%f)" f
-  | Var v -> "Var(" ^ join_by_arrow v ^ ")"
-  | Nil -> "Nil"
-  | List l ->
-      Core.sprintf "List(%s)" (List.map l ~f:value_as_string |> join_by_comma)
-  | Date d -> Core.sprintf "Date(%s)" (Date.as_string d "%Y-%m-%d %H:%M")
-  | Object obj -> Core.sprintf "\n  Object(%s)" (object_as_string obj)
+let object_as_string = show_liquid_object
 
-and object_as_string obj =
-  let seq = Syntax.Object.to_seq obj in
-  let mapped =
-    Stdlib.Seq.map
-      (fun (id, v) ->
-        Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br))
-      seq
-  in
-  let built =
-    Stdlib.Seq.fold_left (fun acc curr -> acc ^ curr ^ ", ") "" mapped
-  in
-  if String.length built > 2 then remove_suffix built ", " else built
-
-let variable_context_as_string m =
-  let seq = Syntax.Ctx.to_seq m in
-  let mapped =
-    Stdlib.Seq.map
-      (fun (id, v) ->
-        Core.sprintf "%s=%s\n" id (value_as_string v |> remove_nl |> add_br))
-      seq
-  in
-  let built =
-    Stdlib.Seq.fold_left (fun acc curr -> acc ^ ", " ^ curr) "" mapped
-  in
-  built
-
+(* Use auto-generated functions *)
+let variable_context_as_string = show_variable_context
 let print_variable_context m =
   m |> variable_context_as_string |> Stdio.print_endline
 
-let rec condition_as_string =
-  let rec aux = function
-    | Equation (a, op, b) ->
-        value_as_string a ^ " " ^ operator_as_string op ^ " "
-        ^ value_as_string b
-    | Always b -> Core.sprintf "Always (%b)" b
-    | IsTruthy v -> "IsTruthy(" ^ value_as_string v ^ ")"
-    | Not x -> "Not(\n" ^ condition_as_string x ^ "\n)"
-    | Combine (c, l, r) ->
-        Core.sprintf "%s(\n%s, %s\n)" (combiner_as_string c) (aux l) (aux r)
-  in
-  aux
-
+let condition_as_string = show_condition
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
 
-let rec expression_as_string = function
-  | Value v -> value_as_string v
-  | Func (n, e) ->
-      "f:" ^ n ^ "(\n  "
-      ^ join_by_space (List.map e ~f:expression_as_string)
-      ^ "\n)"
-
+let expression_as_string = show_expression
 let print_expression e = e |> expression_as_string |> Stdio.print_endline
 let tab l = List.map (range l) ~f:(fun _ -> "  ") |> join
 let show_in_progress = false

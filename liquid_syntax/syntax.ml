@@ -22,7 +22,7 @@ module Ctx = Stdlib.Map.Make (VariableContext)
 
 let idf id = String.split id ~on:'.'
 
-type id = string list
+type id = string list [@@deriving show]
 
 type value =
   | Bool of bool
@@ -36,10 +36,69 @@ type value =
 
 and liquid_object = value Object.t
 
+(* Custom printers for types that don't have automatic deriving *)
+let pp_date fmt d = Stdlib.Format.fprintf fmt "Date(%s)" (Date.as_string d "%Y-%m-%d %H:%M")
+let show_date d = Date.as_string d "%Y-%m-%d %H:%M"
+
+let rec pp_liquid_object fmt obj =
+  Stdlib.Format.fprintf fmt "Object{%s}"
+    (Object.to_seq obj
+    |> Stdlib.List.of_seq
+    |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
+    |> String.concat ~sep:", ")
+
+and show_liquid_object obj =
+  Object.to_seq obj
+  |> Stdlib.List.of_seq
+  |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
+  |> String.concat ~sep:", "
+
+and pp_value fmt = function
+  | Bool b -> Stdlib.Format.fprintf fmt "Bool(%b)" b
+  | String s -> Stdlib.Format.fprintf fmt "String(%s)" s
+  | Number f -> Stdlib.Format.fprintf fmt "Number(%f)" f
+  | Var v -> Stdlib.Format.fprintf fmt "Var(%s)" (String.concat ~sep:"." v)
+  | List l ->
+      Stdlib.Format.fprintf fmt "List[%s]"
+        (List.map l ~f:show_value |> String.concat ~sep:", ")
+  | Date d -> pp_date fmt d
+  | Object obj -> pp_liquid_object fmt obj
+  | Nil -> Stdlib.Format.fprintf fmt "Nil"
+
+and show_value = function
+  | Bool b -> "Bool(" ^ Bool.to_string b ^ ")"
+  | String s -> "String(" ^ s ^ ")"
+  | Number f -> "Number(" ^ Float.to_string f ^ ")"
+  | Var v -> "Var(" ^ String.concat ~sep:"." v ^ ")"
+  | List l -> "List[" ^ (List.map l ~f:show_value |> String.concat ~sep:", ") ^ "]"
+  | Date d -> show_date d
+  | Object obj -> "Object{" ^ show_liquid_object obj ^ "}"
+  | Nil -> "Nil"
+
+let pp_variable_context fmt ctx =
+  Stdlib.Format.fprintf fmt "Ctx{%s}"
+    (Ctx.to_seq ctx
+    |> Stdlib.List.of_seq
+    |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
+    |> String.concat ~sep:", ")
+
+let show_variable_context ctx =
+  Ctx.to_seq ctx
+  |> Stdlib.List.of_seq
+  |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
+  |> String.concat ~sep:", "
+
 type variable_context = value Ctx.t
-type expression = Value of value | Func of string * expression list
+type expression = Value of value | Func of string * expression list [@@deriving show]
+
+let pp_operator_equation fmt (a, op, b) =
+  Stdlib.Format.fprintf fmt "(%s %s %s)" (show_value a) (show_operator op) (show_value b)
+
+let show_operator_equation (a, op, b) =
+  "(" ^ show_value a ^ " " ^ show_operator op ^ " " ^ show_value b ^ ")"
+
 type operator_equation = value * operator * value
-type combiner = And | Or
+type combiner = And | Or [@@deriving show]
 
 type condition =
   | Combine of combiner * condition * condition
@@ -47,6 +106,7 @@ type condition =
   | IsTruthy of value
   | Not of condition
   | Always of bool
+[@@deriving show]
 
 type for_params = {
     limit : int
@@ -55,6 +115,7 @@ type for_params = {
   ; cols : int
   ; is_tablerow : bool
 }
+[@@deriving show]
 
 type ast =
   | Capture of string * ast
@@ -73,6 +134,7 @@ type ast =
   | Render of string * variable_context * ast option
   | Paginate of id * int * ast
   | Nothing
+[@@deriving show]
 
 let list_of_range = function
   | LexRange (start, stop) ->
