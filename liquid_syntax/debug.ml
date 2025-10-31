@@ -8,7 +8,9 @@ let block_token_as_string = show_block_token
 let operator_as_string = show_operator
 let lex_value_as_string = show_lex_value
 let lex_combiner_as_string = show_lex_combiner
-let dump x = x |> Batteries.dump |> Stdio.print_endline
+
+(* Generic debug printer - for any type with a show function *)
+let dump show_fn x = x |> show_fn |> Stdio.print_endline
 
 let remove_nl text =
   let exp = Re2.create_exn "\n" in

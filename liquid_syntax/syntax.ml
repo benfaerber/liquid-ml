@@ -140,7 +140,7 @@ type ast =
 
 let list_of_range = function
   | LexRange (start, stop) ->
-      Batteries.( -- ) start stop |> Batteries.List.of_enum
+      List.range start (stop + 1)
   | _ -> raise (Failure "This is not a range!")
 
 let liq_list_of_range r =

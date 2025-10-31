@@ -248,7 +248,6 @@ and interpret_style settings ctx str body =
 and interpret_render settings ctx str ~filename ~render_ctx ~body =
   if filename = Settings.style_tag then interpret_style settings ctx str body
   else
-    (* File.write "logs/body.txt" (Batteries.dump body); *)
     let ast = ast_from_file settings filename in
     let val_ctx = Values.unwrap_render_context ~outer_ctx:ctx ~render_ctx in
     let _, rendered_text = interpret settings val_ctx "" ast in
