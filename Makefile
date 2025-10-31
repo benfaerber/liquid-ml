@@ -13,6 +13,9 @@ clean:
 format:
 	dune fmt
 
+runbin:
+	dune build && dune exec "_build/default/bin/main.exe"
+
 coverage:
 	@mkdir -p _coverage
 	@export BISECT_FILE=$$(pwd)/_coverage/bisect && \
