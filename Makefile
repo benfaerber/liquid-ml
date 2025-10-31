@@ -1,5 +1,15 @@
 .PHONY: build test clean coverage coverage-html
 
+mli:
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make mli FILE=<path/to/your_file.ml>"; \
+		exit 1; \
+	fi
+	echo "Generating mli for $(FILE)" \
+  OUTFILE=$${FILE%.ml}.mli; \
+	dune exec -- ocaml-print-intf $(FILE) > $(OUTFILE) 
+
+
 build:
 	dune build
 
