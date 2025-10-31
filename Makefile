@@ -5,10 +5,8 @@ mli:
 		echo "Usage: make mli FILE=<path/to/your_file.ml>"; \
 		exit 1; \
 	fi
-	echo "Generating mli for $(FILE)" \
-  OUTFILE=$${FILE%.ml}.mli; \
-	dune exec -- ocaml-print-intf $(FILE) > $(OUTFILE) 
-
+	@echo "Generating mli for $(FILE)"
+	@dune exec -- ocaml-print-intf $(FILE) > tmp.mli && mv tmp.mli $(FILE:.ml=.mli)
 
 build:
 	dune build
