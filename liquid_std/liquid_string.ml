@@ -26,7 +26,7 @@ let base64_url_safe_encode _ = function
   | other -> errc "base64_encode accepts a string" other
 
 (* The function is called camelcase but in the docs returns pascal case ??? Wierd *)
-(* TODO: does camelcase make a work that is uppercase lower? Ie my-URL -> myUrl *)
+(* TODO: does camelcase make a word that is uppercase lower? Ie my-URL -> myUrl *)
 let camelcase _ = function
   | String s :: _ ->
       let wsexp = ~/"\\s|-|_" in

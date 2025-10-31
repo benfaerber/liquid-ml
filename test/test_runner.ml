@@ -10,5 +10,7 @@ let () =
     ; Test_number_filters.suite
     ; Test_list_filters.suite
     ; Test_for_loops.suite
+    ; Test_helper_filters.suite
+    ; Test_interpreter.suite
     ; Test_variables.suite
     ]
