@@ -44,17 +44,16 @@ let print_lex_tokens_with_index ts =
 let combiner_as_string = show_combiner
 let id_as_string = show_id
 let value_as_string = show_value
-
 let object_as_string = show_liquid_object
 
 (* Use auto-generated functions *)
 let variable_context_as_string = show_variable_context
+
 let print_variable_context m =
   m |> variable_context_as_string |> Stdio.print_endline
 
 let condition_as_string = show_condition
 let print_condition c = c |> condition_as_string |> Stdio.print_endline
-
 let expression_as_string = show_expression
 let print_expression e = e |> expression_as_string |> Stdio.print_endline
 let tab l = List.map (range l) ~f:(fun _ -> "  ") |> join

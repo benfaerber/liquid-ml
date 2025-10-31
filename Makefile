@@ -10,6 +10,9 @@ clean:
 	dune clean
 	rm -rf _coverage
 
+format:
+	dune fmt
+
 coverage:
 	@mkdir -p _coverage
 	@export BISECT_FILE=$$(pwd)/_coverage/bisect && \

@@ -62,7 +62,9 @@ let interpret_function settings ctx name params =
   in
 
   let uparams = Values.unwrap_all ctx params in
-  match func ctx uparams with Ok res -> res | Error err -> process_error settings err
+  match func ctx uparams with
+  | Ok res -> res
+  | Error err -> process_error settings err
 
 let rec interpret_expression settings ctx = function
   | Value v -> Values.unwrap ctx v
@@ -104,8 +106,8 @@ let rec interpret settings ctx str = function
   | Include filename -> interpret_include settings ctx str ~filename
   | Section section_name ->
       let section_path = "sections/" ^ section_name in
-      interpret_render settings ctx str ~filename:section_path ~render_ctx:Ctx.empty
-        ~body:None
+      interpret_render settings ctx str ~filename:section_path
+        ~render_ctx:Ctx.empty ~body:None
   | Text t -> (ctx, str ^ t)
   | Expression exp ->
       let value = interpret_expression settings ctx exp in

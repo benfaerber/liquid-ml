@@ -70,8 +70,8 @@ let test_cycle_reset_between_loops () =
   let settings = Settings.make ~context () in
   let result =
     render_text ~settings
-      "{% for item in items1 %}{% cycle 'x', 'y' %}{% endfor %}|{% for item \
-       in items2 %}{% cycle 'x', 'y' %}{% endfor %}"
+      "{% for item in items1 %}{% cycle 'x', 'y' %}{% endfor %}|{% for item in \
+       items2 %}{% cycle 'x', 'y' %}{% endfor %}"
   in
   (* Cycle state persists across loops for the same default group *)
   check string "cycle persists across loops" "xy|xy" result
@@ -183,13 +183,17 @@ let test_contains_operator_list () =
     Ctx.empty |> Ctx.add "items" (List [ String "a"; String "b"; String "c" ])
   in
   let settings = Settings.make ~context () in
-  let result = render_text ~settings "{% if items contains 'b' %}yes{% endif %}" in
+  let result =
+    render_text ~settings "{% if items contains 'b' %}yes{% endif %}"
+  in
   check string "contains operator list" "yes" result
 
 (* Complex Condition Tests *)
 
 let test_and_operator () =
-  let context = Ctx.empty |> Ctx.add "x" (Number 5.) |> Ctx.add "y" (Number 10.) in
+  let context =
+    Ctx.empty |> Ctx.add "x" (Number 5.) |> Ctx.add "y" (Number 10.)
+  in
   let settings = Settings.make ~context () in
   let result =
     render_text ~settings "{% if x == 5 and y == 10 %}yes{% endif %}"
@@ -212,9 +216,7 @@ let test_not_with_condition () =
 
 let test_complex_and_or () =
   let context =
-    Ctx.empty
-    |> Ctx.add "a" (Number 5.)
-    |> Ctx.add "b" (Number 10.)
+    Ctx.empty |> Ctx.add "a" (Number 5.) |> Ctx.add "b" (Number 10.)
     |> Ctx.add "c" (Number 15.)
   in
   let settings = Settings.make ~context () in
@@ -225,7 +227,9 @@ let test_complex_and_or () =
   check string "complex and/or" "yes" result
 
 let test_nested_conditions () =
-  let context = Ctx.empty |> Ctx.add "x" (Number 5.) |> Ctx.add "y" (Number 10.) in
+  let context =
+    Ctx.empty |> Ctx.add "x" (Number 5.) |> Ctx.add "y" (Number 10.)
+  in
   let settings = Settings.make ~context () in
   let result =
     render_text ~settings
@@ -261,13 +265,15 @@ let test_capture_reuse () =
   let settings = Settings.make () in
   let result =
     render_text ~settings
-      "{% capture var %}first{% endcapture %}{{ var }}{% capture var %}second{% \
-       endcapture %}{{ var }}"
+      "{% capture var %}first{% endcapture %}{{ var }}{% capture var \
+       %}second{% endcapture %}{{ var }}"
   in
   check string "capture reuse" "firstsecond" result
 
 let test_capture_with_expressions () =
-  let context = Ctx.empty |> Ctx.add "x" (Number 5.) |> Ctx.add "y" (Number 3.) in
+  let context =
+    Ctx.empty |> Ctx.add "x" (Number 5.) |> Ctx.add "y" (Number 3.)
+  in
   let settings = Settings.make ~context () in
   let result =
     render_text ~settings
@@ -337,7 +343,8 @@ let test_include_with_context_variables () =
     Settings.make ~context ~template_directory:test_templates_dir ()
   in
   let result = render_text ~settings "{% include 'header' %}" in
-  check string "include with context variables" "<header>Welcome</header>" result
+  check string "include with context variables" "<header>Welcome</header>"
+    result
 
 let test_include_with_loop () =
   let context =
@@ -360,8 +367,8 @@ let test_include_nested () =
     Settings.make ~context ~template_directory:test_templates_dir ()
   in
   let result = render_text ~settings "{% include 'page' %}" in
-  check string "include nested"
-    "<header>Header</header><main>Body text</main>" result
+  check string "include nested" "<header>Header</header><main>Body text</main>"
+    result
 
 (* Render Tests *)
 
@@ -400,7 +407,9 @@ let test_render_with_object () =
   check string "render with object" "Product: Widget - $19.99" result
 
 let test_render_isolated_context () =
-  let context = Ctx.empty |> Ctx.add "items" (List [ String "x"; String "y" ]) in
+  let context =
+    Ctx.empty |> Ctx.add "items" (List [ String "x"; String "y" ])
+  in
   let settings =
     Settings.make ~context ~template_directory:test_templates_dir ()
   in
@@ -433,7 +442,8 @@ let test_style_with_liquid () =
   let context = Ctx.empty |> Ctx.add "color" (String "red") in
   let settings = Settings.make ~context () in
   let result =
-    render_text ~settings "{% style %}.box { color: {{ color }}; }{% endstyle %}"
+    render_text ~settings
+      "{% style %}.box { color: {{ color }}; }{% endstyle %}"
   in
   check string "style with liquid"
     "<style data-liquid>.box { color: red; }</style>" result
@@ -446,13 +456,15 @@ let test_style_empty () =
 (* Test suite *)
 let suite =
   ( "Interpreter Tests"
-  , [ (* Cycle tests *)
+  , [
+      (* Cycle tests *)
       test_case "cycle basic" `Quick test_cycle_basic
     ; test_case "cycle with group" `Quick test_cycle_with_group
     ; test_case "cycle in loop" `Quick test_cycle_in_loop
     ; test_case "cycle multiple groups in loop" `Quick
         test_cycle_multiple_groups_in_loop
-    ; test_case "cycle reset between loops" `Quick test_cycle_reset_between_loops
+    ; test_case "cycle reset between loops" `Quick
+        test_cycle_reset_between_loops
       (* Increment/Decrement tests *)
     ; test_case "increment basic" `Quick test_increment_basic
     ; test_case "decrement basic" `Quick test_decrement_basic
@@ -483,8 +495,7 @@ let suite =
     ; test_case "capture with for loop" `Quick test_capture_with_for_loop
     ; test_case "capture reuse" `Quick test_capture_reuse
     ; test_case "capture with expressions" `Quick test_capture_with_expressions
-    ; test_case "capture empty" `Quick test_capture_empty
-      (* Case/when tests *)
+    ; test_case "capture empty" `Quick test_capture_empty (* Case/when tests *)
     ; test_case "case simple" `Quick test_case_simple
     ; test_case "case with else" `Quick test_case_with_else
     ; test_case "case multiple values" `Quick test_case_multiple_values
@@ -494,15 +505,13 @@ let suite =
     ; test_case "include with context variables" `Quick
         test_include_with_context_variables
     ; test_case "include with loop" `Quick test_include_with_loop
-    ; test_case "include nested" `Quick test_include_nested
-      (* Render tests *)
+    ; test_case "include nested" `Quick test_include_nested (* Render tests *)
     ; test_case "render basic" `Quick test_render_basic
     ; test_case "render with variable" `Quick test_render_with_variable
     ; test_case "render with object" `Quick test_render_with_object
     ; test_case "render isolated context" `Quick test_render_isolated_context
       (* Section tests *)
-    ; test_case "section basic" `Quick test_section_basic
-      (* Style tests *)
+    ; test_case "section basic" `Quick test_section_basic (* Style tests *)
     ; test_case "style basic" `Quick test_style_basic
     ; test_case "style with liquid" `Quick test_style_with_liquid
     ; test_case "style empty" `Quick test_style_empty

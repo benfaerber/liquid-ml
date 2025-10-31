@@ -37,19 +37,19 @@ type value =
 and liquid_object = value Object.t
 
 (* Custom printers for types that don't have automatic deriving *)
-let pp_date fmt d = Stdlib.Format.fprintf fmt "Date(%s)" (Date.as_string d "%Y-%m-%d %H:%M")
+let pp_date fmt d =
+  Stdlib.Format.fprintf fmt "Date(%s)" (Date.as_string d "%Y-%m-%d %H:%M")
+
 let show_date d = Date.as_string d "%Y-%m-%d %H:%M"
 
 let rec pp_liquid_object fmt obj =
   Stdlib.Format.fprintf fmt "Object{%s}"
-    (Object.to_seq obj
-    |> Stdlib.List.of_seq
+    (Object.to_seq obj |> Stdlib.List.of_seq
     |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
     |> String.concat ~sep:", ")
 
 and show_liquid_object obj =
-  Object.to_seq obj
-  |> Stdlib.List.of_seq
+  Object.to_seq obj |> Stdlib.List.of_seq
   |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
   |> String.concat ~sep:", "
 
@@ -70,29 +70,31 @@ and show_value = function
   | String s -> "String(" ^ s ^ ")"
   | Number f -> "Number(" ^ Float.to_string f ^ ")"
   | Var v -> "Var(" ^ String.concat ~sep:"." v ^ ")"
-  | List l -> "List[" ^ (List.map l ~f:show_value |> String.concat ~sep:", ") ^ "]"
+  | List l ->
+      "List[" ^ (List.map l ~f:show_value |> String.concat ~sep:", ") ^ "]"
   | Date d -> show_date d
   | Object obj -> "Object{" ^ show_liquid_object obj ^ "}"
   | Nil -> "Nil"
 
 let pp_variable_context fmt ctx =
   Stdlib.Format.fprintf fmt "Ctx{%s}"
-    (Ctx.to_seq ctx
-    |> Stdlib.List.of_seq
+    (Ctx.to_seq ctx |> Stdlib.List.of_seq
     |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
     |> String.concat ~sep:", ")
 
 let show_variable_context ctx =
-  Ctx.to_seq ctx
-  |> Stdlib.List.of_seq
+  Ctx.to_seq ctx |> Stdlib.List.of_seq
   |> List.map ~f:(fun (k, v) -> k ^ "=" ^ show_value v)
   |> String.concat ~sep:", "
 
 type variable_context = value Ctx.t
-type expression = Value of value | Func of string * expression list [@@deriving show]
+
+type expression = Value of value | Func of string * expression list
+[@@deriving show]
 
 let pp_operator_equation fmt (a, op, b) =
-  Stdlib.Format.fprintf fmt "(%s %s %s)" (show_value a) (show_operator op) (show_value b)
+  Stdlib.Format.fprintf fmt "(%s %s %s)" (show_value a) (show_operator op)
+    (show_value b)
 
 let show_operator_equation (a, op, b) =
   "(" ^ show_value a ^ " " ^ show_operator op ^ " " ^ show_value b ^ ")"

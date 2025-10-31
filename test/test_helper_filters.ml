@@ -62,9 +62,7 @@ let test_date_abbreviated_weekday () =
 let test_date_complex_format () =
   let context = Ctx.empty |> Ctx.add "date_str" (String "2025-01-15") in
   let settings = Settings.make ~context () in
-  let result =
-    render_text ~settings "{{ date_str | date: '%B %d, %Y' }}"
-  in
+  let result = render_text ~settings "{{ date_str | date: '%B %d, %Y' }}" in
   check string "date complex format" "January 15, 2025" result
 
 let test_date_now_keyword () =
@@ -213,17 +211,16 @@ let test_json_object () =
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ var | json }}" in
   (* JSON object order might vary, so check it contains the right parts *)
-  check bool "json object contains name"
-    true
-    (String.is_substring result ~substring:"\"name\": \"Alice\"")
-  ;
-  check bool "json object contains age"
-    true
+  check bool "json object contains name" true
+    (String.is_substring result ~substring:"\"name\": \"Alice\"");
+  check bool "json object contains age" true
     (String.is_substring result ~substring:"\"age\": 30")
 
 let test_json_nested_object () =
   let inner =
-    Object.empty |> Object.add "city" (String "NYC") |> Object.add "zip" (Number 10001.)
+    Object.empty
+    |> Object.add "city" (String "NYC")
+    |> Object.add "zip" (Number 10001.)
   in
   let outer =
     Object.empty
@@ -233,8 +230,7 @@ let test_json_nested_object () =
   let context = Ctx.empty |> Ctx.add "var" (Object outer) in
   let settings = Settings.make ~context () in
   let result = render_text ~settings "{{ var | json }}" in
-  check bool "json nested object contains city"
-    true
+  check bool "json nested object contains city" true
     (String.is_substring result ~substring:"\"city\": \"NYC\"")
 
 let test_json_empty_list () =
@@ -272,15 +268,14 @@ let test_default_then_date () =
 let test_json_then_default () =
   let context = Ctx.empty |> Ctx.add "var" (Number 42.) in
   let settings = Settings.make ~context () in
-  let result =
-    render_text ~settings "{{ var | json | default: 'empty' }}"
-  in
+  let result = render_text ~settings "{{ var | json | default: 'empty' }}" in
   check string "json then default" "42" result
 
 (* Test suite *)
 let suite =
   ( "Helper Filter Tests"
-  , [ (* Date filter tests *)
+  , [
+      (* Date filter tests *)
       test_case "date default format" `Quick test_date_default_format
     ; test_case "date custom format" `Quick test_date_custom_format
     ; test_case "date year only" `Quick test_date_year_only
@@ -297,7 +292,8 @@ let suite =
     ; test_case "default with value" `Quick test_default_with_value
     ; test_case "default with nil" `Quick test_default_with_nil
     ; test_case "default with undefined" `Quick test_default_with_undefined
-    ; test_case "default with empty string" `Quick test_default_with_empty_string
+    ; test_case "default with empty string" `Quick
+        test_default_with_empty_string
     ; test_case "default with false" `Quick test_default_with_false
     ; test_case "default with true" `Quick test_default_with_true
     ; test_case "default with zero" `Quick test_default_with_zero
