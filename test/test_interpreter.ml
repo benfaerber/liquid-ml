@@ -3,6 +3,21 @@ open Liquid_ml
 open Liquid
 open Base
 
+(* Helper to get test templates directory - use absolute path *)
+let test_templates_dir =
+  let open Stdlib in
+  (* Get project root by looking for dune-project *)
+  let rec find_root dir =
+    if Sys.file_exists (Filename.concat dir "dune-project") then dir
+    else
+      let parent = Filename.dirname dir in
+      if String.equal parent dir then failwith "Could not find project root"
+      else find_root parent
+  in
+  let cwd = Sys.getcwd () in
+  let root = find_root cwd in
+  Filename.concat (Filename.concat root "test") "templates"
+
 (* Cycle Tag Tests *)
 
 let test_cycle_basic () =
@@ -306,6 +321,128 @@ let test_case_with_strings () =
   in
   check string "case with strings" "stop" result
 
+(* Include Tests *)
+
+let test_include_basic () =
+  let context = Ctx.empty |> Ctx.add "name" (String "World") in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render_text ~settings "{% include 'greeting' %}" in
+  check string "include basic" "Hello World!" result
+
+let test_include_with_context_variables () =
+  let context = Ctx.empty |> Ctx.add "title" (String "Welcome") in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render_text ~settings "{% include 'header' %}" in
+  check string "include with context variables" "<header>Welcome</header>" result
+
+let test_include_with_loop () =
+  let context =
+    Ctx.empty |> Ctx.add "items" (List [ String "a"; String "b"; String "c" ])
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render_text ~settings "{% include 'list' %}" in
+  check string "include with loop" "<ul><li>a</li><li>b</li><li>c</li></ul>"
+    result
+
+let test_include_nested () =
+  let context =
+    Ctx.empty
+    |> Ctx.add "title" (String "Header")
+    |> Ctx.add "content" (String "Body text")
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render_text ~settings "{% include 'page' %}" in
+  check string "include nested"
+    "<header>Header</header><main>Body text</main>" result
+
+(* Render Tests *)
+
+let test_render_basic () =
+  let context = Ctx.empty |> Ctx.add "name" (String "Alice") in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render_text ~settings "{% render 'greeting' %}" in
+  (* Render uses isolated context, so outer 'name' is not available, shows as nil *)
+  check string "render basic" "Hello nil!" result
+
+let test_render_with_variable () =
+  let context = Ctx.empty in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result =
+    render_text ~settings "{% render 'greeting' with name: 'Bob' %}"
+  in
+  check string "render with variable" "Hello Bob!" result
+
+let test_render_with_object () =
+  let product =
+    Object.empty
+    |> Object.add "name" (String "Widget")
+    |> Object.add "price" (Number 19.99)
+  in
+  let context = Ctx.empty |> Ctx.add "item" (Object product) in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result =
+    render_text ~settings "{% render 'product' with product: item %}"
+  in
+  check string "render with object" "Product: Widget - $19.99" result
+
+let test_render_isolated_context () =
+  let context = Ctx.empty |> Ctx.add "items" (List [ String "x"; String "y" ]) in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  (* items is in outer context but not passed to render, so render should see empty *)
+  let result = render_text ~settings "{% render 'list' %}" in
+  check string "render isolated context" "<ul></ul>" result
+
+(* Section Tests *)
+
+let test_section_basic () =
+  let context = Ctx.empty |> Ctx.add "year" (Number 2025.) in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render_text ~settings "{% section 'footer' %}" in
+  (* Section uses isolated context, so outer 'year' is not available *)
+  check string "section basic" "<footer>Copyright nil</footer>" result
+
+(* Style Tests *)
+
+let test_style_basic () =
+  let settings = Settings.make () in
+  let result =
+    render_text ~settings "{% style %}body { margin: 0; }{% endstyle %}"
+  in
+  check string "style basic" "<style data-liquid>body { margin: 0; }</style>"
+    result
+
+let test_style_with_liquid () =
+  let context = Ctx.empty |> Ctx.add "color" (String "red") in
+  let settings = Settings.make ~context () in
+  let result =
+    render_text ~settings "{% style %}.box { color: {{ color }}; }{% endstyle %}"
+  in
+  check string "style with liquid"
+    "<style data-liquid>.box { color: red; }</style>" result
+
+let test_style_empty () =
+  let settings = Settings.make () in
+  let result = render_text ~settings "{% style %}{% endstyle %}" in
+  check string "style empty" "<style data-liquid></style>" result
+
 (* Test suite *)
 let suite =
   ( "Interpreter Tests"
@@ -352,4 +489,21 @@ let suite =
     ; test_case "case with else" `Quick test_case_with_else
     ; test_case "case multiple values" `Quick test_case_multiple_values
     ; test_case "case with strings" `Quick test_case_with_strings
+      (* Include tests *)
+    ; test_case "include basic" `Quick test_include_basic
+    ; test_case "include with context variables" `Quick
+        test_include_with_context_variables
+    ; test_case "include with loop" `Quick test_include_with_loop
+    ; test_case "include nested" `Quick test_include_nested
+      (* Render tests *)
+    ; test_case "render basic" `Quick test_render_basic
+    ; test_case "render with variable" `Quick test_render_with_variable
+    ; test_case "render with object" `Quick test_render_with_object
+    ; test_case "render isolated context" `Quick test_render_isolated_context
+      (* Section tests *)
+    ; test_case "section basic" `Quick test_section_basic
+      (* Style tests *)
+    ; test_case "style basic" `Quick test_style_basic
+    ; test_case "style with liquid" `Quick test_style_with_liquid
+    ; test_case "style empty" `Quick test_style_empty
     ] )
