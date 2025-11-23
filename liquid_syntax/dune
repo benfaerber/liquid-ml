@@ -2,4 +2,4 @@
  (public_name liquid_syntax)
  (libraries base core stdio re2 calendar ppx_deriving.runtime)
  (preprocess
-  (pps ppx_deriving.show bisect_ppx --conditional)))
+  (pps ppx_deriving.show)))

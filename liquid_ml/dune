@@ -1,5 +1,3 @@
 (library
  (public_name liquid_ml)
- (libraries base core stdio liquid_syntax liquid_parser liquid_interpreter)
- (preprocess
-  (pps bisect_ppx --conditional)))
+ (libraries base core stdio liquid_syntax liquid_parser liquid_interpreter))
