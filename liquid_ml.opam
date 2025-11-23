@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "liquid"
-version: "0.1.2"
+version: "0.1.3"
 synopsis: "Shopify's Liquid templating language in OCaml"
 description: """
 Shopify's Liquid templating language for OCaml!
