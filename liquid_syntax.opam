@@ -18,7 +18,7 @@ depends: [
     "core" { >= "v0.15.0" }
     "stdio" { >= "v0.10.0" }
     "re2" { >= "v0.13.0" }
-    "calendar" { >= "v3.0.0" }
+    "calendar" { >= "3.0.0" }
     "ppx_deriving" { >= "v5.0" }
 ]
 build: [
