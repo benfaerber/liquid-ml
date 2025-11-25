@@ -25,3 +25,4 @@ depends: [
 build: [
     ["dune" "build" "-p" name "-j" jobs]
 ]
+x-maintenance-intent: ["(latest)"]
