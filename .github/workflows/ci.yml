@@ -42,9 +42,14 @@ jobs:
         mkdir -p _coverage
         export BISECT_FILE=$(pwd)/_coverage/bisect
         export BISECT_ENABLE=yes
+        echo "BISECT_FILE is set to: $BISECT_FILE"
+        echo "BISECT_ENABLE is set to: $BISECT_ENABLE"
         opam exec -- dune clean
         opam exec -- dune build --instrument-with bisect_ppx
+        echo "Running tests with coverage instrumentation..."
         opam exec -- dune runtest --instrument-with bisect_ppx --force
+        echo "Test run completed. Checking for coverage files..."
+        ls -la _coverage/ || echo "_coverage directory not found after tests"
       continue-on-error: true
 
     - name: Run tests without coverage
@@ -57,17 +62,31 @@ jobs:
       if: matrix.ocaml-compiler == '5.2.x'
       run: |
         echo "Checking for coverage files..."
-        find . -name "*.coverage" -o -name "bisect*.coverage" || echo "No coverage files found"
-        ls -la _coverage/ || echo "_coverage directory is empty or doesn't exist"
-        echo "Checking _build directory..."
-        find _build -name "*.coverage" 2>/dev/null || echo "No coverage files in _build"
+        echo "Contents of _coverage directory:"
+        ls -la _coverage/ || echo "_coverage directory doesn't exist"
+        echo ""
+        echo "Looking for .coverage files:"
+        find _coverage -name "*.coverage" -type f 2>/dev/null | tee /tmp/coverage_files.txt || true
+        if [ ! -s /tmp/coverage_files.txt ]; then
+          echo "ERROR: No .coverage files found!"
+          echo "Checking if bisect files exist without .coverage extension:"
+          find _coverage -type f 2>/dev/null || echo "No files at all in _coverage"
+          exit 1
+        else
+          echo "Found coverage files:"
+          cat /tmp/coverage_files.txt
+        fi
 
     - name: Generate coverage report
       if: matrix.ocaml-compiler == '5.2.x'
       run: |
-        opam exec -- bisect-ppx-report html --coverage-path _coverage
-        opam exec -- bisect-ppx-report summary --coverage-path _coverage
-        opam exec -- bisect-ppx-report cobertura coverage.xml --coverage-path _coverage
+        echo "Generating HTML coverage report..."
+        opam exec -- bisect-ppx-report html --coverage-path _coverage || (echo "Failed to generate HTML report" && exit 1)
+        echo "Generating summary..."
+        opam exec -- bisect-ppx-report summary --coverage-path _coverage || (echo "Failed to generate summary" && exit 1)
+        echo "Generating Cobertura XML..."
+        opam exec -- bisect-ppx-report cobertura coverage.xml --coverage-path _coverage || (echo "Failed to generate Cobertura XML" && exit 1)
+        echo "Coverage reports generated successfully"
 
     - name: Upload coverage to Codecov
       if: matrix.ocaml-compiler == '5.2.x'
