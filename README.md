@@ -3,6 +3,7 @@
 [Shopify's Liquid](https://shopify.dev/api/liquid/) templating language for the OCaml programming language
 
 Featured on [Awesome OCaml](https://github.com/ocaml-community/awesome-ocaml)!
+Liquid ML was recently added to [YOCaml](https://github.com/xhtmlboi/yocaml) (a great static site generator).
 
 ### Getting Started
 Install via OPAM:
