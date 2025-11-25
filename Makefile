@@ -26,9 +26,8 @@ runbin:
 
 coverage:
 	@mkdir -p _coverage
-	@export BISECT_FILE=$$(pwd)/_coverage/bisect && \
-	export BISECT_ENABLE=yes && \
-	dune runtest --instrument-with bisect_ppx --force
+	@rm -f _coverage/bisect*.coverage
+	@BISECT_FILE=$$(pwd)/_coverage/bisect BISECT_ENABLE=yes dune runtest --instrument-with bisect_ppx --force
 	@echo ""
 	@echo "Coverage Summary:"
 	@echo "================"

@@ -29,8 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         eval $(opam env)
-        opam install . --deps-only --with-test --yes
-        opam install bisect_ppx --yes
+        opam install . --deps-only --with-test --with-dev-setup --yes
         opam install ppx_deriving --yes
 
     - name: Build
