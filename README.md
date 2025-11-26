@@ -47,7 +47,7 @@ let () =
     |> Object.add "version" (String "4.14.0")
   in
 
-  (* HeRe we include our favorite_animal as a string an our environment as an object *)
+  (* Here we include our favorite_animal as a string and our environment as an object *)
   let context =
     Ctx.empty
     |> Ctx.add "favorite_animal" (String "horse")
@@ -118,7 +118,7 @@ template_directory
 the `render` tag used within liquid. Default is project root.
 
 log_directory
-- Where log files are written too. This must be set if log policy is set to `Verbose`.
+- Where log files are written to. This must be set if log policy is set to `Verbose`.
 
 error_policy:
 - `Strict` - A Liquid Syntax error will raise an exception
@@ -173,7 +173,7 @@ type liquid_filter = value Ctx.t -> value list -> (value, string) Result.t
 let () =
   (*
     This function accepts a string, anything else will throw an error.
-    Note: since we discard the tail, extra params aRe simply ignored
+    Note: since we discard the tail, extra params are simply ignored
   *)
   let greet _ = function
     | String person :: _ -> Ok (String ("Hello " ^ person ^ "!"))
