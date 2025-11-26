@@ -73,7 +73,6 @@ We can perform logic operations using our variables:
 ```ocaml
 (* OCaml *)
 let () =
-  (* Create an object that can be accessed in Liquid using dot notation (environment.language -> "OCaml") *)
   let context =
     Ctx.empty
     |> Ctx.add "beatles" (List [String "John"; String "Paul"; String "Ringo"; String "George"])
