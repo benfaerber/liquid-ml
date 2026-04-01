@@ -65,6 +65,54 @@ let test_date_complex_format () =
   let result = render_text ~settings "{{ date_str | date: '%B %d, %Y' }}" in
   check string "date complex format" "January 15, 2025" result
 
+(* DateTime with time component tests *)
+
+let test_datetime_iso_format () =
+  let context =
+    Ctx.empty |> Ctx.add "date_str" (String "2026-03-06T15:09:00")
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ date_str | date: '%Y%m%d-%H%M' }}" in
+  check string "datetime ISO format" "20260306-1509" result
+
+let test_datetime_iso_date_part () =
+  let context =
+    Ctx.empty |> Ctx.add "date_str" (String "2026-03-06T15:09:00")
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ date_str | date: '%Y-%m-%d' }}" in
+  check string "datetime ISO date part only" "2026-03-06" result
+
+let test_datetime_iso_time_part () =
+  let context =
+    Ctx.empty |> Ctx.add "date_str" (String "2026-03-06T15:09:30")
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ date_str | date: '%H:%M:%S' }}" in
+  check string "datetime ISO time part" "15:09:30" result
+
+let test_datetime_default_format () =
+  let context =
+    Ctx.empty |> Ctx.add "date_str" (String "2026-03-06T15:09:00")
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ date_str | date }}" in
+  check string "datetime default format" "03/06/2026" result
+
+let test_date_only_time_defaults_midnight () =
+  let context = Ctx.empty |> Ctx.add "date_str" (String "2026-03-06") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ date_str | date: '%Y%m%d-%H%M' }}" in
+  check string "date only time defaults midnight" "20260306-0000" result
+
+let test_datetime_space_separated () =
+  let context =
+    Ctx.empty |> Ctx.add "date_str" (String "2026-03-06 15:09:00")
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ date_str | date: '%Y%m%d-%H%M' }}" in
+  check string "datetime space separated format" "20260306-1509" result
+
 let test_date_now_keyword () =
   let settings = Settings.make () in
   (* We can't test exact output for "now", but we can check it doesn't error *)
@@ -286,6 +334,13 @@ let suite =
     ; test_case "date weekday name" `Quick test_date_weekday_name
     ; test_case "date abbreviated weekday" `Quick test_date_abbreviated_weekday
     ; test_case "date complex format" `Quick test_date_complex_format
+    ; test_case "datetime ISO format" `Quick test_datetime_iso_format
+    ; test_case "datetime ISO date part" `Quick test_datetime_iso_date_part
+    ; test_case "datetime ISO time part" `Quick test_datetime_iso_time_part
+    ; test_case "datetime default format" `Quick test_datetime_default_format
+    ; test_case "date only time defaults midnight" `Quick
+        test_date_only_time_defaults_midnight
+    ; test_case "datetime space separated" `Quick test_datetime_space_separated
     ; test_case "date now keyword" `Quick test_date_now_keyword
     ; test_case "date now default format" `Quick test_date_now_default_format
       (* Default filter tests *)

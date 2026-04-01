@@ -17,8 +17,18 @@ let now_as_string fmat =
   formatted
 
 let format_date_string date_str fmat =
-  let date = Printer.Date.from_string date_str in
-  let formatted = Printer.Date.sprint fmat date in
+  let date =
+    try Printer.Calendar.from_fstring "%FT%T" date_str
+      (* ISO with T: "2026-03-06T15:09:00" *)
+    with Invalid_argument _ ->
+    try Printer.Calendar.from_fstring "%F %T" date_str
+      (* Space-separated: "2026-03-06 15:09:00" *)
+    with Invalid_argument _ ->
+      (* Date only: "2026-03-06", time defaults to 00:00:00 *)
+      let d = Printer.Date.from_string date_str in
+      Calendar.create d (Time.make 0 0 0)
+  in
+  let formatted = Printer.Calendar.sprint fmat date in
   formatted
 
 let as_string date fmat = Printer.Calendar.sprint fmat date
