@@ -90,6 +90,7 @@ let () =
     {{ beatle }} lives in a yellow submarine!
 {% endfor %}
 
+You have ${{ my_money | money }}
 {% if my_money >= apple_price %}
    You bought an apple for {{ apple_price | money }}
    {% assign after_purchase = my_money | minus: apple_price %}
@@ -105,6 +106,7 @@ Paul lives in a yellow submarine!
 Ringo lives in a yellow submarine!
 George lives in a yellow submarine!
 
+You have $15.00
 You bought an apple for $5.00
 You now have $10.00
 ```
