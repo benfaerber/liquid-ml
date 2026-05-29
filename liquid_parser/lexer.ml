@@ -128,12 +128,6 @@ let lex_id text =
             let dot_notation =
               if is_string || is_number then "." ^ inner
               else
-                (* Dynamic expression inside brackets, e.g. l[forloop.index].
-                   Mark with sentinel so unwrap can resolve it from context
-                   instead of treating it as nested property access. The
-                   sentinel \x00 prefixes the piece; \x01 stands in for the
-                   dots inside the bracket expression so the outer split on
-                   '.' keeps the dynamic path together. *)
                 let escaped =
                   String.map inner ~f:(fun c ->
                       if Char.equal c '.' then '\x01' else c)
@@ -172,10 +166,6 @@ let lex_block_token_chunk (chunk2, chunk3) acc index =
     match List.rev acc with
     | RawText tl :: StatementStart _ :: hds
       when String.equal (String.strip tl) "liquid" ->
-        (* Accept `{% liquid`, `{%liquid`, `{%- liquid`, etc. The original
-           pattern only matched the exact RawText "liquid", which broke the
-           common case where there's whitespace between `{%` and the tag
-           name. *)
         Next (List.rev hds @ [ LiquidStart ], index + 1)
     | RawText tl :: hds ->
         Next (List.rev hds @ [ RawText (tl ^ first_letter chunk2) ], index + 1)

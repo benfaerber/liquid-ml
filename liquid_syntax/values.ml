@@ -38,11 +38,6 @@ and unwrap_id ctx id =
   | [ id ] -> find ctx id
   | id -> unwrap_chain ctx id
 
-(* Bracket expressions like `l[forloop.index]` are tagged by the lexer with a
-   sentinel: the piece starts with '\x00' and dots inside it are encoded as
-   '\x01'. Before doing anything else with a Var, walk its pieces and replace
-   each dynamic piece with the literal value it resolves to in the current
-   context (numbers and strings become indices/keys). *)
 and resolve_dynamic_pieces ctx id =
   List.concat_map id ~f:(fun piece ->
       if String.length piece > 0 && Char.equal piece.[0] '\x00' then
@@ -86,22 +81,15 @@ and unwrap_chain ctx id =
         (nv, Ctx.empty |> Ctx.add hd nv)
     | v
       when List.mem [ "first"; "last"; "size" ] hd ~equal:String.equal ->
-        (* Method-style access on a non-object value (e.g. list.first). *)
         let nctx = Ctx.empty |> Ctx.add Settings.next v in
         let nv = unwrap nctx (Var [ Settings.next; hd ]) in
         (nv, nctx)
     | List lst when (
         match Int.of_string_opt hd with Some _ -> true | None -> false) ->
-        (* Numeric index against a list, e.g. after dynamic resolution turned
-           `[forloop.index]` into the index string. *)
         let idx = Int.of_string hd in
         let nv = unwrap_or (List.nth lst idx) Nil in
         (nv, Ctx.empty |> Ctx.add hd nv)
-    | _ ->
-        (* Unknown field on a non-object value. Returning Nil here keeps us
-           from infinitely recursing (the previous fallback re-entered unwrap
-           with the same shape and hung). *)
-        (Nil, acc_ctx)
+    | _ -> (Nil, acc_ctx)
   in
 
   let v, _ = List.fold id ~init:(Nil, ctx) ~f:folder in

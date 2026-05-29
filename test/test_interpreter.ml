@@ -462,8 +462,6 @@ let test_liquid_tag_no_space () =
   let result = render_text template in
   check string "{%liquid (no space)" "\nhello\nafter" result
 
-(* Regression test for issue #9: `{% liquid` (with a space between %% and
-   the tag name) should be recognized just like `{%liquid`. *)
 let test_liquid_tag_with_space () =
   let template =
     "{% liquid\nassign x = \"hello\"\necho x\n%}after"
@@ -547,7 +545,7 @@ let suite =
     ; test_case "style basic" `Quick test_style_basic
     ; test_case "style with liquid" `Quick test_style_with_liquid
     ; test_case "style empty" `Quick test_style_empty
-      (* Liquid tag tests (regression: issue #9) *)
+      (* Liquid tag tests *)
     ; test_case "{%liquid (no space)" `Quick test_liquid_tag_no_space
     ; test_case "{% liquid (with space)" `Quick test_liquid_tag_with_space
     ; test_case "{%   liquid (multiple spaces)" `Quick

@@ -422,9 +422,6 @@ let test_for_loop_large_list () =
   let result = render_text ~settings template in
   check string "for loop with large list (limited)" "01234" result
 
-(* Regression tests for issue #8: using forloop.* as an array index used to
-   make the interpreter hang forever. *)
-
 let test_for_loop_index_dynamic_array_access () =
   let items = List [ String "a"; String "b"; String "c" ] in
   let context = Ctx.empty |> Ctx.add "items" items in
@@ -436,7 +433,6 @@ let test_for_loop_index_dynamic_array_access () =
   check string "items[forloop.index0]" "abc" result
 
 let test_for_loop_index1_dynamic_array_access () =
-  (* forloop.index is 1-based, so the last lookup is out of bounds (nil). *)
   let items = List [ String "a"; String "b"; String "c" ] in
   let context = Ctx.empty |> Ctx.add "items" items in
   let settings = Settings.make ~context () in
@@ -529,8 +525,7 @@ let suite =
     ; test_case "for loop with assign inside" `Quick
         test_for_loop_with_assign_inside
     ; test_case "for loop large list" `Quick test_for_loop_large_list
-    ; (* Regression tests for issue #8 (dynamic array/object access) *)
-      test_case "items[forloop.index0]" `Quick
+    ; test_case "items[forloop.index0]" `Quick
         test_for_loop_index_dynamic_array_access
     ; test_case "items[forloop.index]" `Quick
         test_for_loop_index1_dynamic_array_access
