@@ -13,23 +13,56 @@ let is_index id =
       Re2.matches digit hd
   | _ -> false
 
-let rec unwrap ctx = function
-  | Var id when is_calling ctx id "first" ->
+let rec unwrap ctx v =
+  match v with
+  | Var id ->
+      let id = resolve_dynamic_pieces ctx id in
+      unwrap_id ctx id
+  | other -> other
+
+and unwrap_id ctx id =
+  match id with
+  | id when is_calling ctx id "first" ->
       let lst = unwrap_list ctx id in
       unwrap_or (List.hd lst) Nil
-  | Var id when is_calling ctx id "last" ->
+  | id when is_calling ctx id "last" ->
       let lst = unwrap_list ctx id in
       unwrap_or (List.last lst) Nil
-  | Var id when is_calling ctx id "size" ->
+  | id when is_calling ctx id "size" ->
       let lst = unwrap_list ctx id in
       Number (List.length lst |> Int.to_float)
-  | Var id when is_index id ->
+  | id when is_index id ->
       let index = id |> List.last_exn |> Int.of_string in
       let lst = unwrap_list ctx id in
       unwrap_or (List.nth lst index) Nil
-  | Var [ id ] -> find ctx id
-  | Var id -> unwrap_chain ctx id
-  | other -> other
+  | [ id ] -> find ctx id
+  | id -> unwrap_chain ctx id
+
+(* Bracket expressions like `l[forloop.index]` are tagged by the lexer with a
+   sentinel: the piece starts with '\x00' and dots inside it are encoded as
+   '\x01'. Before doing anything else with a Var, walk its pieces and replace
+   each dynamic piece with the literal value it resolves to in the current
+   context (numbers and strings become indices/keys). *)
+and resolve_dynamic_pieces ctx id =
+  List.concat_map id ~f:(fun piece ->
+      if String.length piece > 0 && Char.equal piece.[0] '\x00' then
+        let body =
+          String.sub piece ~pos:1 ~len:(String.length piece - 1)
+        in
+        let sub_pieces =
+          String.split body ~on:'\x01'
+          |> List.filter ~f:(fun s -> not (String.is_empty s))
+        in
+        match sub_pieces with
+        | [] -> [ "" ]
+        | _ -> (
+            match unwrap ctx (Var sub_pieces) with
+            | Number n -> [ Float.to_int n |> Int.to_string ]
+            | String s -> [ s ]
+            | Bool b -> [ Bool.to_string b ]
+            | Nil -> [ "" ]
+            | _ -> [ "" ])
+      else [ piece ])
 
 and unwrap_tail ctx v = Var (without_last v) |> unwrap ctx
 
@@ -51,10 +84,24 @@ and unwrap_chain ctx id =
     | Object obj ->
         let nv = unwrap_or (Object.find_opt hd obj) Nil in
         (nv, Ctx.empty |> Ctx.add hd nv)
-    | v ->
+    | v
+      when List.mem [ "first"; "last"; "size" ] hd ~equal:String.equal ->
+        (* Method-style access on a non-object value (e.g. list.first). *)
         let nctx = Ctx.empty |> Ctx.add Settings.next v in
         let nv = unwrap nctx (Var [ Settings.next; hd ]) in
         (nv, nctx)
+    | List lst when (
+        match Int.of_string_opt hd with Some _ -> true | None -> false) ->
+        (* Numeric index against a list, e.g. after dynamic resolution turned
+           `[forloop.index]` into the index string. *)
+        let idx = Int.of_string hd in
+        let nv = unwrap_or (List.nth lst idx) Nil in
+        (nv, Ctx.empty |> Ctx.add hd nv)
+    | _ ->
+        (* Unknown field on a non-object value. Returning Nil here keeps us
+           from infinitely recursing (the previous fallback re-entered unwrap
+           with the same shape and hung). *)
+        (Nil, acc_ctx)
   in
 
   let v, _ = List.fold id ~init:(Nil, ctx) ~f:folder in
