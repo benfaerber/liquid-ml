@@ -13,4 +13,5 @@ let () =
     ; Test_helper_filters.suite
     ; Test_interpreter.suite
     ; Test_variables.suite
+    ; Test_complex_templates.suite
     ]
