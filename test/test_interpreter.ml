@@ -481,7 +481,226 @@ let test_liquid_tag_with_trim_and_space () =
     "prefix {%- liquid\nassign x = \"hello\"\necho x\n-%} after"
   in
   let result = render_text template in
-  check string "{%- liquid (trim + space)" "prefix \nhello\n after" result
+  check string "{%- liquid (trim + space)" "prefix\nhello\nafter" result
+
+(* Whitespace Control Tests *)
+
+let test_ws_trim_right_basic () =
+  let result = render_text "before {{ \"x\" -}}   after" in
+  check string "-}} trims right" "before xafter" result
+
+let test_ws_trim_left_basic () =
+  let result = render_text "before   {{- \"x\" }} after" in
+  check string "{{- trims left" "beforex after" result
+
+let test_ws_trim_both_basic () =
+  let result = render_text "before   {{- \"x\" -}}   after" in
+  check string "{{- ... -}} trims both" "beforexafter" result
+
+let test_ws_no_trim_keeps_whitespace () =
+  let result = render_text "before   {{ \"x\" }}   after" in
+  check string "no trim preserves whitespace" "before   x   after" result
+
+let test_ws_statement_trim_strips_newlines () =
+  let template =
+    "a\n\n\n{%- assign x = 1 -%}\n\n\nb"
+  in
+  let result = render_text template in
+  check string "{%- -%} strips newlines" "ab" result
+
+let test_ws_consecutive_trim_tags () =
+  let template = "{%- if true -%}A{%- else -%}B{%- endif -%}" in
+  let result = render_text template in
+  check string "consecutive trim tags" "A" result
+
+let test_ws_only_trims_whitespace () =
+  (* Trim should only strip whitespace, not other characters. *)
+  let result = render_text "xx{%- assign a = 1 -%}yy" in
+  check string "{%- -%} doesn't eat non-whitespace" "xxyy" result
+
+(* Real-world Liquid templates: load .liquid files from disk and verify
+   the rendered output is what Shopify-style whitespace control would
+   produce. These also serve as smoke tests that the templates parse. *)
+
+let test_template_issue_11 () =
+  let settings =
+    Settings.make ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_issue11.liquid" in
+  check string "issue #11 template" "Hello world bar\n" result
+
+let test_template_blog_published_with_subtitle () =
+  let post =
+    Object.empty
+    |> Object.add "published" (Bool true)
+    |> Object.add "title" (String "First Post")
+    |> Object.add "subtitle" (String "An intro")
+    |> Object.add "body" (String "Hello, world!")
+  in
+  let context = Ctx.empty |> Ctx.add "post" (Object post) in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_blog.liquid" in
+  check string "blog published with subtitle"
+    "<article>\n\
+    \  <h1>First Post</h1>\n\
+    \  <h2>An intro</h2>\n\
+    \  <div class=\"body\">Hello, world!</div>\n\
+     </article>"
+    result
+
+let test_template_blog_published_without_subtitle () =
+  (* Missing `subtitle` field resolves to Nil which is falsy, so the
+     subtitle block is omitted entirely. *)
+  let post =
+    Object.empty
+    |> Object.add "published" (Bool true)
+    |> Object.add "title" (String "Second")
+    |> Object.add "body" (String "Body")
+  in
+  let context = Ctx.empty |> Ctx.add "post" (Object post) in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_blog.liquid" in
+  check string "blog published without subtitle"
+    "<article>\n\
+    \  <h1>Second</h1>\n\
+    \  <div class=\"body\">Body</div>\n\
+     </article>"
+    result
+
+let test_template_blog_draft () =
+  let post =
+    Object.empty
+    |> Object.add "published" (Bool false)
+    |> Object.add "title" (String "WIP")
+  in
+  let context = Ctx.empty |> Ctx.add "post" (Object post) in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_blog.liquid" in
+  check string "blog draft" "<p>Draft: WIP</p>" result
+
+let test_template_nav_menu () =
+  let mk_link url label active =
+    Object
+      (Object.empty
+      |> Object.add "url" (String url)
+      |> Object.add "label" (String label)
+      |> Object.add "active" (Bool active))
+  in
+  let context =
+    Ctx.empty
+    |> Ctx.add "links"
+         (List
+            [
+              mk_link "/" "Home" true
+            ; mk_link "/about" "About" false
+            ; mk_link "/contact" "Contact" false
+            ])
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_nav.liquid" in
+  check string "nav menu"
+    "<nav>\n\
+    \    <a class=\"active\" href=\"/\">Home</a>\n\
+    \    <a href=\"/about\">About</a>\n\
+    \    <a href=\"/contact\">Contact</a>\n\
+     </nav>\n"
+    result
+
+let test_template_csv_multi () =
+  let context =
+    Ctx.empty
+    |> Ctx.add "items" (List [ String "a"; String "b"; String "c" ])
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_csv.liquid" in
+  check string "csv multi" "a,b,c" result
+
+let test_template_csv_single () =
+  let context =
+    Ctx.empty |> Ctx.add "items" (List [ String "only" ])
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_csv.liquid" in
+  check string "csv single" "only" result
+
+let test_template_invoice_vip () =
+  let mk_item name price =
+    Object
+      (Object.empty
+      |> Object.add "name" (String name)
+      |> Object.add "price" (Number price))
+  in
+  let customer =
+    Object.empty
+    |> Object.add "name" (String "Alice")
+    |> Object.add "vip" (Bool true)
+  in
+  let context =
+    Ctx.empty
+    |> Ctx.add "customer" (Object customer)
+    |> Ctx.add "items"
+         (List [ mk_item "Widget" 10.0; mk_item "Gizmo" 25.0 ])
+    |> Ctx.add "total" (Number 35.0)
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_invoice.liquid" in
+  check string "invoice VIP"
+    "Invoice for Alice (VIP)\n\n\
+     Items:\n\
+     - Widget: $10\n\
+     - Gizmo: $25\n\n\
+     Total: $35\n"
+    result
+
+let test_template_invoice_regular () =
+  let mk_item name price =
+    Object
+      (Object.empty
+      |> Object.add "name" (String name)
+      |> Object.add "price" (Number price))
+  in
+  let customer =
+    Object.empty
+    |> Object.add "name" (String "Bob")
+    |> Object.add "vip" (Bool false)
+  in
+  let context =
+    Ctx.empty
+    |> Ctx.add "customer" (Object customer)
+    |> Ctx.add "items" (List [ mk_item "Thing" 5.0 ])
+    |> Ctx.add "total" (Number 5.0)
+  in
+  let settings =
+    Settings.make ~context ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_invoice.liquid" in
+  check string "invoice regular"
+    "Invoice for Bob\n\n\
+     Items:\n\
+     - Thing: $5\n\n\
+     Total: $5\n"
+    result
+
+let test_template_inline_trim () =
+  let settings =
+    Settings.make ~template_directory:test_templates_dir ()
+  in
+  let result = render ~settings "whitespace_inline.liquid" in
+  check string "inline {{- -}} trim" "A B C\nD  E  FG1H\n" result
 
 (* Test suite *)
 let suite =
@@ -552,4 +771,28 @@ let suite =
         test_liquid_tag_with_multiple_spaces
     ; test_case "{%- liquid (trim + space)" `Quick
         test_liquid_tag_with_trim_and_space
+      (* Whitespace control tests *)
+    ; test_case "-}} trims right" `Quick test_ws_trim_right_basic
+    ; test_case "{{- trims left" `Quick test_ws_trim_left_basic
+    ; test_case "{{- -}} trims both" `Quick test_ws_trim_both_basic
+    ; test_case "no trim preserves whitespace" `Quick
+        test_ws_no_trim_keeps_whitespace
+    ; test_case "{%- -%} strips newlines" `Quick
+        test_ws_statement_trim_strips_newlines
+    ; test_case "consecutive trim tags" `Quick test_ws_consecutive_trim_tags
+    ; test_case "trim only strips whitespace" `Quick
+        test_ws_only_trims_whitespace
+      (* Real-world template tests *)
+    ; test_case "template: issue #11" `Quick test_template_issue_11
+    ; test_case "template: blog published w/ subtitle" `Quick
+        test_template_blog_published_with_subtitle
+    ; test_case "template: blog published w/o subtitle" `Quick
+        test_template_blog_published_without_subtitle
+    ; test_case "template: blog draft" `Quick test_template_blog_draft
+    ; test_case "template: nav menu" `Quick test_template_nav_menu
+    ; test_case "template: csv multi" `Quick test_template_csv_multi
+    ; test_case "template: csv single" `Quick test_template_csv_single
+    ; test_case "template: invoice VIP" `Quick test_template_invoice_vip
+    ; test_case "template: invoice regular" `Quick test_template_invoice_regular
+    ; test_case "template: inline trim" `Quick test_template_inline_trim
     ] )

@@ -1,0 +1,6 @@
+{%- for item in items -%}
+{{ item }}
+{%- unless forloop.last -%}
+,
+{%- endunless -%}
+{%- endfor -%}
