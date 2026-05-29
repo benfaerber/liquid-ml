@@ -231,10 +231,8 @@ let lex_line_tokens text =
 let echo_to_expression tokens =
   let rec aux acc pool =
     match pool with
-    | LexValue (LexId [ "echo" ]) :: LexValue (LexString t) :: tl ->
-        aux (acc @ [ LexExpression [ LexText t ] ]) tl
-    | LexValue (LexId [ "echo" ]) :: LexValue (LexId id) :: tl ->
-        aux (acc @ [ LexExpression [ LexValue (LexId id) ] ]) tl
+    | LexValue (LexId [ "echo" ]) :: LexValue v :: tl ->
+        aux (acc @ [ LexExpression [ LexValue v ] ]) tl
     | hd :: tl -> aux (acc @ [ hd ]) tl
     | [] -> acc
   in

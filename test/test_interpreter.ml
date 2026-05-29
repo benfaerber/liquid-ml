@@ -214,6 +214,56 @@ let test_not_with_condition () =
   let result = render_text ~settings "{% unless flag %}yes{% endunless %}" in
   check string "unless (not) operator" "yes" result
 
+(* Regression: `and`/`or` joining bare truthy values (not just equations).
+   Previously raised Failure("Invalid condition"). See issue #14. *)
+let test_and_bare_values () =
+  let context =
+    Ctx.empty |> Ctx.add "a" (Bool true) |> Ctx.add "b" (Bool false)
+  in
+  let settings = Settings.make ~context () in
+  let result =
+    render_text ~settings "{% if a and b %}both{% else %}not both{% endif %}"
+  in
+  check string "and with bare values" "not both" result
+
+let test_or_bare_values () =
+  let context =
+    Ctx.empty |> Ctx.add "a" (Bool true) |> Ctx.add "b" (Bool false)
+  in
+  let settings = Settings.make ~context () in
+  let result =
+    render_text ~settings "{% if a or b %}some{% else %}none{% endif %}"
+  in
+  check string "or with bare values" "some" result
+
+let test_and_bare_literals () =
+  let result =
+    render_text "{% if true and false %}both{% else %}not both{% endif %}"
+  in
+  check string "and with bare literals" "not both" result
+
+let test_and_mixed_bare_and_equation () =
+  let context = Ctx.empty |> Ctx.add "a" (Bool true) in
+  let settings = Settings.make ~context () in
+  let result =
+    render_text ~settings "{% if a == true and a %}yes{% else %}no{% endif %}"
+  in
+  check string "mixed bare value and equation" "yes" result
+
+let test_and_in_liquid_tag () =
+  (* The exact reproduction from issue #14. *)
+  let template =
+    "{% liquid\n\
+     assign a = true\n\
+     assign b = true\n\
+     if a and b\n\
+     echo \"both are true\"\n\
+     endif\n\
+     %}"
+  in
+  let result = render_text template in
+  check string "and inside liquid tag" "\n\n\nboth are true\n\n" result
+
 let test_complex_and_or () =
   let context =
     Ctx.empty |> Ctx.add "a" (Number 5.) |> Ctx.add "b" (Number 10.)
@@ -476,6 +526,22 @@ let test_liquid_tag_with_multiple_spaces () =
   let result = render_text template in
   check string "{%   liquid (multiple spaces)" "\nhello\nafter" result
 
+(* Regression: `echo` of a string literal previously leaked the internal
+   "*skip" sentinel instead of outputting the string. See issue #14. *)
+let test_echo_string_literal () =
+  let result = render_text "{% echo \"hello\" %}" in
+  check string "echo string literal" "hello" result
+
+let test_echo_number_literal () =
+  let result = render_text "{% echo 42 %}" in
+  check string "echo number literal" "42" result
+
+let test_echo_variable () =
+  let context = Ctx.empty |> Ctx.add "x" (String "world") in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{% echo x %}" in
+  check string "echo variable" "world" result
+
 let test_liquid_tag_with_trim_and_space () =
   let template =
     "prefix {%- liquid\nassign x = \"hello\"\necho x\n-%} after"
@@ -737,6 +803,12 @@ let suite =
     ; test_case "and operator" `Quick test_and_operator
     ; test_case "or operator" `Quick test_or_operator
     ; test_case "unless (not) operator" `Quick test_not_with_condition
+    ; test_case "and with bare values" `Quick test_and_bare_values
+    ; test_case "or with bare values" `Quick test_or_bare_values
+    ; test_case "and with bare literals" `Quick test_and_bare_literals
+    ; test_case "mixed bare and equation" `Quick
+        test_and_mixed_bare_and_equation
+    ; test_case "and inside liquid tag" `Quick test_and_in_liquid_tag
     ; test_case "complex and/or" `Quick test_complex_and_or
     ; test_case "nested conditions" `Quick test_nested_conditions
       (* Advanced capture tests *)
@@ -764,6 +836,10 @@ let suite =
     ; test_case "style basic" `Quick test_style_basic
     ; test_case "style with liquid" `Quick test_style_with_liquid
     ; test_case "style empty" `Quick test_style_empty
+      (* Echo tests *)
+    ; test_case "echo string literal" `Quick test_echo_string_literal
+    ; test_case "echo number literal" `Quick test_echo_number_literal
+    ; test_case "echo variable" `Quick test_echo_variable
       (* Liquid tag tests *)
     ; test_case "{%liquid (no space)" `Quick test_liquid_tag_no_space
     ; test_case "{% liquid (with space)" `Quick test_liquid_tag_with_space
