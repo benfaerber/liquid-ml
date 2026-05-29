@@ -20,31 +20,29 @@ let build_condition tokens =
   match tokens with
   | Else :: _ -> Always true
   | If :: statement | ElseIf :: statement | Unless :: statement ->
-      let rec aux acc pool =
-        match pool with
-        | [ LexValue a1 ] -> IsTruthy (lex_value_to_value a1)
-        | [ LexValue a1; Operator op1; LexValue b1 ] ->
-            lex_to_equation a1 op1 b1
-        | LexValue a1
-          :: Operator op1
-          :: LexValue b1
-          :: LexCombiner c
-          :: LexValue a2
-          :: Operator op2
-          :: LexValue b2
-          :: tl ->
-            let part_1 = lex_to_equation a1 op1 b1 in
-            let part_2 = lex_to_equation a2 op2 b2 in
-            let compound = combine_condition part_1 part_2 c in
-            aux compound tl
-        | LexCombiner c :: LexValue a1 :: Operator op1 :: LexValue b1 :: tl ->
-            let part_1 = lex_to_equation a1 op1 b1 in
-            let compound = combine_condition acc part_1 c in
-            aux compound tl
-        | [] -> acc
+      (* A condition is a sequence of terms joined by and/or combiners.
+         A term is either an equation (a == b) or a bare truthy value (a). *)
+      let parse_term = function
+        | LexValue a :: Operator op :: LexValue b :: tl ->
+            (lex_to_equation a op b, tl)
+        | LexValue a :: tl -> (IsTruthy (lex_value_to_value a), tl)
         | _ -> Failure "Invalid condition" |> raise
       in
-      let res = aux (Always true) statement in
+      let rec aux acc pool =
+        match pool with
+        | [] -> acc
+        | LexCombiner c :: tl ->
+            let term, rest = parse_term tl in
+            aux (combine_condition acc term c) rest
+        | _ -> Failure "Invalid condition" |> raise
+      in
+      let res =
+        match statement with
+        | [] -> Always true
+        | _ ->
+            let first, rest = parse_term statement in
+            aux first rest
+      in
       if is_unless then Not res else res
   | _ -> raise (Failure "Invalid token list")
 
