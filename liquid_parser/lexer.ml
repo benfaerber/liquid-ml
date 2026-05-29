@@ -164,9 +164,9 @@ let lex_block_token_chunk (chunk2, chunk3) acc index =
     Next (acc @ [ block_token_of_string chunk2 ], index + String.length chunk2)
   else
     match List.rev acc with
-    | RawText tl :: StatementStart _ :: hds
+    | RawText tl :: StatementStart ws :: hds
       when String.equal (String.strip tl) "liquid" ->
-        Next (List.rev hds @ [ LiquidStart ], index + 1)
+        Next (List.rev hds @ [ LiquidStart ws ], index + 1)
     | RawText tl :: hds ->
         Next (List.rev hds @ [ RawText (tl ^ first_letter chunk2) ], index + 1)
     | _ -> Next (acc @ [ RawText (first_letter chunk2) ], index + 1)
@@ -186,6 +186,29 @@ let lex_block_tokens text =
   in
 
   unfold [] 0 folder
+
+let apply_whitespace_control tokens =
+  let is_trim_start = function
+    | StatementStart Trim | ExpressionStart Trim | LiquidStart Trim -> true
+    | _ -> false
+  in
+  let is_trim_end = function
+    | StatementEnd Trim | ExpressionEnd Trim -> true
+    | _ -> false
+  in
+  let rec strip_right = function
+    | RawText t :: next :: rest when is_trim_start next ->
+        RawText (String.rstrip t) :: strip_right (next :: rest)
+    | hd :: rest -> hd :: strip_right rest
+    | [] -> []
+  in
+  let rec strip_left = function
+    | prev :: RawText t :: rest when is_trim_end prev ->
+        prev :: strip_left (RawText (String.lstrip t) :: rest)
+    | hd :: rest -> hd :: strip_left rest
+    | [] -> []
+  in
+  tokens |> strip_right |> strip_left
 
 let lex_line_tokens text =
   let t_text = text ^ " " in
@@ -228,7 +251,7 @@ let lex_all_tokens (block_tokens : block_token list) =
           Next (acc @ lex_line_tokens body @ [ EOS ], index + 3)
       | ExpressionStart _ :: RawText body :: ExpressionEnd _ :: _ ->
           Next (acc @ [ LexExpression (lex_line_tokens body) ], index + 3)
-      | LiquidStart :: RawText body :: StatementEnd _ :: _ ->
+      | LiquidStart _ :: RawText body :: StatementEnd _ :: _ ->
           let liq =
             body |> Preprocessor.remove_liquid_comments |> lex_line_tokens
           in
@@ -243,4 +266,5 @@ let lex_all_tokens (block_tokens : block_token list) =
   let base_lex = unfold [] 0 folder in
   base_lex |> echo_to_expression
 
-let lex text = text |> lex_block_tokens |> lex_all_tokens
+let lex text =
+  text |> lex_block_tokens |> apply_whitespace_control |> lex_all_tokens

@@ -1,0 +1,11 @@
+{%- if post.published -%}
+<article>
+  <h1>{{ post.title }}</h1>
+  {%- if post.subtitle %}
+  <h2>{{ post.subtitle }}</h2>
+  {%- endif %}
+  <div class="body">{{ post.body }}</div>
+</article>
+{%- else -%}
+<p>Draft: {{ post.title }}</p>
+{%- endif -%}

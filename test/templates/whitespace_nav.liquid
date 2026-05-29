@@ -1,0 +1,9 @@
+<nav>
+  {%- for link in links -%}
+    {%- if link.active %}
+    <a class="active" href="{{ link.url }}">{{ link.label }}</a>
+    {%- else %}
+    <a href="{{ link.url }}">{{ link.label }}</a>
+    {%- endif -%}
+  {%- endfor %}
+</nav>

@@ -7,7 +7,7 @@ type block_token =
   | StatementEnd of whitespace_control
   | ExpressionStart of whitespace_control
   | ExpressionEnd of whitespace_control
-  | LiquidStart
+  | LiquidStart of whitespace_control
   | RawText of string
 [@@deriving show]
 

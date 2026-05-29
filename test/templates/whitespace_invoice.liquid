@@ -1,0 +1,10 @@
+{%- assign currency = "$" -%}
+Invoice for {{ customer.name }}
+{%- if customer.vip %} (VIP){% endif %}
+
+Items:
+{%- for item in items %}
+- {{ item.name }}: {{ currency }}{{ item.price }}
+{%- endfor %}
+
+Total: {{ currency }}{{ total }}
