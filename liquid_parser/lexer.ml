@@ -119,8 +119,20 @@ let lex_id text =
           let folder acc m =
             let is_string = starts_with m "[\"" || starts_with m "['" in
             let pos = if is_string then 2 else 1 in
+            let inner = String.sub m ~pos ~len:(String.length m - (pos * 2)) in
+            let inner = String.strip inner in
+            let is_number =
+              String.length inner > 0
+              && String.for_all inner ~f:Char.is_digit
+            in
             let dot_notation =
-              "." ^ String.sub m ~pos ~len:(String.length m - (pos * 2))
+              if is_string || is_number then "." ^ inner
+              else
+                let escaped =
+                  String.map inner ~f:(fun c ->
+                      if Char.equal c '.' then '\x01' else c)
+                in
+                "." ^ "\x00" ^ escaped
             in
             String.substr_replace_first acc ~pattern:m ~with_:dot_notation
           in
@@ -152,7 +164,8 @@ let lex_block_token_chunk (chunk2, chunk3) acc index =
     Next (acc @ [ block_token_of_string chunk2 ], index + String.length chunk2)
   else
     match List.rev acc with
-    | RawText "liquid" :: StatementStart _ :: hds ->
+    | RawText tl :: StatementStart _ :: hds
+      when String.equal (String.strip tl) "liquid" ->
         Next (List.rev hds @ [ LiquidStart ], index + 1)
     | RawText tl :: hds ->
         Next (List.rev hds @ [ RawText (tl ^ first_letter chunk2) ], index + 1)

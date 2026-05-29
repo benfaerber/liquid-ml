@@ -422,6 +422,50 @@ let test_for_loop_large_list () =
   let result = render_text ~settings template in
   check string "for loop with large list (limited)" "01234" result
 
+let test_for_loop_index_dynamic_array_access () =
+  let items = List [ String "a"; String "b"; String "c" ] in
+  let context = Ctx.empty |> Ctx.add "items" items in
+  let settings = Settings.make ~context () in
+  let template =
+    "{% for item in items %}{{ items[forloop.index0] }}{% endfor %}"
+  in
+  let result = render_text ~settings template in
+  check string "items[forloop.index0]" "abc" result
+
+let test_for_loop_index1_dynamic_array_access () =
+  let items = List [ String "a"; String "b"; String "c" ] in
+  let context = Ctx.empty |> Ctx.add "items" items in
+  let settings = Settings.make ~context () in
+  let template =
+    "{% for item in items %}{{ items[forloop.index] }}{% endfor %}"
+  in
+  let result = render_text ~settings template in
+  check string "items[forloop.index]" "bcnil" result
+
+let test_dynamic_array_index_from_variable () =
+  let items = List [ String "x"; String "y"; String "z" ] in
+  let context =
+    Ctx.empty |> Ctx.add "items" items |> Ctx.add "i" (Number 1.0)
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ items[i] }}" in
+  check string "items[i] with i from context" "y" result
+
+let test_dynamic_object_key_from_variable () =
+  let user =
+    Object.empty
+    |> Object.add "name" (String "Alice")
+    |> Object.add "age" (Number 30.0)
+  in
+  let context =
+    Ctx.empty
+    |> Ctx.add "user" (Object user)
+    |> Ctx.add "field" (String "name")
+  in
+  let settings = Settings.make ~context () in
+  let result = render_text ~settings "{{ user[field] }}" in
+  check string "user[field] dynamic object key" "Alice" result
+
 (* Test suite *)
 let suite =
   ( "For Loop Tests"
@@ -481,4 +525,12 @@ let suite =
     ; test_case "for loop with assign inside" `Quick
         test_for_loop_with_assign_inside
     ; test_case "for loop large list" `Quick test_for_loop_large_list
+    ; test_case "items[forloop.index0]" `Quick
+        test_for_loop_index_dynamic_array_access
+    ; test_case "items[forloop.index]" `Quick
+        test_for_loop_index1_dynamic_array_access
+    ; test_case "items[i] with variable index" `Quick
+        test_dynamic_array_index_from_variable
+    ; test_case "obj[field] dynamic key" `Quick
+        test_dynamic_object_key_from_variable
     ] )

@@ -453,6 +453,36 @@ let test_style_empty () =
   let result = render_text ~settings "{% style %}{% endstyle %}" in
   check string "style empty" "<style data-liquid></style>" result
 
+(* Liquid tag tests *)
+
+let test_liquid_tag_no_space () =
+  let template =
+    "{%liquid\nassign x = \"hello\"\necho x\n%}after"
+  in
+  let result = render_text template in
+  check string "{%liquid (no space)" "\nhello\nafter" result
+
+let test_liquid_tag_with_space () =
+  let template =
+    "{% liquid\nassign x = \"hello\"\necho x\n%}after"
+  in
+  let result = render_text template in
+  check string "{% liquid (with space)" "\nhello\nafter" result
+
+let test_liquid_tag_with_multiple_spaces () =
+  let template =
+    "{%   liquid\nassign x = \"hello\"\necho x\n%}after"
+  in
+  let result = render_text template in
+  check string "{%   liquid (multiple spaces)" "\nhello\nafter" result
+
+let test_liquid_tag_with_trim_and_space () =
+  let template =
+    "prefix {%- liquid\nassign x = \"hello\"\necho x\n-%} after"
+  in
+  let result = render_text template in
+  check string "{%- liquid (trim + space)" "prefix \nhello\n after" result
+
 (* Test suite *)
 let suite =
   ( "Interpreter Tests"
@@ -515,4 +545,11 @@ let suite =
     ; test_case "style basic" `Quick test_style_basic
     ; test_case "style with liquid" `Quick test_style_with_liquid
     ; test_case "style empty" `Quick test_style_empty
+      (* Liquid tag tests *)
+    ; test_case "{%liquid (no space)" `Quick test_liquid_tag_no_space
+    ; test_case "{% liquid (with space)" `Quick test_liquid_tag_with_space
+    ; test_case "{%   liquid (multiple spaces)" `Quick
+        test_liquid_tag_with_multiple_spaces
+    ; test_case "{%- liquid (trim + space)" `Quick
+        test_liquid_tag_with_trim_and_space
     ] )
