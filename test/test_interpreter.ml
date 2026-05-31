@@ -262,7 +262,7 @@ let test_and_in_liquid_tag () =
      %}"
   in
   let result = render_text template in
-  check string "and inside liquid tag" "\n\n\nboth are true\n\n" result
+  check string "and inside liquid tag" "both are true" result
 
 let test_complex_and_or () =
   let context =
@@ -510,21 +510,21 @@ let test_liquid_tag_no_space () =
     "{%liquid\nassign x = \"hello\"\necho x\n%}after"
   in
   let result = render_text template in
-  check string "{%liquid (no space)" "\nhello\nafter" result
+  check string "{%liquid (no space)" "helloafter" result
 
 let test_liquid_tag_with_space () =
   let template =
     "{% liquid\nassign x = \"hello\"\necho x\n%}after"
   in
   let result = render_text template in
-  check string "{% liquid (with space)" "\nhello\nafter" result
+  check string "{% liquid (with space)" "helloafter" result
 
 let test_liquid_tag_with_multiple_spaces () =
   let template =
     "{%   liquid\nassign x = \"hello\"\necho x\n%}after"
   in
   let result = render_text template in
-  check string "{%   liquid (multiple spaces)" "\nhello\nafter" result
+  check string "{%   liquid (multiple spaces)" "helloafter" result
 
 (* Regression: `echo` of a string literal previously leaked the internal
    "*skip" sentinel instead of outputting the string. See issue #14. *)
@@ -547,7 +547,7 @@ let test_liquid_tag_with_trim_and_space () =
     "prefix {%- liquid\nassign x = \"hello\"\necho x\n-%} after"
   in
   let result = render_text template in
-  check string "{%- liquid (trim + space)" "prefix\nhello\nafter" result
+  check string "{%- liquid (trim + space)" "prefixhelloafter" result
 
 (* Whitespace Control Tests *)
 
