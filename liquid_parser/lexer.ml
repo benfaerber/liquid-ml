@@ -250,8 +250,12 @@ let lex_all_tokens (block_tokens : block_token list) =
       | ExpressionStart _ :: RawText body :: ExpressionEnd _ :: _ ->
           Next (acc @ [ LexExpression (lex_line_tokens body) ], index + 3)
       | LiquidStart _ :: RawText body :: StatementEnd _ :: _ ->
+          (* Inside a {% liquid %} tag, each line is its own statement.
+             Newlines act purely as statement separators (already captured
+             by the EOS emitted alongside them) and must not render as text. *)
           let liq =
             body |> Preprocessor.remove_liquid_comments |> lex_line_tokens
+            |> List.filter ~f:(function Newline -> false | _ -> true)
           in
           Next (acc @ liq, index + 3)
       | RawText other :: _ ->
