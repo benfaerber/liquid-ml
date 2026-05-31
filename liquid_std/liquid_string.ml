@@ -5,9 +5,11 @@ open Tools
 open Helpers
 open Encoder
 
-let append _ = function
-  | String base :: String addition :: _ -> String (base ^ addition) |> ok
-  | other -> errc "append accepts 2 strings" other
+let append ctx = function
+  | base :: addition :: _ ->
+      String (Values.string_from_value ctx base ^ Values.string_from_value ctx addition)
+      |> ok
+  | other -> errc "append accepts 2 values" other
 
 let base64_decode _ = function
   | String s :: _ -> Base64.decode_exn s |> ok_str
@@ -115,9 +117,11 @@ let pluralize _ = function
       errc "pluralize accepts a number, a singular string and a plural string"
         other
 
-let prepend _ = function
-  | String base :: String addition :: _ -> addition ^ base |> ok_str
-  | other -> errc "prepend accepts 2 strings" other
+let prepend ctx = function
+  | base :: addition :: _ ->
+      Values.string_from_value ctx addition ^ Values.string_from_value ctx base
+      |> ok_str
+  | other -> errc "prepend accepts 2 values" other
 
 let remove _ = function
   | String haystack :: String needle :: _ ->

@@ -18,6 +18,16 @@ let rec unwrap ctx v =
   | Var id ->
       let id = resolve_dynamic_pieces ctx id in
       unwrap_id ctx id
+  | Range (a, b) ->
+      let to_int x =
+        match unwrap ctx x with
+        | Number n -> Some (Int.of_float n)
+        | String s -> ( try Some (Int.of_string (String.strip s)) with _ -> None)
+        | _ -> None
+      in
+      (match (to_int a, to_int b) with
+      | Some lo, Some hi -> liq_list_from_bounds lo hi
+      | _ -> List [])
   | other -> other
 
 and unwrap_id ctx id =
@@ -102,6 +112,7 @@ let rec string_from_value ctx = function
       if Float.round_down f = f then f |> Float.to_int |> Int.to_string
       else Float.to_string f
   | Var id -> string_from_value ctx (unwrap ctx (Var id))
+  | Range (a, b) -> string_from_value ctx (unwrap ctx (Range (a, b)))
   | Nil -> "nil"
   | List lst -> List.map lst ~f:(string_from_value ctx) |> join_by_comma
   | Object obj -> json_from_value ctx (Object obj)

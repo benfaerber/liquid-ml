@@ -32,6 +32,7 @@ type value =
   | List of value list
   | Date of Date.t
   | Object of liquid_object
+  | Range of value * value
   | Nil
 
 and liquid_object = value Object.t
@@ -63,6 +64,8 @@ and pp_value fmt = function
         (List.map l ~f:show_value |> String.concat ~sep:", ")
   | Date d -> pp_date fmt d
   | Object obj -> pp_liquid_object fmt obj
+  | Range (a, b) ->
+      Stdlib.Format.fprintf fmt "Range(%s..%s)" (show_value a) (show_value b)
   | Nil -> Stdlib.Format.fprintf fmt "Nil"
 
 and show_value = function
@@ -74,6 +77,7 @@ and show_value = function
       "List[" ^ (List.map l ~f:show_value |> String.concat ~sep:", ") ^ "]"
   | Date d -> show_date d
   | Object obj -> "Object{" ^ show_liquid_object obj ^ "}"
+  | Range (a, b) -> "Range(" ^ show_value a ^ ".." ^ show_value b ^ ")"
   | Nil -> "Nil"
 
 let pp_variable_context fmt ctx =
@@ -138,24 +142,27 @@ type ast =
   | Nothing
 [@@deriving show]
 
-let list_of_range = function
-  | LexRange (start, stop) -> List.range start (stop + 1)
-  | _ -> raise (Failure "This is not a range!")
+(* Build the concrete integer list for a resolved range (inclusive). *)
+let liq_list_from_bounds lo hi =
+  let lst = if hi >= lo then List.range lo (hi + 1) else [] in
+  List (List.map lst ~f:(fun n -> Number (Int.to_float n)))
 
-let liq_list_of_range r =
-  List (List.map (list_of_range r) ~f:(fun n -> Number (Int.to_float n)))
-
-let lex_value_to_value = function
+let rec lex_value_to_value = function
   | LexId id -> Var id
   | LexBool b -> Bool b
   | LexString s -> String s
   | LexNumber n -> Number n
-  | LexRange (st, sp) -> liq_list_of_range (LexRange (st, sp))
+  (* A range's bounds are kept as values and resolved at interpret time, so
+     that variable bounds like (1..n) work, not just integer literals. *)
+  | LexRange (lo, hi) -> Range (lex_value_to_value lo, lex_value_to_value hi)
   | LexNil -> Nil
   | LexBlank -> String ""
 
+(* Shopify's `for` has no implicit limit; only an explicit `limit:` caps it.
+   We use a very large sentinel so `min(len, limit)` is effectively unbounded
+   while avoiding any `limit - offset` overflow. *)
 let for_params_default =
-  { limit = 50; offset = 0; reved = false; cols = 10; is_tablerow = false }
+  { limit = Int.max_value / 2; offset = 0; reved = false; cols = 10; is_tablerow = false }
 
 type liquid_filter = variable_context -> value list -> (value, string) Result.t
 type liquid_filter_lookup = string -> liquid_filter option
