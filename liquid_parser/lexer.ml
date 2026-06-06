@@ -50,25 +50,32 @@ let lex_number text =
 let has_prefix_or_fail text prefix func =
   if starts_with text prefix then remove_prefix text prefix |> func else None
 
+(* A range bound is either a number literal or an identifier (variable), e.g.
+   both `(1..5)` and `(1..n)` / `(start..stop)` are valid. *)
+let lex_range_atom text =
+  match lex_digit_group text with
+  | "" ->
+      (* No '.' in the char class: it must not swallow the '..' separator. *)
+      let id_exp = ~/"^[a-zA-Z_][a-zA-Z0-9_]*" in
+      if Re2.matches id_exp text then
+        let lit = Re2.find_first_exn id_exp text in
+        Some (LexId [ lit ], remove_prefix text lit)
+      else None
+  | digits -> Some (LexNumber (Float.of_string digits), remove_prefix text digits)
+
 let lex_range text =
   let popen, pclose = ("(", ")") in
   let dotdot = ".." in
   let lex_first_group wo_paren =
-    match lex_digit_group wo_paren with
-    | "" -> None
-    | first_number ->
-        let after_first = remove_prefix wo_paren first_number in
+    match lex_range_atom wo_paren with
+    | None -> None
+    | Some (first, after_first) ->
         let lex_second_group wo_dot =
-          match lex_digit_group wo_dot with
-          | "" -> None
-          | second_number ->
-              let after_second = remove_prefix wo_dot second_number in
+          match lex_range_atom wo_dot with
+          | None -> None
+          | Some (second, after_second) ->
               if starts_with after_second pclose then
-                let range =
-                  LexValue
-                    (LexRange
-                       (Int.of_string first_number, Int.of_string second_number))
-                in
+                let range = LexValue (LexRange (first, second)) in
                 Some (range, remove_prefix after_second pclose)
               else None
         in
@@ -157,35 +164,69 @@ let lex_token text =
   in
   first_successful text lexers
 
-let lex_block_token_chunk (chunk2, chunk3) acc index =
+(* Are we currently between a block opener ({{ or {%) and its closer? *)
+let inside_after_token inside = function
+  | StatementStart _ | ExpressionStart _ | LiquidStart _ -> true
+  | StatementEnd _ | ExpressionEnd _ -> false
+  | _ -> inside
+
+let lex_block_token_chunk (chunk2, chunk3) (acc, inside) index =
   if is_block_token_whitespace_string chunk3 then
-    Next (acc @ [ block_token_of_string chunk3 ], index + String.length chunk3)
+    let tok = block_token_of_string chunk3 in
+    Next ((acc @ [ tok ], inside_after_token inside tok), index + String.length chunk3)
   else if is_block_token_string chunk2 then
-    Next (acc @ [ block_token_of_string chunk2 ], index + String.length chunk2)
+    let tok = block_token_of_string chunk2 in
+    Next ((acc @ [ tok ], inside_after_token inside tok), index + String.length chunk2)
   else
     match List.rev acc with
     | RawText tl :: StatementStart ws :: hds
       when String.equal (String.strip tl) "liquid" ->
-        Next (List.rev hds @ [ LiquidStart ws ], index + 1)
+        Next ((List.rev hds @ [ LiquidStart ws ], inside), index + 1)
     | RawText tl :: hds ->
-        Next (List.rev hds @ [ RawText (tl ^ first_letter chunk2) ], index + 1)
-    | _ -> Next (acc @ [ RawText (first_letter chunk2) ], index + 1)
+        Next ((List.rev hds @ [ RawText (tl ^ first_letter chunk2) ], inside), index + 1)
+    | _ -> Next ((acc @ [ RawText (first_letter chunk2) ], inside), index + 1)
 
 let lex_block_tokens text =
-  let folder acc index =
-    let curr = String.sub text ~pos:index ~len:(String.length text - index) in
+  let len = String.length text in
+  (* When inside a block, consume a quoted string literal verbatim so that any
+     {{ }} {% %} characters inside it are NOT mistaken for block delimiters. *)
+  let consume_quote index =
+    let q = text.[index] in
+    let rec go i =
+      if i >= len then i
+      else if Char.equal text.[i] '\\' && i + 1 < len then go (i + 2)
+      else if Char.equal text.[i] q then i + 1
+      else go (i + 1)
+    in
+    go (index + 1)
+  in
+  let append_raw acc s =
+    match List.rev acc with
+    | RawText tl :: hds -> List.rev hds @ [ RawText (tl ^ s) ]
+    | _ -> acc @ [ RawText s ]
+  in
+  let folder (acc, inside) index =
+    let curr = String.sub text ~pos:index ~len:(len - index) in
     if Preprocessor.is_raw curr then
       let raw_text = Preprocessor.until_end_raw curr in
       let raw_body = Preprocessor.trim_raw_tags raw_text in
-      Next (acc @ [ RawText raw_body ], index + String.length raw_text)
-    else if index + 3 < String.length text then
+      Next ((acc @ [ RawText raw_body ], inside), index + String.length raw_text)
+    else if
+      inside && index < len
+      && (Char.equal text.[index] '\'' || Char.equal text.[index] '"')
+    then
+      let endi = consume_quote index in
+      let span = String.sub text ~pos:index ~len:(endi - index) in
+      Next ((append_raw acc span, inside), endi)
+    else if index + 3 < len then
       let chunk2 = String.sub text ~pos:index ~len:2 in
       let chunk3 = String.sub text ~pos:index ~len:3 in
-      lex_block_token_chunk (chunk2, chunk3) acc index
-    else Stop acc
+      lex_block_token_chunk (chunk2, chunk3) (acc, inside) index
+    else Stop (acc, inside)
   in
 
-  unfold [] 0 folder
+  let toks, _ = unfold ([], false) 0 folder in
+  toks
 
 let apply_whitespace_control tokens =
   let is_trim_start = function

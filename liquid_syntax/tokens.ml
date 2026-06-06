@@ -18,7 +18,7 @@ type lex_value =
   | LexString of string
   | LexNumber of float
   | LexId of string list
-  | LexRange of int * int
+  | LexRange of lex_value * lex_value
   | LexNil
   | LexBlank
 [@@deriving show]

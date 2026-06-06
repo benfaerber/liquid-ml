@@ -9,21 +9,6 @@ let nlit t = "*notifier_" ^ t
 let notifier t = Ctx.add (nlit t) (String (nlit t))
 let has_notifier t = Ctx.mem (nlit t)
 
-let save_state ctx =
-  let seq = Ctx.to_seq ctx in
-  let mapped = Stdlib.Seq.map (fun (id, _) -> id) seq in
-  let built = Stdlib.Seq.fold_left (fun acc curr -> acc @ [ curr ]) [] mapped in
-  built
-
-let rewind ctx ostate =
-  let cstate = save_state ctx in
-
-  let folder c_ctx key =
-    if contains ostate key then c_ctx else Ctx.remove key c_ctx
-  in
-
-  List.fold cstate ~init:ctx ~f:folder
-
 let list_from_ctx ctx =
   Ctx.to_seq ctx |> Stdlib.Seq.fold_left (fun acc curr -> acc @ [ curr ]) []
 
@@ -133,27 +118,29 @@ and interpret_else settings ctx str = function
   | None -> (ctx, str)
 
 and interpret_test settings ctx str ~cond ~body ~else_body =
-  let pre_state = save_state ctx in
-  let rctx, rstr =
-    if interpret_condition ctx cond then interpret settings ctx str body
-    else interpret_else settings ctx str else_body
-  in
-
-  let break_exists = has_notifier "break" rctx in
-  let continue_exists = has_notifier "continue" rctx in
-  let result_ctx = rewind rctx pre_state in
-  let result_ctx =
-    if break_exists then notifier "break" result_ctx else result_ctx
-  in
-  let result_ctx =
-    if continue_exists then notifier "continue" result_ctx else result_ctx
-  in
-
-  (result_ctx, rstr)
+  (* if/else/unless/case do NOT introduce a new scope in Liquid: variables
+     assigned inside a branch persist to the surrounding scope. We therefore
+     thread the branch's context straight through (it already carries any
+     break/continue notifiers set inside the branch). *)
+  if interpret_condition ctx cond then interpret settings ctx str body
+  else interpret_else settings ctx str else_body
 
 and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
   let uiter = Values.unwrap ctx iterable in
-  let pre_state = save_state ctx in
+  (* When the loop finishes, variables assigned in the body must persist
+     (Liquid does not scope assigns), but the loop-local bindings must not:
+     restore `alias` and `forloop` to their pre-loop state, and clear any
+     break/continue notifiers so they don't leak past the loop. *)
+  let end_scope final =
+    let restore key c =
+      match Ctx.find_opt key ctx with
+      | Some v -> Ctx.add key v c
+      | None -> Ctx.remove key c
+    in
+    final |> restore alias |> restore Settings.forloop
+    |> Ctx.remove (nlit "break")
+    |> Ctx.remove (nlit "continue")
+  in
   let loop (acc_ctx, acc_str) curr ~last =
     (* TODO: Add forloop parent var *)
     let loop_ctx = Ctx.add alias curr acc_ctx in
@@ -162,7 +149,7 @@ and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
         let inner_ctx, rendered = interpret_block settings loop_ctx "" b in
         let r_str = acc_str ^ rendered in
         if has_notifier "break" inner_ctx then
-          Done (rewind inner_ctx pre_state, acc_str)
+          Done (end_scope inner_ctx, acc_str)
         else if has_notifier "continue" inner_ctx then
           let find_int k =
             match Ctx.find Settings.forloop acc_ctx with
@@ -181,7 +168,7 @@ and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
           (* Remove the continue notifier for the next iteration *)
           let next_ctx = Ctx.remove (nlit "continue") nacc in
 
-          if last then Forward (rewind next_ctx pre_state, r_str)
+          if last then Forward (end_scope next_ctx, r_str)
           else Forward (next_ctx, r_str)
         else
           let find_int k =
@@ -198,7 +185,7 @@ and interpret_for settings ctx str ~alias ~iterable ~params ~body ~else_body =
             Interpreter_objects.make_forloop_ctx inner_ctx index length
           in
 
-          if last then Forward (rewind nacc pre_state, r_str)
+          if last then Forward (end_scope nacc, r_str)
           else Forward (nacc, r_str)
     | _ -> raise (Failure "A body must be a block")
   in
