@@ -19,7 +19,7 @@ depends: [
     "stdio" { >= "v0.15.0" }
     "re2" { >= "v0.13.0" }
     "base64" { >= "3.5.1" }
-    "sha" { >= "1.0" }
+    "sha" { >= "1.12" }
     "liquid_syntax" { = version }
     "liquid_parser" { = version }
     "liquid_syntax" { = version }
