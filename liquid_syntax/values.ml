@@ -95,7 +95,7 @@ and unwrap_chain ctx id =
         let nv = unwrap nctx (Var [ Settings.next; hd ]) in
         (nv, nctx)
     | List lst when (
-        match Int.of_string_opt hd with Some _ -> true | None -> false) ->
+        match Stdlib.int_of_string_opt hd with Some _ -> true | None -> false) ->
         let idx = Int.of_string hd in
         let nv = unwrap_or (List.nth lst idx) Nil in
         (nv, Ctx.empty |> Ctx.add hd nv)
